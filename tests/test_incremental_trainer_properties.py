@@ -21,6 +21,13 @@ try:
 except ImportError:
     IMPORTS_AVAILABLE = False
 
+# 检查 joblib 是否可用
+try:
+    import joblib
+    JOBLIB_AVAILABLE = True
+except ImportError:
+    JOBLIB_AVAILABLE = False
+
 
 # 策略定义
 feature_strategy = st.fixed_dictionaries({
@@ -51,24 +58,22 @@ class MockModel:
         return [self.classes_[0]] * len(X)
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+def create_trainer(batch_size=5, max_versions=3):
+    """创建增量训练器"""
+    temp_dir = tempfile.mkdtemp()
+    config = {
+        'batch_size': batch_size,
+        'model_dir': temp_dir,
+        'max_versions': max_versions
+    }
+    trainer = IncrementalTrainer(config)
+    trainer.set_model(MockModel())
+    return trainer, temp_dir
+
+
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not JOBLIB_AVAILABLE, reason="Required imports not available")
 class TestIncrementalUpdateTrigger:
     """增量更新触发测试 - Property 12"""
-    
-    @pytest.fixture
-    def trainer(self):
-        """创建增量训练器"""
-        temp_dir = tempfile.mkdtemp()
-        config = {
-            'batch_size': 5,
-            'model_dir': temp_dir,
-            'max_versions': 3
-        }
-        trainer = IncrementalTrainer(config)
-        trainer.set_model(MockModel())
-        yield trainer
-        # 清理
-        shutil.rmtree(temp_dir, ignore_errors=True)
     
     @settings(max_examples=50)
     @given(
@@ -117,43 +122,33 @@ class TestIncrementalUpdateTrigger:
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
     
-    def test_force_update(self, trainer):
+    def test_force_update(self):
         """
         强制更新应该处理所有待处理样本。
         """
-        # 添加少于 batch_size 的样本
-        for i in range(3):
-            trainer.add_sample(
-                features={'text': f'sample {i}'},
-                label='测试'
-            )
-        
-        assert trainer.get_pending_count() == 3
-        
-        # 强制更新
-        result = trainer.force_update()
-        
-        assert result is True
-        assert trainer.get_pending_count() == 0
+        trainer, temp_dir = create_trainer()
+        try:
+            # 添加少于 batch_size 的样本
+            for i in range(3):
+                trainer.add_sample(
+                    features={'text': f'sample {i}'},
+                    label='测试'
+                )
+            
+            assert trainer.get_pending_count() == 3
+            
+            # 强制更新
+            result = trainer.force_update()
+            
+            assert result is True
+            assert trainer.get_pending_count() == 0
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not JOBLIB_AVAILABLE, reason="Required imports not available")
 class TestModelVersionHistory:
     """模型版本历史测试 - Property 13"""
-    
-    @pytest.fixture
-    def trainer(self):
-        """创建增量训练器"""
-        temp_dir = tempfile.mkdtemp()
-        config = {
-            'batch_size': 2,
-            'model_dir': temp_dir,
-            'max_versions': 3
-        }
-        trainer = IncrementalTrainer(config)
-        trainer.set_model(MockModel())
-        yield trainer
-        shutil.rmtree(temp_dir, ignore_errors=True)
     
     @settings(max_examples=30)
     @given(n_updates=st.integers(min_value=1, max_value=8))
@@ -200,72 +195,66 @@ class TestModelVersionHistory:
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
     
-    def test_rollback_functionality(self, trainer):
+    def test_rollback_functionality(self):
         """
         回滚应该恢复到上一个版本。
         """
-        # 创建多个版本
-        for update_idx in range(3):
-            for i in range(2):
-                trainer.add_sample(
-                    features={'text': f'sample{update_idx}_{i}'},
-                    label=f'类别{update_idx}'
-                )
-        
-        versions_before = len(trainer.get_version_history())
-        current_version = trainer.current_version
-        
-        # 回滚
-        result = trainer.rollback()
-        
-        assert result is True
-        assert len(trainer.get_version_history()) == versions_before - 1
-        assert trainer.current_version != current_version
+        trainer, temp_dir = create_trainer(batch_size=2, max_versions=3)
+        try:
+            # 创建多个版本
+            for update_idx in range(3):
+                for i in range(2):
+                    trainer.add_sample(
+                        features={'text': f'sample{update_idx}_{i}'},
+                        label=f'类别{update_idx}'
+                    )
+            
+            versions_before = len(trainer.get_version_history())
+            current_version = trainer.current_version
+            
+            # 回滚
+            result = trainer.rollback()
+            
+            assert result is True
+            assert len(trainer.get_version_history()) == versions_before - 1
+            assert trainer.current_version != current_version
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
     
-    def test_load_specific_version(self, trainer):
+    def test_load_specific_version(self):
         """
         应该能够加载特定版本。
         """
-        # 创建多个版本
-        for update_idx in range(3):
-            for i in range(2):
-                trainer.add_sample(
-                    features={'text': f'sample{update_idx}_{i}'},
-                    label=f'类别{update_idx}'
-                )
-        
-        versions = trainer.get_version_history()
-        assume(len(versions) >= 2)
-        
-        # 加载第一个版本
-        first_version = versions[0]
-        result = trainer.load_version(first_version.version_id)
-        
-        assert result is True
-        assert trainer.current_version == first_version.version_id
+        trainer, temp_dir = create_trainer(batch_size=2, max_versions=3)
+        try:
+            # 创建多个版本
+            for update_idx in range(3):
+                for i in range(2):
+                    trainer.add_sample(
+                        features={'text': f'sample{update_idx}_{i}'},
+                        label=f'类别{update_idx}'
+                    )
+            
+            versions = trainer.get_version_history()
+            assume(len(versions) >= 2)
+            
+            # 加载第一个版本
+            first_version = versions[0]
+            result = trainer.load_version(first_version.version_id)
+            
+            assert result is True
+            assert trainer.current_version == first_version.version_id
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not JOBLIB_AVAILABLE, reason="Required imports not available")
 class TestAtomicSerialization:
     """原子性序列化测试 - Property 14"""
     
-    @pytest.fixture
-    def trainer(self):
-        """创建增量训练器"""
-        temp_dir = tempfile.mkdtemp()
-        config = {
-            'batch_size': 2,
-            'model_dir': temp_dir,
-            'max_versions': 5
-        }
-        trainer = IncrementalTrainer(config)
-        trainer.set_model(MockModel())
-        yield trainer
-        shutil.rmtree(temp_dir, ignore_errors=True)
-    
     @settings(max_examples=30)
     @given(n_samples=st.integers(min_value=2, max_value=10))
-    def test_atomic_model_serialization(self, trainer, n_samples):
+    def test_atomic_model_serialization(self, n_samples):
         """
         Property 14: Atomic Model Serialization
         
@@ -274,57 +263,65 @@ class TestAtomicSerialization:
         
         Validates: Requirements 4.6
         """
-        # 添加样本触发更新
-        for i in range(n_samples):
-            trainer.add_sample(
-                features={'text': f'sample {i}'},
-                label='测试'
-            )
-        
-        # 验证所有版本都是完整的
-        for version in trainer.get_version_history():
-            model_path = version.model_path
+        trainer, temp_dir = create_trainer(batch_size=2, max_versions=5)
+        try:
+            # 添加样本触发更新
+            for i in range(n_samples):
+                trainer.add_sample(
+                    features={'text': f'sample {i}'},
+                    label='测试'
+                )
             
-            # 验证目录存在
-            assert os.path.exists(model_path), \
-                f"Version directory {model_path} should exist"
-            
-            # 验证模型文件存在
-            model_file = os.path.join(model_path, 'model.pkl')
-            assert os.path.exists(model_file), \
-                f"Model file {model_file} should exist"
-            
-            # 验证没有临时文件残留
-            temp_path = model_path + '.tmp'
-            assert not os.path.exists(temp_path), \
-                f"Temporary file {temp_path} should not exist"
+            # 验证所有版本都是完整的
+            for version in trainer.get_version_history():
+                model_path = version.model_path
+                
+                # 验证目录存在
+                assert os.path.exists(model_path), \
+                    f"Version directory {model_path} should exist"
+                
+                # 验证模型文件存在
+                model_file = os.path.join(model_path, 'model.pkl')
+                assert os.path.exists(model_file), \
+                    f"Model file {model_file} should exist"
+                
+                # 验证没有临时文件残留
+                temp_path = model_path + '.tmp'
+                assert not os.path.exists(temp_path), \
+                    f"Temporary file {temp_path} should not exist"
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
     
-    def test_no_partial_state_on_failure(self, trainer):
+    def test_no_partial_state_on_failure(self):
         """
         失败时不应该留下部分状态。
         """
-        model_dir = trainer.model_dir
-        
-        # 记录初始状态
-        initial_versions = len(trainer.get_version_history())
-        
-        # 模拟正常更新
-        for i in range(2):
-            trainer.add_sample(
-                features={'text': f'sample {i}'},
-                label='测试'
-            )
-        
-        # 验证更新成功
-        assert len(trainer.get_version_history()) == initial_versions + 1
-        
-        # 检查没有临时文件
-        for item in os.listdir(model_dir):
-            assert not item.endswith('.tmp'), \
-                f"Temporary file {item} should not exist"
+        trainer, temp_dir = create_trainer()
+        try:
+            model_dir = trainer.model_dir
+            
+            # 记录初始状态
+            initial_versions = len(trainer.get_version_history())
+            
+            # 模拟正常更新
+            for i in range(2):
+                trainer.add_sample(
+                    features={'text': f'sample {i}'},
+                    label='测试'
+                )
+            
+            # 验证更新成功
+            assert len(trainer.get_version_history()) == initial_versions + 1
+            
+            # 检查没有临时文件
+            for item in os.listdir(model_dir):
+                assert not item.endswith('.tmp'), \
+                    f"Temporary file {item} should not exist"
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not JOBLIB_AVAILABLE, reason="Required imports not available")
 class TestVersionCleanup:
     """版本清理测试"""
     

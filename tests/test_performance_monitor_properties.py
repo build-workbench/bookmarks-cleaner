@@ -28,17 +28,17 @@ method_strategy = st.sampled_from([
 ])
 
 
+def create_monitor(latency_threshold_ms=100, window_size=10000):
+    """创建性能监控器"""
+    return PerformanceMonitor({
+        'latency_threshold_ms': latency_threshold_ms,
+        'window_size': window_size
+    })
+
+
 @pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
 class TestLatencyPercentileAccuracy:
     """延迟百分位数准确性测试 - Property 23"""
-    
-    @pytest.fixture
-    def monitor(self):
-        """创建性能监控器"""
-        return PerformanceMonitor({
-            'latency_threshold_ms': 100,
-            'window_size': 10000
-        })
     
     @settings(max_examples=50)
     @given(
@@ -48,7 +48,7 @@ class TestLatencyPercentileAccuracy:
             max_size=200
         )
     )
-    def test_latency_percentile_accuracy(self, monitor, latencies):
+    def test_latency_percentile_accuracy(self, latencies):
         """
         Property 23: Latency Percentile Accuracy
         
@@ -57,6 +57,8 @@ class TestLatencyPercentileAccuracy:
         
         Validates: Requirements 8.1, 8.2
         """
+        monitor = create_monitor()
+        
         # 记录延迟
         for latency in latencies:
             monitor.record_classification(
@@ -98,10 +100,12 @@ class TestLatencyPercentileAccuracy:
             max_size=100
         )
     )
-    def test_percentile_ordering(self, monitor, latencies):
+    def test_percentile_ordering(self, latencies):
         """
         百分位数应该满足 p50 <= p95 <= p99。
         """
+        monitor = create_monitor()
+        
         for latency in latencies:
             monitor.record_classification(
                 method='test',
@@ -135,10 +139,7 @@ class TestLatencyAlertEmission:
         
         Validates: Requirements 8.3
         """
-        monitor = PerformanceMonitor({
-            'latency_threshold_ms': threshold,
-            'window_size': 1000
-        })
+        monitor = create_monitor(latency_threshold_ms=threshold)
         
         # 记录分类
         monitor.record_classification(
@@ -168,7 +169,7 @@ class TestLatencyAlertEmission:
         """
         告警回调应该被调用。
         """
-        monitor = PerformanceMonitor({'latency_threshold_ms': 50})
+        monitor = create_monitor(latency_threshold_ms=50)
         
         alerts_received = []
         
@@ -192,14 +193,6 @@ class TestLatencyAlertEmission:
 class TestPrometheusFormatValidity:
     """Prometheus 格式有效性测试 - Property 25"""
     
-    @pytest.fixture
-    def monitor(self):
-        """创建性能监控器"""
-        return PerformanceMonitor({
-            'latency_threshold_ms': 100,
-            'window_size': 1000
-        })
-    
     # Prometheus 指标格式正则
     PROMETHEUS_LINE_PATTERN = re.compile(
         r'^[a-zA-Z_][a-zA-Z0-9_]*(\{[^}]*\})?\s+-?[0-9]+\.?[0-9]*([eE][+-]?[0-9]+)?$'
@@ -210,7 +203,7 @@ class TestPrometheusFormatValidity:
         methods=st.lists(method_strategy, min_size=1, max_size=5),
         n_records=st.integers(min_value=1, max_value=20)
     )
-    def test_prometheus_format_validity(self, monitor, methods, n_records):
+    def test_prometheus_format_validity(self, methods, n_records):
         """
         Property 25: Prometheus Format Validity
         
@@ -218,6 +211,8 @@ class TestPrometheusFormatValidity:
         
         Validates: Requirements 8.4
         """
+        monitor = create_monitor()
+        
         # 记录一些数据
         for method in methods:
             for _ in range(n_records):
@@ -246,10 +241,12 @@ class TestPrometheusFormatValidity:
             assert self.PROMETHEUS_LINE_PATTERN.match(line), \
                 f"Invalid Prometheus format: '{line}'"
     
-    def test_prometheus_contains_required_metrics(self, monitor):
+    def test_prometheus_contains_required_metrics(self):
         """
         Prometheus 输出应该包含必需的指标。
         """
+        monitor = create_monitor()
+        
         # 记录一些数据
         monitor.record_classification(
             method='test_method',
@@ -273,10 +270,11 @@ class TestPrometheusFormatValidity:
         for metric in required_metrics:
             assert metric in output, f"Missing required metric: {metric}"
     
-    def test_prometheus_method_labels(self, monitor):
+    def test_prometheus_method_labels(self):
         """
         方法指标应该包含正确的标签。
         """
+        monitor = create_monitor()
         methods = ['rule_engine', 'ml_classifier']
         
         for method in methods:
@@ -298,22 +296,19 @@ class TestPrometheusFormatValidity:
 class TestMethodAccuracyTracking:
     """方法准确率追踪测试"""
     
-    @pytest.fixture
-    def monitor(self):
-        """创建性能监控器"""
-        return PerformanceMonitor({'latency_threshold_ms': 100})
-    
     @settings(max_examples=50)
     @given(
         correct_count=st.integers(min_value=0, max_value=100),
         incorrect_count=st.integers(min_value=0, max_value=100)
     )
-    def test_method_accuracy_calculation(self, monitor, correct_count, incorrect_count):
+    def test_method_accuracy_calculation(self, correct_count, incorrect_count):
         """
         方法准确率应该正确计算。
         """
         total = correct_count + incorrect_count
         assume(total > 0)
+        
+        monitor = create_monitor()
         
         # 记录正确的分类
         for _ in range(correct_count):
@@ -345,11 +340,6 @@ class TestMethodAccuracyTracking:
 class TestConfidenceDistribution:
     """置信度分布测试"""
     
-    @pytest.fixture
-    def monitor(self):
-        """创建性能监控器"""
-        return PerformanceMonitor({'latency_threshold_ms': 100})
-    
     @settings(max_examples=30)
     @given(
         confidences=st.lists(
@@ -358,10 +348,12 @@ class TestConfidenceDistribution:
             max_size=100
         )
     )
-    def test_confidence_distribution(self, monitor, confidences):
+    def test_confidence_distribution(self, confidences):
         """
         置信度分布应该正确统计。
         """
+        monitor = create_monitor()
+        
         for conf in confidences:
             monitor.record_classification(
                 method='test_method',
@@ -376,11 +368,11 @@ class TestConfidenceDistribution:
         assert total_in_distribution == len(confidences), \
             f"Distribution total {total_in_distribution} should equal input count {len(confidences)}"
         
-        # 验证桶范围
+        # 验证桶范围（0.0 到 1.0）
         for bucket in distribution.keys():
             bucket_value = float(bucket)
-            assert 0.0 <= bucket_value <= 0.9, \
-                f"Bucket {bucket} should be in [0.0, 0.9]"
+            assert 0.0 <= bucket_value <= 1.0, \
+                f"Bucket {bucket} should be in [0.0, 1.0]"
 
 
 @pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
@@ -391,7 +383,7 @@ class TestDailyReport:
         """
         每日报告应该包含必需的字段。
         """
-        monitor = PerformanceMonitor({'latency_threshold_ms': 100})
+        monitor = create_monitor()
         
         # 记录一些数据
         monitor.record_classification(

@@ -14,10 +14,34 @@ from hypothesis import given, strategies as st, settings, assume
 try:
     from src.plugins.pipeline import ClassifierPipeline, FusionStrategy
     from src.plugins.registry import PluginRegistry
-    from src.plugins.base import ClassifierPlugin, PluginMetadata, ClassificationResult, BookmarkFeatures
+    from src.plugins.base import ClassifierPlugin, PluginMetadata
+    from dataclasses import dataclass
     IMPORTS_AVAILABLE = True
+    
+    # 定义测试用的数据类
+    @dataclass
+    class BookmarkFeatures:
+        url: str
+        title: str
+        domain: str
+        path_segments: list
+        query_params: dict
+        content_type: str
+        language: str
+    
+    @dataclass
+    class ClassificationResult:
+        category: str
+        confidence: float
+        method: str = "unknown"
+        
 except ImportError:
     IMPORTS_AVAILABLE = False
+    # 定义占位类以避免语法错误
+    ClassifierPlugin = object
+    PluginMetadata = None
+    ClassificationResult = None
+    BookmarkFeatures = None
 
 
 # 策略定义
@@ -77,14 +101,23 @@ def create_features() -> BookmarkFeatures:
     )
 
 
+def create_registry():
+    """创建插件注册中心"""
+    return PluginRegistry()
+
+
+def create_pipeline(registry=None, fusion_strategy='weighted_voting'):
+    """创建分类器管道"""
+    if registry is None:
+        registry = PluginRegistry()
+    return ClassifierPipeline(registry, {
+        'fusion_strategy': fusion_strategy
+    })
+
+
 @pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
 class TestFusionStrategyApplication:
     """融合策略应用测试 - Property 15"""
-    
-    @pytest.fixture
-    def registry(self):
-        """创建插件注册中心"""
-        return PluginRegistry()
     
     @settings(max_examples=50)
     @given(
@@ -92,7 +125,7 @@ class TestFusionStrategyApplication:
         categories=st.lists(category_strategy, min_size=2, max_size=4),
         confidences=st.lists(confidence_strategy, min_size=2, max_size=4)
     )
-    def test_fusion_strategy_application(self, registry, strategy, categories, confidences):
+    def test_fusion_strategy_application(self, strategy, categories, confidences):
         """
         Property 15: Fusion Strategy Application
         
@@ -107,7 +140,7 @@ class TestFusionStrategyApplication:
         categories = categories[:n]
         confidences = confidences[:n]
         
-        # 创建管道
+        registry = create_registry()
         pipeline = ClassifierPipeline(registry, {
             'fusion_strategy': strategy
         })
@@ -139,10 +172,11 @@ class TestFusionStrategyApplication:
         assert pipeline.fusion_strategy == FusionStrategy(strategy), \
             f"Should use {strategy} strategy"
     
-    def test_weighted_voting_selects_highest_score(self, registry):
+    def test_weighted_voting_selects_highest_score(self):
         """
         加权投票应该选择得分最高的类别。
         """
+        registry = create_registry()
         pipeline = ClassifierPipeline(registry, {
             'fusion_strategy': 'weighted_voting'
         })
@@ -177,20 +211,12 @@ class TestFusionStrategyApplication:
 class TestDynamicWeightAdjustment:
     """动态权重调整测试 - Property 16"""
     
-    @pytest.fixture
-    def pipeline(self):
-        """创建分类器管道"""
-        registry = PluginRegistry()
-        return ClassifierPipeline(registry, {
-            'fusion_strategy': 'weighted_voting'
-        })
-    
     @settings(max_examples=50)
     @given(
         method_name=st.text(min_size=1, max_size=20),
         accuracy=st.floats(min_value=0.0, max_value=1.0, allow_nan=False)
     )
-    def test_dynamic_weight_adjustment(self, pipeline, method_name, accuracy):
+    def test_dynamic_weight_adjustment(self, method_name, accuracy):
         """
         Property 16: Dynamic Weight Adjustment
         
@@ -200,6 +226,8 @@ class TestDynamicWeightAdjustment:
         Validates: Requirements 5.3, 5.5
         """
         assume(len(method_name.strip()) > 0)
+        
+        pipeline = create_pipeline()
         
         # 获取初始权重
         initial_weight = pipeline.method_weights.get(method_name, 1.0)
@@ -230,10 +258,11 @@ class TestDynamicWeightAdjustment:
             max_size=20
         )
     )
-    def test_weight_converges_to_accuracy(self, pipeline, accuracies):
+    def test_weight_converges_to_accuracy(self, accuracies):
         """
         多次更新后，权重应该趋近于准确率。
         """
+        pipeline = create_pipeline()
         method_name = "test_method"
         
         # 多次更新
@@ -246,10 +275,12 @@ class TestDynamicWeightAdjustment:
         assert 0.0 <= final_weight <= 2.0, \
             f"Weight {final_weight} should be in reasonable range"
     
-    def test_multiple_methods_independent_weights(self, pipeline):
+    def test_multiple_methods_independent_weights(self):
         """
         不同方法的权重应该独立调整。
         """
+        pipeline = create_pipeline()
+        
         # 更新不同方法的权重
         pipeline.update_method_weight("method_a", 0.9)
         pipeline.update_method_weight("method_b", 0.3)
@@ -270,15 +301,11 @@ class TestDynamicWeightAdjustment:
 class TestConflictResolution:
     """冲突解决测试"""
     
-    @pytest.fixture
-    def registry(self):
-        """创建插件注册中心"""
-        return PluginRegistry()
-    
-    def test_conflict_resolution_with_rules(self, registry):
+    def test_conflict_resolution_with_rules(self):
         """
         冲突解决规则应该被应用。
         """
+        registry = create_registry()
         pipeline = ClassifierPipeline(registry, {
             'fusion_strategy': 'weighted_voting',
             'conflict_rules': {
@@ -316,20 +343,16 @@ class TestConflictResolution:
 class TestFusionWithSinglePlugin:
     """单插件融合测试"""
     
-    @pytest.fixture
-    def registry(self):
-        """创建插件注册中心"""
-        return PluginRegistry()
-    
     @settings(max_examples=30)
     @given(
         category=category_strategy,
         confidence=confidence_strategy
     )
-    def test_single_plugin_passthrough(self, registry, category, confidence):
+    def test_single_plugin_passthrough(self, category, confidence):
         """
         只有一个插件时，结果应该直接传递。
         """
+        registry = create_registry()
         pipeline = ClassifierPipeline(registry, {
             'fusion_strategy': 'weighted_voting'
         })

@@ -19,6 +19,23 @@ try:
 except ImportError:
     IMPORTS_AVAILABLE = False
 
+# 检查 sentence_transformers 是否可用
+try:
+    import sentence_transformers
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+# 检查 sklearn 是否可用
+try:
+    import sklearn
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+# 只有当至少有一个嵌入后端可用时才运行测试
+EMBEDDING_BACKEND_AVAILABLE = SENTENCE_TRANSFORMERS_AVAILABLE or SKLEARN_AVAILABLE
+
 
 # 文本生成策略
 text_strategy = st.text(
@@ -31,41 +48,41 @@ text_strategy = st.text(
 ).filter(lambda x: len(x.strip()) > 0)
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+def create_embedding_service():
+    """创建嵌入服务实例"""
+    config = {
+        'model_name': 'paraphrase-multilingual-MiniLM-L12-v2',
+        'fallback_enabled': True
+    }
+    service = EmbeddingService(config)
+    service.initialize()
+    return service
+
+
+def create_embedding_service_with_cache():
+    """创建带缓存的嵌入服务实例"""
+    feature_store = FeatureStore({
+        'max_size': 1000,
+        'ttl_seconds': 3600
+    })
+    
+    config = {
+        'model_name': 'paraphrase-multilingual-MiniLM-L12-v2',
+        'fallback_enabled': True
+    }
+    service = EmbeddingService(config)
+    service.feature_store = feature_store
+    service.initialize()
+    return service
+
+
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not EMBEDDING_BACKEND_AVAILABLE, reason="Required imports not available")
 class TestEmbeddingServiceProperties:
     """嵌入服务属性测试"""
     
-    @pytest.fixture
-    def embedding_service(self):
-        """创建嵌入服务实例"""
-        config = {
-            'model_name': 'paraphrase-multilingual-MiniLM-L12-v2',
-            'fallback_enabled': True
-        }
-        service = EmbeddingService(config)
-        service.initialize()
-        return service
-    
-    @pytest.fixture
-    def embedding_service_with_cache(self):
-        """创建带缓存的嵌入服务实例"""
-        feature_store = FeatureStore({
-            'max_size': 1000,
-            'ttl_seconds': 3600
-        })
-        
-        config = {
-            'model_name': 'paraphrase-multilingual-MiniLM-L12-v2',
-            'fallback_enabled': True
-        }
-        service = EmbeddingService(config)
-        service.feature_store = feature_store
-        service.initialize()
-        return service
-    
     @settings(max_examples=100)
     @given(text=text_strategy)
-    def test_embedding_dimensionality_consistency(self, embedding_service, text):
+    def test_embedding_dimensionality_consistency(self, text):
         """
         Property 5: Embedding Dimensionality Consistency
         
@@ -76,6 +93,7 @@ class TestEmbeddingServiceProperties:
         """
         assume(len(text.strip()) > 0)
         
+        embedding_service = create_embedding_service()
         embedding = embedding_service.embed(text)
         
         # 验证返回类型
@@ -96,7 +114,7 @@ class TestEmbeddingServiceProperties:
     
     @settings(max_examples=100)
     @given(texts=st.lists(text_strategy, min_size=2, max_size=5))
-    def test_batch_embedding_dimensionality(self, embedding_service, texts):
+    def test_batch_embedding_dimensionality(self, texts):
         """
         Property 5 (Extended): Batch Embedding Dimensionality
         
@@ -105,6 +123,7 @@ class TestEmbeddingServiceProperties:
         texts = [t for t in texts if len(t.strip()) > 0]
         assume(len(texts) >= 2)
         
+        embedding_service = create_embedding_service()
         embeddings = embedding_service.embed_batch(texts)
         
         # 验证返回类型
@@ -125,7 +144,7 @@ class TestEmbeddingServiceProperties:
     
     @settings(max_examples=100)
     @given(text=text_strategy)
-    def test_embedding_cache_round_trip(self, embedding_service_with_cache, text):
+    def test_embedding_cache_round_trip(self, text):
         """
         Property 6: Embedding Cache Round-Trip
         
@@ -136,7 +155,7 @@ class TestEmbeddingServiceProperties:
         """
         assume(len(text.strip()) > 0)
         
-        service = embedding_service_with_cache
+        service = create_embedding_service_with_cache()
         
         # 第一次计算
         embedding1 = service.embed(text)
@@ -165,13 +184,14 @@ class TestEmbeddingServiceProperties:
         text1=text_strategy,
         text2=text_strategy
     )
-    def test_different_texts_different_embeddings(self, embedding_service, text1, text2):
+    def test_different_texts_different_embeddings(self, text1, text2):
         """
         不同文本应该产生不同的嵌入（除非文本相同）。
         """
         assume(len(text1.strip()) > 0 and len(text2.strip()) > 0)
         assume(text1.strip().lower() != text2.strip().lower())
         
+        embedding_service = create_embedding_service()
         embedding1 = embedding_service.embed(text1)
         embedding2 = embedding_service.embed(text2)
         
@@ -187,12 +207,13 @@ class TestEmbeddingServiceProperties:
     
     @settings(max_examples=50)
     @given(text=text_strategy)
-    def test_embedding_normalization(self, embedding_service, text):
+    def test_embedding_normalization(self, text):
         """
         嵌入向量应该是归一化的（如果配置了归一化）。
         """
         assume(len(text.strip()) > 0)
         
+        embedding_service = create_embedding_service()
         embedding = embedding_service.embed(text)
         
         # 计算 L2 范数
@@ -206,26 +227,19 @@ class TestEmbeddingServiceProperties:
             assert abs(norm - 1.0) < 1e-5, "Normalized embedding should have unit norm"
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not EMBEDDING_BACKEND_AVAILABLE, reason="Required imports not available")
 class TestEmbeddingSimilarity:
     """嵌入相似度测试"""
     
-    @pytest.fixture
-    def embedding_service(self):
-        """创建嵌入服务实例"""
-        config = {'fallback_enabled': True}
-        service = EmbeddingService(config)
-        service.initialize()
-        return service
-    
     @settings(max_examples=50)
     @given(text=text_strategy)
-    def test_self_similarity_is_one(self, embedding_service, text):
+    def test_self_similarity_is_one(self, text):
         """
         文本与自身的相似度应该为 1。
         """
         assume(len(text.strip()) > 0)
         
+        embedding_service = create_embedding_service()
         embedding = embedding_service.embed(text)
         similarity = embedding_service.compute_similarity(embedding, embedding)
         
@@ -237,12 +251,13 @@ class TestEmbeddingSimilarity:
         text1=text_strategy,
         text2=text_strategy
     )
-    def test_similarity_is_symmetric(self, embedding_service, text1, text2):
+    def test_similarity_is_symmetric(self, text1, text2):
         """
         相似度应该是对称的：sim(a, b) == sim(b, a)
         """
         assume(len(text1.strip()) > 0 and len(text2.strip()) > 0)
         
+        embedding_service = create_embedding_service()
         embedding1 = embedding_service.embed(text1)
         embedding2 = embedding_service.embed(text2)
         
@@ -257,12 +272,13 @@ class TestEmbeddingSimilarity:
         text1=text_strategy,
         text2=text_strategy
     )
-    def test_similarity_in_valid_range(self, embedding_service, text1, text2):
+    def test_similarity_in_valid_range(self, text1, text2):
         """
         余弦相似度应该在 [-1, 1] 范围内。
         """
         assume(len(text1.strip()) > 0 and len(text2.strip()) > 0)
         
+        embedding_service = create_embedding_service()
         embedding1 = embedding_service.embed(text1)
         embedding2 = embedding_service.embed(text2)
         

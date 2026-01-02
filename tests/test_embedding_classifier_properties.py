@@ -9,8 +9,6 @@ Tests Properties:
 import pytest
 import numpy as np
 from hypothesis import given, strategies as st, settings, assume
-from dataclasses import dataclass
-from typing import List
 
 # 尝试导入依赖
 try:
@@ -20,6 +18,23 @@ try:
     IMPORTS_AVAILABLE = True
 except ImportError:
     IMPORTS_AVAILABLE = False
+
+# 检查 sentence_transformers 是否可用
+try:
+    import sentence_transformers
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+
+# 检查 sklearn 是否可用
+try:
+    import sklearn
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+
+# 只有当至少有一个嵌入后端可用时才运行测试
+EMBEDDING_BACKEND_AVAILABLE = SENTENCE_TRANSFORMERS_AVAILABLE or SKLEARN_AVAILABLE
 
 
 # 策略定义
@@ -57,50 +72,50 @@ def create_bookmark_features(
     )
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+def create_embedding_classifier():
+    """创建嵌入分类器实例"""
+    classifier = EmbeddingClassifier()
+    config = {
+        'similarity_threshold': 0.3,
+        'fallback_enabled': True
+    }
+    classifier.initialize(config)
+    return classifier
+
+
+def create_trained_classifier():
+    """创建已训练的嵌入分类器"""
+    classifier = EmbeddingClassifier()
+    config = {
+        'similarity_threshold': 0.3,
+        'fallback_enabled': True
+    }
+    classifier.initialize(config)
+    
+    # 添加一些类别原型
+    categories = {
+        '编程开发': ['Python programming tutorial', 'JavaScript code examples', 'Git version control'],
+        '人工智能': ['Machine learning algorithms', 'Neural network deep learning', 'AI artificial intelligence'],
+        '数据科学': ['Data analysis pandas', 'Statistical modeling', 'Data visualization'],
+    }
+    
+    for category, texts in categories.items():
+        for text in texts:
+            classifier.add_category_prototype(category, text)
+    
+    return classifier
+
+
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not EMBEDDING_BACKEND_AVAILABLE, reason="Required imports not available")
 class TestEmbeddingClassifierProperties:
     """嵌入分类器属性测试"""
-    
-    @pytest.fixture
-    def embedding_classifier(self):
-        """创建嵌入分类器实例"""
-        classifier = EmbeddingClassifier()
-        config = {
-            'similarity_threshold': 0.3,
-            'fallback_enabled': True
-        }
-        classifier.initialize(config)
-        return classifier
-    
-    @pytest.fixture
-    def trained_classifier(self):
-        """创建已训练的嵌入分类器"""
-        classifier = EmbeddingClassifier()
-        config = {
-            'similarity_threshold': 0.3,
-            'fallback_enabled': True
-        }
-        classifier.initialize(config)
-        
-        # 添加一些类别原型
-        categories = {
-            '编程开发': ['Python programming tutorial', 'JavaScript code examples', 'Git version control'],
-            '人工智能': ['Machine learning algorithms', 'Neural network deep learning', 'AI artificial intelligence'],
-            '数据科学': ['Data analysis pandas', 'Statistical modeling', 'Data visualization'],
-        }
-        
-        for category, texts in categories.items():
-            for text in texts:
-                classifier.add_category_prototype(category, text)
-        
-        return classifier
     
     @settings(max_examples=100)
     @given(
         title=title_strategy,
         domain=domain_strategy
     )
-    def test_cosine_similarity_classification(self, trained_classifier, title, domain):
+    def test_cosine_similarity_classification(self, title, domain):
         """
         Property 7: Cosine Similarity Classification
         
@@ -111,6 +126,7 @@ class TestEmbeddingClassifierProperties:
         """
         assume(len(title.strip()) >= 5)
         
+        trained_classifier = create_trained_classifier()
         features = create_bookmark_features(
             url=f"https://{domain}/page",
             title=title,
@@ -150,12 +166,14 @@ class TestEmbeddingClassifierProperties:
         category=category_strategy,
         texts=st.lists(title_strategy, min_size=1, max_size=3)
     )
-    def test_prototype_addition_consistency(self, embedding_classifier, category, texts):
+    def test_prototype_addition_consistency(self, category, texts):
         """
         添加类别原型后，该类别应该可以被检索到。
         """
         texts = [t for t in texts if len(t.strip()) >= 5]
         assume(len(texts) > 0)
+        
+        embedding_classifier = create_embedding_classifier()
         
         for text in texts:
             embedding_classifier.add_category_prototype(category, text)
@@ -169,12 +187,13 @@ class TestEmbeddingClassifierProperties:
     
     @settings(max_examples=50)
     @given(title=title_strategy)
-    def test_classification_result_structure(self, trained_classifier, title):
+    def test_classification_result_structure(self, title):
         """
         分类结果应该包含必要的字段。
         """
         assume(len(title.strip()) >= 5)
         
+        trained_classifier = create_trained_classifier()
         features = create_bookmark_features(title=title)
         result = trained_classifier.classify(features)
         
@@ -199,11 +218,13 @@ class TestEmbeddingClassifierProperties:
         title1=title_strategy,
         title2=title_strategy
     )
-    def test_similar_titles_similar_classification(self, trained_classifier, title1, title2):
+    def test_similar_titles_similar_classification(self, title1, title2):
         """
         相似的标题应该倾向于得到相同的分类。
         """
         assume(len(title1.strip()) >= 5 and len(title2.strip()) >= 5)
+        
+        trained_classifier = create_trained_classifier()
         
         # 创建相似的标题（添加相同前缀）
         prefix = "Python programming "
@@ -223,21 +244,15 @@ class TestEmbeddingClassifierProperties:
             pass
 
 
-@pytest.mark.skipif(not IMPORTS_AVAILABLE, reason="Required imports not available")
+@pytest.mark.skipif(not IMPORTS_AVAILABLE or not EMBEDDING_BACKEND_AVAILABLE, reason="Required imports not available")
 class TestEmbeddingClassifierEdgeCases:
     """嵌入分类器边界情况测试"""
     
-    @pytest.fixture
-    def embedding_classifier(self):
-        """创建嵌入分类器实例"""
-        classifier = EmbeddingClassifier()
-        classifier.initialize({'fallback_enabled': True})
-        return classifier
-    
-    def test_empty_prototypes_returns_none(self, embedding_classifier):
+    def test_empty_prototypes_returns_none(self):
         """
         没有原型时，分类应该返回 None。
         """
+        embedding_classifier = create_embedding_classifier()
         features = create_bookmark_features(title="Test title")
         result = embedding_classifier.classify(features)
         
@@ -245,10 +260,11 @@ class TestEmbeddingClassifierEdgeCases:
     
     @settings(max_examples=20)
     @given(title=st.text(min_size=0, max_size=2))
-    def test_short_title_handling(self, embedding_classifier, title):
+    def test_short_title_handling(self, title):
         """
         非常短的标题应该被优雅地处理。
         """
+        embedding_classifier = create_embedding_classifier()
         features = create_bookmark_features(title=title)
         
         # 不应该抛出异常
@@ -260,10 +276,11 @@ class TestEmbeddingClassifierEdgeCases:
         except Exception as e:
             pytest.fail(f"Should handle short title gracefully, got: {e}")
     
-    def test_metadata_correctness(self, embedding_classifier):
+    def test_metadata_correctness(self):
         """
         插件元数据应该正确。
         """
+        embedding_classifier = create_embedding_classifier()
         metadata = embedding_classifier.metadata
         
         assert metadata.name == "embedding_classifier"

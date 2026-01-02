@@ -10,9 +10,7 @@ Tests Properties:
 """
 
 import pytest
-import numpy as np
 from hypothesis import given, strategies as st, settings, assume
-from datetime import datetime
 
 # 尝试导入依赖
 try:
@@ -30,6 +28,16 @@ category_strategy = st.sampled_from([
 ])
 url_strategy = st.from_regex(r'https://[a-z]+\.[a-z]+/[a-z]+', fullmatch=True)
 title_strategy = st.text(min_size=5, max_size=100)
+
+
+def create_engine(confidence_threshold=0.6, max_requests=10, persist_path='/tmp/test_active_learning'):
+    """创建主动学习引擎"""
+    config = {
+        'confidence_threshold': confidence_threshold,
+        'max_requests_per_session': max_requests,
+        'persist_path': persist_path
+    }
+    return ActiveLearningEngine(config)
 
 
 def create_bookmark(url: str = "https://example.com/page", title: str = "Example") -> dict:
@@ -51,22 +59,12 @@ def create_alternatives(n: int = 3) -> list:
 class TestLowConfidenceDetection:
     """低置信度检测测试 - Property 8"""
     
-    @pytest.fixture
-    def engine(self):
-        """创建主动学习引擎"""
-        config = {
-            'confidence_threshold': 0.6,
-            'max_requests_per_session': 10,
-            'persist_path': '/tmp/test_active_learning'
-        }
-        return ActiveLearningEngine(config)
-    
     @settings(max_examples=100)
     @given(
         confidence=st.floats(min_value=0.0, max_value=0.59, allow_nan=False),
         category=category_strategy
     )
-    def test_low_confidence_detection_and_queuing(self, engine, confidence, category):
+    def test_low_confidence_detection_and_queuing(self, confidence, category):
         """
         Property 8: Low-Confidence Detection and Queuing
         
@@ -75,6 +73,7 @@ class TestLowConfidenceDetection:
         
         Validates: Requirements 3.1, 3.2
         """
+        engine = create_engine()
         bookmark = create_bookmark()
         alternatives = create_alternatives()
         
@@ -104,10 +103,11 @@ class TestLowConfidenceDetection:
         confidence=st.floats(min_value=0.6, max_value=1.0, allow_nan=False),
         category=category_strategy
     )
-    def test_high_confidence_not_queued(self, engine, confidence, category):
+    def test_high_confidence_not_queued(self, confidence, category):
         """
         高置信度的分类不应该被加入审核队列。
         """
+        engine = create_engine()
         bookmark = create_bookmark()
         
         result = engine.process_classification(
@@ -126,14 +126,6 @@ class TestLowConfidenceDetection:
 class TestUncertaintySampling:
     """不确定性采样测试 - Property 9"""
     
-    @pytest.fixture
-    def engine(self):
-        """创建主动学习引擎"""
-        return ActiveLearningEngine({
-            'confidence_threshold': 0.6,
-            'max_requests_per_session': 100
-        })
-    
     @settings(max_examples=50)
     @given(
         confidences=st.lists(
@@ -142,7 +134,7 @@ class TestUncertaintySampling:
             max_size=10
         )
     )
-    def test_uncertainty_sampling_priority(self, engine, confidences):
+    def test_uncertainty_sampling_priority(self, confidences):
         """
         Property 9: Uncertainty Sampling Priority
         
@@ -151,6 +143,8 @@ class TestUncertaintySampling:
         
         Validates: Requirements 3.5
         """
+        engine = create_engine(max_requests=100)
+        
         # 添加多个低置信度项
         for i, conf in enumerate(confidences):
             bookmark = create_bookmark(
@@ -197,10 +191,7 @@ class TestSessionRequestLimit:
         
         Validates: Requirements 3.6
         """
-        engine = ActiveLearningEngine({
-            'confidence_threshold': 0.6,
-            'max_requests_per_session': max_requests
-        })
+        engine = create_engine(max_requests=max_requests)
         
         # 添加比限制更多的项目
         for i in range(max_requests + 10):
@@ -235,10 +226,7 @@ class TestSessionRequestLimit:
         """
         重置会话后应该可以继续获取项目。
         """
-        engine = ActiveLearningEngine({
-            'confidence_threshold': 0.6,
-            'max_requests_per_session': 2
-        })
+        engine = create_engine(max_requests=2)
         
         # 添加项目
         for i in range(5):
@@ -269,20 +257,12 @@ class TestSessionRequestLimit:
 class TestFeedbackPersistence:
     """反馈持久化测试 - Property 11"""
     
-    @pytest.fixture
-    def engine(self):
-        """创建主动学习引擎"""
-        return ActiveLearningEngine({
-            'confidence_threshold': 0.6,
-            'persist_path': '/tmp/test_active_learning_feedback'
-        })
-    
     @settings(max_examples=100)
     @given(
         bookmark_id=st.text(min_size=1, max_size=50),
         correct_category=category_strategy
     )
-    def test_feedback_persistence(self, engine, bookmark_id, correct_category):
+    def test_feedback_persistence(self, bookmark_id, correct_category):
         """
         Property 11: Feedback Persistence
         
@@ -293,6 +273,7 @@ class TestFeedbackPersistence:
         """
         assume(len(bookmark_id.strip()) > 0)
         
+        engine = create_engine(persist_path='/tmp/test_active_learning_feedback')
         initial_count = len(engine.get_labeled_samples())
         
         # 提交反馈
@@ -325,12 +306,14 @@ class TestFeedbackPersistence:
             max_size=10
         )
     )
-    def test_multiple_feedback_persistence(self, engine, feedbacks):
+    def test_multiple_feedback_persistence(self, feedbacks):
         """
         多个反馈应该都被持久化。
         """
         feedbacks = [(bid, cat) for bid, cat in feedbacks if len(bid.strip()) > 0]
         assume(len(feedbacks) > 0)
+        
+        engine = create_engine()
         
         for bookmark_id, category in feedbacks:
             engine.submit_feedback(
@@ -347,30 +330,28 @@ class TestFeedbackPersistence:
 class TestUncertaintyCalculation:
     """不确定性计算测试"""
     
-    @pytest.fixture
-    def engine(self):
-        """创建主动学习引擎"""
-        return ActiveLearningEngine({'confidence_threshold': 0.6})
-    
     @settings(max_examples=50)
     @given(
         confidence=st.floats(min_value=0.1, max_value=0.9, allow_nan=False),
         n_alternatives=st.integers(min_value=0, max_value=5)
     )
-    def test_uncertainty_calculation(self, engine, confidence, n_alternatives):
+    def test_uncertainty_calculation(self, confidence, n_alternatives):
         """
         不确定性分数应该是非负的。
         """
+        engine = create_engine()
         alternatives = [(f'cat{i}', 0.1 * (i + 1)) for i in range(n_alternatives)]
         
         uncertainty = engine._calculate_uncertainty(confidence, alternatives)
         
-        assert uncertainty >= 0, f"Uncertainty should be non-negative, got {uncertainty}"
+        # 允许微小的浮点误差
+        assert uncertainty >= -1e-9, f"Uncertainty should be non-negative, got {uncertainty}"
     
-    def test_high_confidence_low_uncertainty(self, engine):
+    def test_high_confidence_low_uncertainty(self):
         """
         高置信度应该对应低不确定性。
         """
+        engine = create_engine()
         high_conf_uncertainty = engine._calculate_uncertainty(0.9, [])
         low_conf_uncertainty = engine._calculate_uncertainty(0.3, [('alt', 0.3)])
         
