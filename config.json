@@ -1,7 +1,7 @@
 {
   "show_confidence_indicator": false,
   "ai_settings": {
-    "confidence_threshold": 0.7,
+    "confidence_threshold": 0.4,
     "use_semantic_analysis": true,
     "use_user_profiling": true,
     "cache_size": 10000,

@@ -11,6 +11,13 @@ from dataclasses import dataclass
 from collections import defaultdict
 from urllib.parse import urlparse
 
+# 导入 URL 分析器
+try:
+    from .url_analyzer import URLAnalyzer, URLAnalysis
+except ImportError:
+    URLAnalyzer = None
+    URLAnalysis = None
+
 @dataclass
 class RuleMatch:
     """规则匹配结果"""
@@ -27,6 +34,9 @@ class RuleEngine:
         self.config = config
         self.logger = logging.getLogger(__name__)
         
+        # URL 分析器
+        self.url_analyzer = URLAnalyzer() if URLAnalyzer else None
+        
         # 预编译规则
         self.compiled_rules = {}
         self._compile_rules()
@@ -35,7 +45,8 @@ class RuleEngine:
         self.stats = {
             'total_matches': 0,
             'rule_hits': defaultdict(int),
-            'category_predictions': defaultdict(int)
+            'category_predictions': defaultdict(int),
+            'url_analysis_hits': 0
         }
     
     def _compile_rules(self):
@@ -133,11 +144,32 @@ class RuleEngine:
         try:
             matches = self._find_matches(features)
             
-            if not matches:
+            # 使用 URL 分析器增强分类
+            url_hints = []
+            if self.url_analyzer and hasattr(features, 'url'):
+                try:
+                    analysis = self.url_analyzer.analyze(features.url)
+                    if analysis.category_hints:
+                        self.stats['url_analysis_hits'] += 1
+                        for category, confidence in analysis.category_hints:
+                            url_hints.append(RuleMatch(
+                                rule_id='url_analyzer',
+                                category=category,
+                                confidence=confidence * 15,  # 增加权重
+                                matched_text=f"{analysis.site_type}:{analysis.content_type}",
+                                rule_type='url_analysis'
+                            ))
+                except Exception as e:
+                    self.logger.debug(f"URL 分析失败: {e}")
+            
+            # 合并匹配结果
+            all_matches = matches + url_hints
+            
+            if not all_matches:
                 return None
             
             # 计算分类得分
-            category_scores = self._calculate_scores(matches)
+            category_scores = self._calculate_scores(all_matches)
             
             if not category_scores:
                 return None
@@ -152,7 +184,7 @@ class RuleEngine:
                 confidence = confidence / total_score
             
             # 生成推理过程
-            reasoning = self._generate_reasoning(matches, best_category)
+            reasoning = self._generate_reasoning(all_matches, best_category)
             
             # 生成备选分类
             alternatives = []
@@ -281,8 +313,49 @@ class RuleEngine:
         """计算分类得分"""
         category_scores = defaultdict(float)
         
+        # 检查是否有特定类型的匹配
+        has_ai_match = any('AI' in m.category for m in matches)
+        has_code_repo_match = any('代码仓库' in m.category for m in matches)
+        
         for match in matches:
-            category_scores[match.category] += match.confidence
+            score = match.confidence
+            
+            # 如果同时有 AI 和代码仓库匹配，根据内容调整权重
+            if has_ai_match and has_code_repo_match:
+                if 'AI' in match.category:
+                    score *= 1.3  # 适度提升 AI 分类权重
+                elif '代码仓库' in match.category:
+                    score *= 0.8  # 适度降低代码仓库权重
+            
+            category_scores[match.category] += score
+        
+        # 合并相似分类的得分（同一顶级分类下的子分类）
+        merged_scores = defaultdict(float)
+        for category, score in category_scores.items():
+            # 提取顶级分类
+            top_category = category.split('/')[0]
+            merged_scores[top_category] += score
+        
+        # 如果某个顶级分类的合并得分明显高于其他分类，选择该分类下得分最高的子分类
+        if merged_scores:
+            top_merged = max(merged_scores, key=merged_scores.get)
+            top_merged_score = merged_scores[top_merged]
+            
+            # 如果顶级分类得分占比超过 40%，选择该分类下的最佳子分类
+            total_merged = sum(merged_scores.values())
+            if total_merged > 0 and top_merged_score / total_merged > 0.4:
+                # 找到该顶级分类下得分最高的子分类
+                best_sub = None
+                best_sub_score = 0
+                for category, score in category_scores.items():
+                    if category.startswith(top_merged):
+                        if score > best_sub_score:
+                            best_sub = category
+                            best_sub_score = score
+                
+                if best_sub:
+                    # 将合并得分赋给最佳子分类
+                    category_scores[best_sub] = top_merged_score
         
         return dict(category_scores)
     

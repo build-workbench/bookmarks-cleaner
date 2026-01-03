@@ -1,30 +1,735 @@
 {
-  "zego.im": { "top": "工作", "second": "ZEGO" },
-  "zego.cloud": { "top": "工作", "second": "ZEGO" },
-  "bgi.com": { "top": "工作", "second": "BGI" },
-  "genomics.cn": { "top": "工作", "second": "BGI" },
-  "git.bgi.com": { "top": "工作", "second": "BGI" },
-  "wiki.it.bgi.com": { "top": "工作", "second": "BGI" },
-  "bugtrace.it.bgi.com": { "top": "工作", "second": "BGI" },
-  "disk.it.bgi.com": { "top": "工作", "second": "BGI" },
-  "pro-bit.bgi.com": { "top": "工作", "second": "BGI" },
-  "halos.bgi.com": { "top": "工作", "second": "BGI" },
-
-  "github.com": { "top": "开发工具" },
-  "gitlab.com": { "top": "开发工具" },
-  "duckduckgo.com": { "top": "AI·大模型" },
-  "perplexity.ai": { "top": "AI·大模型" },
-  "gemini.google.com": { "top": "AI·大模型" },
-  "openai.com": { "top": "AI·大模型" },
-  "huggingface.co": { "top": "AI·大模型" },
-  "mistral.ai": { "top": "AI·大模型" },
-  "qwen.ai": { "top": "AI·大模型" },
-  "baichuan-ai.com": { "top": "AI·大模型" },
-
-  "kibana": { "top": "DevOps·运维" },
-  "elastic": { "top": "DevOps·运维" },
-  "grafana": { "top": "DevOps·运维" },
-  "prometheus": { "top": "DevOps·运维" },
-
-  "go.dev": { "top": "编程语言", "second": "Go" }
+  "_comment": "域名规则 - 支持精确匹配和子域名匹配",
+  "工作相关": {
+    "zego.im": {
+      "top": "工作",
+      "second": "ZEGO"
+    },
+    "zego.cloud": {
+      "top": "工作",
+      "second": "ZEGO"
+    },
+    "bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "genomics.cn": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "git.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "wiki.it.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "bugtrace.it.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "disk.it.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "pro-bit.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "halos.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    }
+  },
+  "AI·大模型": {
+    "openai.com": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "chat.openai.com": {
+      "top": "AI·大模型",
+      "second": "ChatGPT"
+    },
+    "platform.openai.com": {
+      "top": "AI·大模型",
+      "second": "OpenAI API"
+    },
+    "anthropic.com": {
+      "top": "AI·大模型",
+      "second": "Claude"
+    },
+    "claude.ai": {
+      "top": "AI·大模型",
+      "second": "Claude"
+    },
+    "huggingface.co": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "perplexity.ai": {
+      "top": "AI·大模型",
+      "second": "AI搜索"
+    },
+    "gemini.google.com": {
+      "top": "AI·大模型",
+      "second": "Gemini"
+    },
+    "bard.google.com": {
+      "top": "AI·大模型",
+      "second": "Gemini"
+    },
+    "mistral.ai": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "qwen.ai": {
+      "top": "AI·大模型",
+      "second": "通义千问"
+    },
+    "tongyi.aliyun.com": {
+      "top": "AI·大模型",
+      "second": "通义千问"
+    },
+    "baichuan-ai.com": {
+      "top": "AI·大模型",
+      "second": "百川"
+    },
+    "deepseek.com": {
+      "top": "AI·大模型",
+      "second": "DeepSeek"
+    },
+    "chat.deepseek.com": {
+      "top": "AI·大模型",
+      "second": "DeepSeek"
+    },
+    "kimi.moonshot.cn": {
+      "top": "AI·大模型",
+      "second": "Kimi"
+    },
+    "chatglm.cn": {
+      "top": "AI·大模型",
+      "second": "智谱"
+    },
+    "zhipuai.cn": {
+      "top": "AI·大模型",
+      "second": "智谱"
+    },
+    "coze.com": {
+      "top": "AI·大模型",
+      "second": "AI应用"
+    },
+    "coze.cn": {
+      "top": "AI·大模型",
+      "second": "AI应用"
+    },
+    "dify.ai": {
+      "top": "AI·大模型",
+      "second": "AI应用"
+    },
+    "replicate.com": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "together.ai": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "groq.com": {
+      "top": "AI·大模型",
+      "second": "模型平台"
+    },
+    "ollama.ai": {
+      "top": "AI·大模型",
+      "second": "本地部署"
+    },
+    "lmstudio.ai": {
+      "top": "AI·大模型",
+      "second": "本地部署"
+    }
+  },
+  "AI·工具": {
+    "midjourney.com": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "stability.ai": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "civitai.com": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "leonardo.ai": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "runway.ml": {
+      "top": "AI·大模型",
+      "second": "AI视频"
+    },
+    "pika.art": {
+      "top": "AI·大模型",
+      "second": "AI视频"
+    },
+    "suno.ai": {
+      "top": "AI·大模型",
+      "second": "AI音乐"
+    },
+    "elevenlabs.io": {
+      "top": "AI·大模型",
+      "second": "AI语音"
+    },
+    "cursor.com": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "cursor.sh": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "codeium.com": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "tabnine.com": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "aider.chat": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "v0.dev": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "bolt.new": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    }
+  },
+  "代码仓库": {
+    "github.com": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    },
+    "gitlab.com": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    },
+    "gitee.com": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    },
+    "bitbucket.org": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    },
+    "sourceforge.net": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    },
+    "codeberg.org": {
+      "top": "开发工具",
+      "second": "代码仓库"
+    }
+  },
+  "开发工具": {
+    "code.visualstudio.com": {
+      "top": "开发工具",
+      "second": "IDE"
+    },
+    "jetbrains.com": {
+      "top": "开发工具",
+      "second": "IDE"
+    },
+    "neovim.io": {
+      "top": "开发工具",
+      "second": "编辑器"
+    },
+    "zed.dev": {
+      "top": "开发工具",
+      "second": "编辑器"
+    },
+    "warp.dev": {
+      "top": "开发工具",
+      "second": "终端"
+    },
+    "iterm2.com": {
+      "top": "开发工具",
+      "second": "终端"
+    },
+    "fig.io": {
+      "top": "开发工具",
+      "second": "终端"
+    },
+    "postman.com": {
+      "top": "开发工具",
+      "second": "API工具"
+    },
+    "insomnia.rest": {
+      "top": "开发工具",
+      "second": "API工具"
+    },
+    "hoppscotch.io": {
+      "top": "开发工具",
+      "second": "API工具"
+    }
+  },
+  "编程语言": {
+    "go.dev": {
+      "top": "编程语言",
+      "second": "Go"
+    },
+    "golang.org": {
+      "top": "编程语言",
+      "second": "Go"
+    },
+    "rust-lang.org": {
+      "top": "编程语言",
+      "second": "Rust"
+    },
+    "crates.io": {
+      "top": "编程语言",
+      "second": "Rust"
+    },
+    "python.org": {
+      "top": "编程语言",
+      "second": "Python"
+    },
+    "pypi.org": {
+      "top": "编程语言",
+      "second": "Python"
+    },
+    "nodejs.org": {
+      "top": "编程语言",
+      "second": "Node.js"
+    },
+    "npmjs.com": {
+      "top": "编程语言",
+      "second": "Node.js"
+    },
+    "typescriptlang.org": {
+      "top": "编程语言",
+      "second": "TypeScript"
+    },
+    "java.com": {
+      "top": "编程语言",
+      "second": "Java"
+    },
+    "kotlinlang.org": {
+      "top": "编程语言",
+      "second": "Kotlin"
+    },
+    "swift.org": {
+      "top": "编程语言",
+      "second": "Swift"
+    },
+    "cppreference.com": {
+      "top": "编程语言",
+      "second": "C++"
+    },
+    "isocpp.org": {
+      "top": "编程语言",
+      "second": "C++"
+    },
+    "zig.news": {
+      "top": "编程语言",
+      "second": "Zig"
+    },
+    "ziglang.org": {
+      "top": "编程语言",
+      "second": "Zig"
+    }
+  },
+  "Web前端": {
+    "vuejs.org": {
+      "top": "Web·前端",
+      "second": "Vue"
+    },
+    "react.dev": {
+      "top": "Web·前端",
+      "second": "React"
+    },
+    "reactjs.org": {
+      "top": "Web·前端",
+      "second": "React"
+    },
+    "nextjs.org": {
+      "top": "Web·前端",
+      "second": "Next.js"
+    },
+    "nuxt.com": {
+      "top": "Web·前端",
+      "second": "Nuxt"
+    },
+    "svelte.dev": {
+      "top": "Web·前端",
+      "second": "Svelte"
+    },
+    "angular.io": {
+      "top": "Web·前端",
+      "second": "Angular"
+    },
+    "astro.build": {
+      "top": "Web·前端",
+      "second": "Astro"
+    },
+    "tailwindcss.com": {
+      "top": "Web·前端",
+      "second": "CSS框架"
+    },
+    "ui.shadcn.com": {
+      "top": "Web·前端",
+      "second": "组件库"
+    },
+    "radix-ui.com": {
+      "top": "Web·前端",
+      "second": "组件库"
+    },
+    "ant.design": {
+      "top": "Web·前端",
+      "second": "组件库"
+    },
+    "element-plus.org": {
+      "top": "Web·前端",
+      "second": "组件库"
+    },
+    "vitejs.dev": {
+      "top": "Web·前端",
+      "second": "构建工具"
+    },
+    "webpack.js.org": {
+      "top": "Web·前端",
+      "second": "构建工具"
+    },
+    "esbuild.github.io": {
+      "top": "Web·前端",
+      "second": "构建工具"
+    }
+  },
+  "DevOps·运维": {
+    "docker.com": {
+      "top": "DevOps·运维",
+      "second": "容器"
+    },
+    "hub.docker.com": {
+      "top": "DevOps·运维",
+      "second": "容器"
+    },
+    "kubernetes.io": {
+      "top": "DevOps·运维",
+      "second": "K8s"
+    },
+    "helm.sh": {
+      "top": "DevOps·运维",
+      "second": "K8s"
+    },
+    "prometheus.io": {
+      "top": "DevOps·运维",
+      "second": "监控"
+    },
+    "grafana.com": {
+      "top": "DevOps·运维",
+      "second": "监控"
+    },
+    "elastic.co": {
+      "top": "DevOps·运维",
+      "second": "日志"
+    },
+    "jenkins.io": {
+      "top": "DevOps·运维",
+      "second": "CI/CD"
+    },
+    "github.com/features/actions": {
+      "top": "DevOps·运维",
+      "second": "CI/CD"
+    },
+    "circleci.com": {
+      "top": "DevOps·运维",
+      "second": "CI/CD"
+    },
+    "terraform.io": {
+      "top": "DevOps·运维",
+      "second": "IaC"
+    },
+    "ansible.com": {
+      "top": "DevOps·运维",
+      "second": "自动化"
+    },
+    "nginx.org": {
+      "top": "DevOps·运维",
+      "second": "Web服务器"
+    },
+    "traefik.io": {
+      "top": "DevOps·运维",
+      "second": "网关"
+    }
+  },
+  "云服务": {
+    "aws.amazon.com": {
+      "top": "云服务",
+      "second": "AWS"
+    },
+    "cloud.google.com": {
+      "top": "云服务",
+      "second": "GCP"
+    },
+    "azure.microsoft.com": {
+      "top": "云服务",
+      "second": "Azure"
+    },
+    "aliyun.com": {
+      "top": "云服务",
+      "second": "阿里云"
+    },
+    "cloud.tencent.com": {
+      "top": "云服务",
+      "second": "腾讯云"
+    },
+    "huaweicloud.com": {
+      "top": "云服务",
+      "second": "华为云"
+    },
+    "vercel.com": {
+      "top": "云服务",
+      "second": "Serverless"
+    },
+    "netlify.com": {
+      "top": "云服务",
+      "second": "Serverless"
+    },
+    "cloudflare.com": {
+      "top": "云服务",
+      "second": "CDN"
+    },
+    "railway.app": {
+      "top": "云服务",
+      "second": "PaaS"
+    },
+    "render.com": {
+      "top": "云服务",
+      "second": "PaaS"
+    },
+    "fly.io": {
+      "top": "云服务",
+      "second": "PaaS"
+    }
+  },
+  "数据库": {
+    "postgresql.org": {
+      "top": "数据库",
+      "second": "PostgreSQL"
+    },
+    "mysql.com": {
+      "top": "数据库",
+      "second": "MySQL"
+    },
+    "mongodb.com": {
+      "top": "数据库",
+      "second": "MongoDB"
+    },
+    "redis.io": {
+      "top": "数据库",
+      "second": "Redis"
+    },
+    "sqlite.org": {
+      "top": "数据库",
+      "second": "SQLite"
+    },
+    "clickhouse.com": {
+      "top": "数据库",
+      "second": "ClickHouse"
+    },
+    "supabase.com": {
+      "top": "数据库",
+      "second": "BaaS"
+    },
+    "planetscale.com": {
+      "top": "数据库",
+      "second": "BaaS"
+    },
+    "neon.tech": {
+      "top": "数据库",
+      "second": "BaaS"
+    }
+  },
+  "技术社区": {
+    "stackoverflow.com": {
+      "top": "技术社区",
+      "second": "问答"
+    },
+    "stackexchange.com": {
+      "top": "技术社区",
+      "second": "问答"
+    },
+    "v2ex.com": {
+      "top": "技术社区",
+      "second": "论坛"
+    },
+    "linux.do": {
+      "top": "技术社区",
+      "second": "论坛"
+    },
+    "news.ycombinator.com": {
+      "top": "技术社区",
+      "second": "HackerNews"
+    },
+    "reddit.com": {
+      "top": "技术社区",
+      "second": "Reddit"
+    },
+    "dev.to": {
+      "top": "技术社区",
+      "second": "博客平台"
+    },
+    "medium.com": {
+      "top": "技术社区",
+      "second": "博客平台"
+    },
+    "juejin.cn": {
+      "top": "技术社区",
+      "second": "掘金"
+    },
+    "segmentfault.com": {
+      "top": "技术社区",
+      "second": "思否"
+    },
+    "cnblogs.com": {
+      "top": "技术社区",
+      "second": "博客园"
+    },
+    "csdn.net": {
+      "top": "技术社区",
+      "second": "CSDN"
+    },
+    "zhihu.com": {
+      "top": "技术社区",
+      "second": "知乎"
+    },
+    "infoq.cn": {
+      "top": "技术社区",
+      "second": "InfoQ"
+    }
+  },
+  "学习资源": {
+    "arxiv.org": {
+      "top": "学习资源",
+      "second": "论文"
+    },
+    "paperswithcode.com": {
+      "top": "学习资源",
+      "second": "论文"
+    },
+    "scholar.google.com": {
+      "top": "学习资源",
+      "second": "论文"
+    },
+    "coursera.org": {
+      "top": "学习资源",
+      "second": "课程"
+    },
+    "udemy.com": {
+      "top": "学习资源",
+      "second": "课程"
+    },
+    "edx.org": {
+      "top": "学习资源",
+      "second": "课程"
+    },
+    "leetcode.com": {
+      "top": "学习资源",
+      "second": "刷题"
+    },
+    "leetcode.cn": {
+      "top": "学习资源",
+      "second": "刷题"
+    },
+    "hackerrank.com": {
+      "top": "学习资源",
+      "second": "刷题"
+    },
+    "roadmap.sh": {
+      "top": "学习资源",
+      "second": "学习路线"
+    }
+  },
+  "Homelab": {
+    "unraid.net": {
+      "top": "Homelab·服务器",
+      "second": "NAS系统"
+    },
+    "truenas.com": {
+      "top": "Homelab·服务器",
+      "second": "NAS系统"
+    },
+    "synology.com": {
+      "top": "Homelab·服务器",
+      "second": "群晖"
+    },
+    "home-assistant.io": {
+      "top": "Homelab·服务器",
+      "second": "智能家居"
+    },
+    "proxmox.com": {
+      "top": "Homelab·服务器",
+      "second": "虚拟化"
+    },
+    "portainer.io": {
+      "top": "Homelab·服务器",
+      "second": "容器管理"
+    },
+    "linuxserver.io": {
+      "top": "Homelab·服务器",
+      "second": "Docker镜像"
+    }
+  },
+  "在线工具": {
+    "regex101.com": {
+      "top": "在线工具",
+      "second": "正则"
+    },
+    "jsoncrack.com": {
+      "top": "在线工具",
+      "second": "JSON"
+    },
+    "excalidraw.com": {
+      "top": "在线工具",
+      "second": "绘图"
+    },
+    "tldraw.com": {
+      "top": "在线工具",
+      "second": "绘图"
+    },
+    "mermaid.live": {
+      "top": "在线工具",
+      "second": "图表"
+    },
+    "diagrams.net": {
+      "top": "在线工具",
+      "second": "图表"
+    },
+    "draw.io": {
+      "top": "在线工具",
+      "second": "图表"
+    },
+    "deepl.com": {
+      "top": "在线工具",
+      "second": "翻译"
+    },
+    "carbon.now.sh": {
+      "top": "在线工具",
+      "second": "代码截图"
+    },
+    "squoosh.app": {
+      "top": "在线工具",
+      "second": "图片压缩"
+    },
+    "tinypng.com": {
+      "top": "在线工具",
+      "second": "图片压缩"
+    }
+  }
 }

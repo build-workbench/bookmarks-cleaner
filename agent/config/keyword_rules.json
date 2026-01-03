@@ -1,47 +1,913 @@
 {
-  "zego": { "top": "工作", "second": "ZEGO" },
-  "bgi": { "top": "工作", "second": "BGI" },
-  "genomics": { "top": "工作", "second": "BGI" },
-
-  "llm": { "top": "AI·大模型" },
-  "chatgpt": { "top": "AI·大模型" },
-  "ai": { "top": "AI·大模型" },
-  "deepseek": { "top": "AI·大模型" },
-  "perplexity": { "top": "AI·大模型" },
-  "gemini": { "top": "AI·大模型" },
-  "mistral": { "top": "AI·大模型" },
-  "qwen": { "top": "AI·大模型" },
-
-  "golang": { "top": "编程语言", "second": "Go" },
-  " go ": { "top": "编程语言", "second": "Go" },
-  "cuda": { "top": "编程语言", "second": "C++·系统" },
-  "c++": { "top": "编程语言", "second": "C++·系统" },
-  "rust": { "top": "编程语言", "second": "Rust" },
-
-  "vue": { "top": "Web·前端" },
-  "react": { "top": "Web·前端" },
-  "javascript": { "top": "Web·前端" },
-  "typescript": { "top": "Web·前端" },
-  "django": { "top": "Web·前端" },
-
-  "docker": { "top": "DevOps·运维" },
-  "kubernetes": { "top": "DevOps·运维" },
-  "prometheus": { "top": "DevOps·运维" },
-  "grafana": { "top": "DevOps·运维" },
-  "kibana": { "top": "DevOps·运维" },
-  "jenkins": { "top": "DevOps·运维" },
-
-  "jetbrains": { "top": "开发工具" },
-  "vscode": { "top": "开发工具" },
-  "tmux": { "top": "开发工具" },
-  "warp": { "top": "开发工具" },
-  "yazi": { "top": "开发工具" },
-
-  "api": { "top": "API·平台" },
-  "console": { "top": "API·平台" },
-
-  "unraid": { "top": "Homelab·服务器" },
-  "nas": { "top": "Homelab·服务器" },
-  "homelab": { "top": "Homelab·服务器" },
-  "server": { "top": "Homelab·服务器" }
+  "_comment": "关键词规则 - 支持标题和URL匹配，权重越高优先级越高",
+  "工作相关": {
+    "zego": {
+      "top": "工作",
+      "second": "ZEGO",
+      "weight": 100
+    },
+    "bgi": {
+      "top": "工作",
+      "second": "BGI",
+      "weight": 100
+    },
+    "genomics": {
+      "top": "工作",
+      "second": "BGI",
+      "weight": 90
+    }
+  },
+  "AI·大模型": {
+    "llm": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 80
+    },
+    "large language model": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 85
+    },
+    "大语言模型": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 85
+    },
+    "大模型": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 80
+    },
+    "chatgpt": {
+      "top": "AI·大模型",
+      "second": "ChatGPT",
+      "weight": 90
+    },
+    "gpt-4": {
+      "top": "AI·大模型",
+      "second": "GPT",
+      "weight": 90
+    },
+    "gpt4": {
+      "top": "AI·大模型",
+      "second": "GPT",
+      "weight": 90
+    },
+    "claude": {
+      "top": "AI·大模型",
+      "second": "Claude",
+      "weight": 90
+    },
+    "deepseek": {
+      "top": "AI·大模型",
+      "second": "DeepSeek",
+      "weight": 90
+    },
+    "perplexity": {
+      "top": "AI·大模型",
+      "second": "AI搜索",
+      "weight": 85
+    },
+    "gemini": {
+      "top": "AI·大模型",
+      "second": "Gemini",
+      "weight": 90
+    },
+    "mistral": {
+      "top": "AI·大模型",
+      "second": "Mistral",
+      "weight": 85
+    },
+    "qwen": {
+      "top": "AI·大模型",
+      "second": "通义千问",
+      "weight": 85
+    },
+    "通义千问": {
+      "top": "AI·大模型",
+      "second": "通义千问",
+      "weight": 90
+    },
+    "kimi": {
+      "top": "AI·大模型",
+      "second": "Kimi",
+      "weight": 85
+    },
+    "llama": {
+      "top": "AI·大模型",
+      "second": "Llama",
+      "weight": 85
+    },
+    "transformer": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 70
+    },
+    "attention机制": {
+      "top": "AI·大模型",
+      "second": "技术",
+      "weight": 70
+    },
+    "prompt": {
+      "top": "AI·大模型",
+      "second": "提示工程",
+      "weight": 60
+    },
+    "提示词": {
+      "top": "AI·大模型",
+      "second": "提示工程",
+      "weight": 65
+    },
+    "rag": {
+      "top": "AI·大模型",
+      "second": "RAG",
+      "weight": 75
+    },
+    "embedding": {
+      "top": "AI·大模型",
+      "second": "向量",
+      "weight": 70
+    },
+    "向量数据库": {
+      "top": "AI·大模型",
+      "second": "向量",
+      "weight": 75
+    },
+    "langchain": {
+      "top": "AI·大模型",
+      "second": "框架",
+      "weight": 80
+    },
+    "llamaindex": {
+      "top": "AI·大模型",
+      "second": "框架",
+      "weight": 80
+    },
+    "agent": {
+      "top": "AI·大模型",
+      "second": "Agent",
+      "weight": 60,
+      "context_required": [
+        "ai",
+        "llm",
+        "智能"
+      ]
+    },
+    "stable diffusion": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 85
+    },
+    "midjourney": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 85
+    },
+    "comfyui": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 80
+    },
+    "ai绘画": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 85
+    },
+    "文生图": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 80
+    },
+    "copilot": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 80
+    },
+    "cursor": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "ai编程": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    }
+  },
+  "编程语言": {
+    "golang": {
+      "top": "编程语言",
+      "second": "Go",
+      "weight": 85
+    },
+    " go ": {
+      "top": "编程语言",
+      "second": "Go",
+      "weight": 70,
+      "must_not_contain": [
+        "go out",
+        "go shopping",
+        "let go",
+        "go to"
+      ]
+    },
+    "goroutine": {
+      "top": "编程语言",
+      "second": "Go",
+      "weight": 90
+    },
+    "rust": {
+      "top": "编程语言",
+      "second": "Rust",
+      "weight": 80,
+      "must_not_contain": [
+        "rust game",
+        "rust 游戏"
+      ]
+    },
+    "rustacean": {
+      "top": "编程语言",
+      "second": "Rust",
+      "weight": 90
+    },
+    "cargo": {
+      "top": "编程语言",
+      "second": "Rust",
+      "weight": 75,
+      "context_required": [
+        "rust",
+        "crate"
+      ]
+    },
+    "python": {
+      "top": "编程语言",
+      "second": "Python",
+      "weight": 80
+    },
+    "pytorch": {
+      "top": "编程语言",
+      "second": "Python",
+      "weight": 85
+    },
+    "tensorflow": {
+      "top": "编程语言",
+      "second": "Python",
+      "weight": 85
+    },
+    "numpy": {
+      "top": "编程语言",
+      "second": "Python",
+      "weight": 80
+    },
+    "pandas": {
+      "top": "编程语言",
+      "second": "Python",
+      "weight": 80
+    },
+    "c++": {
+      "top": "编程语言",
+      "second": "C++",
+      "weight": 85
+    },
+    "cpp": {
+      "top": "编程语言",
+      "second": "C++",
+      "weight": 80
+    },
+    "cuda": {
+      "top": "编程语言",
+      "second": "C++·CUDA",
+      "weight": 85
+    },
+    "openmp": {
+      "top": "编程语言",
+      "second": "C++·并行",
+      "weight": 80
+    },
+    "java": {
+      "top": "编程语言",
+      "second": "Java",
+      "weight": 75,
+      "must_not_contain": [
+        "javascript"
+      ]
+    },
+    "kotlin": {
+      "top": "编程语言",
+      "second": "Kotlin",
+      "weight": 85
+    },
+    "swift": {
+      "top": "编程语言",
+      "second": "Swift",
+      "weight": 80,
+      "must_not_contain": [
+        "taylor swift",
+        "swift银行"
+      ]
+    },
+    "zig": {
+      "top": "编程语言",
+      "second": "Zig",
+      "weight": 85
+    },
+    "elixir": {
+      "top": "编程语言",
+      "second": "Elixir",
+      "weight": 85
+    }
+  },
+  "Web·前端": {
+    "vue": {
+      "top": "Web·前端",
+      "second": "Vue",
+      "weight": 85
+    },
+    "vue3": {
+      "top": "Web·前端",
+      "second": "Vue",
+      "weight": 90
+    },
+    "react": {
+      "top": "Web·前端",
+      "second": "React",
+      "weight": 85
+    },
+    "nextjs": {
+      "top": "Web·前端",
+      "second": "Next.js",
+      "weight": 85
+    },
+    "next.js": {
+      "top": "Web·前端",
+      "second": "Next.js",
+      "weight": 85
+    },
+    "nuxt": {
+      "top": "Web·前端",
+      "second": "Nuxt",
+      "weight": 85
+    },
+    "svelte": {
+      "top": "Web·前端",
+      "second": "Svelte",
+      "weight": 85
+    },
+    "angular": {
+      "top": "Web·前端",
+      "second": "Angular",
+      "weight": 80
+    },
+    "javascript": {
+      "top": "Web·前端",
+      "second": "JavaScript",
+      "weight": 75
+    },
+    "typescript": {
+      "top": "Web·前端",
+      "second": "TypeScript",
+      "weight": 80
+    },
+    "tailwind": {
+      "top": "Web·前端",
+      "second": "CSS",
+      "weight": 80
+    },
+    "css": {
+      "top": "Web·前端",
+      "second": "CSS",
+      "weight": 60
+    },
+    "sass": {
+      "top": "Web·前端",
+      "second": "CSS",
+      "weight": 70
+    },
+    "webpack": {
+      "top": "Web·前端",
+      "second": "构建工具",
+      "weight": 75
+    },
+    "vite": {
+      "top": "Web·前端",
+      "second": "构建工具",
+      "weight": 80
+    },
+    "esbuild": {
+      "top": "Web·前端",
+      "second": "构建工具",
+      "weight": 75
+    },
+    "pnpm": {
+      "top": "Web·前端",
+      "second": "包管理",
+      "weight": 70
+    },
+    "npm": {
+      "top": "Web·前端",
+      "second": "包管理",
+      "weight": 65
+    },
+    "前端": {
+      "top": "Web·前端",
+      "weight": 70
+    },
+    "frontend": {
+      "top": "Web·前端",
+      "weight": 70
+    }
+  },
+  "后端开发": {
+    "django": {
+      "top": "后端开发",
+      "second": "Python",
+      "weight": 85
+    },
+    "flask": {
+      "top": "后端开发",
+      "second": "Python",
+      "weight": 80
+    },
+    "fastapi": {
+      "top": "后端开发",
+      "second": "Python",
+      "weight": 85
+    },
+    "spring": {
+      "top": "后端开发",
+      "second": "Java",
+      "weight": 80
+    },
+    "springboot": {
+      "top": "后端开发",
+      "second": "Java",
+      "weight": 85
+    },
+    "gin": {
+      "top": "后端开发",
+      "second": "Go",
+      "weight": 80
+    },
+    "echo": {
+      "top": "后端开发",
+      "second": "Go",
+      "weight": 75
+    },
+    "express": {
+      "top": "后端开发",
+      "second": "Node.js",
+      "weight": 75
+    },
+    "nestjs": {
+      "top": "后端开发",
+      "second": "Node.js",
+      "weight": 80
+    },
+    "graphql": {
+      "top": "后端开发",
+      "second": "API",
+      "weight": 80
+    },
+    "restful": {
+      "top": "后端开发",
+      "second": "API",
+      "weight": 70
+    },
+    "grpc": {
+      "top": "后端开发",
+      "second": "RPC",
+      "weight": 80
+    },
+    "微服务": {
+      "top": "后端开发",
+      "second": "架构",
+      "weight": 75
+    },
+    "microservice": {
+      "top": "后端开发",
+      "second": "架构",
+      "weight": 75
+    }
+  },
+  "DevOps·运维": {
+    "docker": {
+      "top": "DevOps·运维",
+      "second": "容器",
+      "weight": 85
+    },
+    "dockerfile": {
+      "top": "DevOps·运维",
+      "second": "容器",
+      "weight": 85
+    },
+    "kubernetes": {
+      "top": "DevOps·运维",
+      "second": "K8s",
+      "weight": 90
+    },
+    "k8s": {
+      "top": "DevOps·运维",
+      "second": "K8s",
+      "weight": 90
+    },
+    "helm": {
+      "top": "DevOps·运维",
+      "second": "K8s",
+      "weight": 80
+    },
+    "prometheus": {
+      "top": "DevOps·运维",
+      "second": "监控",
+      "weight": 85
+    },
+    "grafana": {
+      "top": "DevOps·运维",
+      "second": "监控",
+      "weight": 85
+    },
+    "kibana": {
+      "top": "DevOps·运维",
+      "second": "日志",
+      "weight": 80
+    },
+    "elasticsearch": {
+      "top": "DevOps·运维",
+      "second": "日志",
+      "weight": 80
+    },
+    "jenkins": {
+      "top": "DevOps·运维",
+      "second": "CI/CD",
+      "weight": 80
+    },
+    "github actions": {
+      "top": "DevOps·运维",
+      "second": "CI/CD",
+      "weight": 85
+    },
+    "gitlab ci": {
+      "top": "DevOps·运维",
+      "second": "CI/CD",
+      "weight": 85
+    },
+    "ci/cd": {
+      "top": "DevOps·运维",
+      "second": "CI/CD",
+      "weight": 80
+    },
+    "terraform": {
+      "top": "DevOps·运维",
+      "second": "IaC",
+      "weight": 85
+    },
+    "ansible": {
+      "top": "DevOps·运维",
+      "second": "自动化",
+      "weight": 80
+    },
+    "nginx": {
+      "top": "DevOps·运维",
+      "second": "Web服务器",
+      "weight": 75
+    },
+    "linux": {
+      "top": "DevOps·运维",
+      "second": "系统",
+      "weight": 65
+    },
+    "shell": {
+      "top": "DevOps·运维",
+      "second": "脚本",
+      "weight": 60
+    },
+    "bash": {
+      "top": "DevOps·运维",
+      "second": "脚本",
+      "weight": 65
+    }
+  },
+  "数据库": {
+    "postgresql": {
+      "top": "数据库",
+      "second": "PostgreSQL",
+      "weight": 85
+    },
+    "postgres": {
+      "top": "数据库",
+      "second": "PostgreSQL",
+      "weight": 85
+    },
+    "mysql": {
+      "top": "数据库",
+      "second": "MySQL",
+      "weight": 85
+    },
+    "mongodb": {
+      "top": "数据库",
+      "second": "MongoDB",
+      "weight": 85
+    },
+    "redis": {
+      "top": "数据库",
+      "second": "Redis",
+      "weight": 85
+    },
+    "sqlite": {
+      "top": "数据库",
+      "second": "SQLite",
+      "weight": 80
+    },
+    "clickhouse": {
+      "top": "数据库",
+      "second": "ClickHouse",
+      "weight": 85
+    },
+    "sql": {
+      "top": "数据库",
+      "weight": 60
+    },
+    "数据库": {
+      "top": "数据库",
+      "weight": 70
+    },
+    "database": {
+      "top": "数据库",
+      "weight": 65
+    }
+  },
+  "开发工具": {
+    "jetbrains": {
+      "top": "开发工具",
+      "second": "IDE",
+      "weight": 80
+    },
+    "intellij": {
+      "top": "开发工具",
+      "second": "IDE",
+      "weight": 80
+    },
+    "vscode": {
+      "top": "开发工具",
+      "second": "编辑器",
+      "weight": 80
+    },
+    "neovim": {
+      "top": "开发工具",
+      "second": "编辑器",
+      "weight": 80
+    },
+    "vim": {
+      "top": "开发工具",
+      "second": "编辑器",
+      "weight": 70
+    },
+    "emacs": {
+      "top": "开发工具",
+      "second": "编辑器",
+      "weight": 75
+    },
+    "tmux": {
+      "top": "开发工具",
+      "second": "终端",
+      "weight": 75
+    },
+    "warp": {
+      "top": "开发工具",
+      "second": "终端",
+      "weight": 80
+    },
+    "iterm": {
+      "top": "开发工具",
+      "second": "终端",
+      "weight": 75
+    },
+    "yazi": {
+      "top": "开发工具",
+      "second": "文件管理",
+      "weight": 75
+    },
+    "lazygit": {
+      "top": "开发工具",
+      "second": "Git工具",
+      "weight": 80
+    },
+    "git": {
+      "top": "开发工具",
+      "second": "版本控制",
+      "weight": 65
+    },
+    "postman": {
+      "top": "开发工具",
+      "second": "API工具",
+      "weight": 80
+    }
+  },
+  "Homelab·服务器": {
+    "unraid": {
+      "top": "Homelab·服务器",
+      "second": "NAS系统",
+      "weight": 90
+    },
+    "truenas": {
+      "top": "Homelab·服务器",
+      "second": "NAS系统",
+      "weight": 90
+    },
+    "synology": {
+      "top": "Homelab·服务器",
+      "second": "群晖",
+      "weight": 90
+    },
+    "群晖": {
+      "top": "Homelab·服务器",
+      "second": "群晖",
+      "weight": 90
+    },
+    "nas": {
+      "top": "Homelab·服务器",
+      "second": "NAS",
+      "weight": 80
+    },
+    "homelab": {
+      "top": "Homelab·服务器",
+      "weight": 85
+    },
+    "home assistant": {
+      "top": "Homelab·服务器",
+      "second": "智能家居",
+      "weight": 85
+    },
+    "proxmox": {
+      "top": "Homelab·服务器",
+      "second": "虚拟化",
+      "weight": 85
+    },
+    "esxi": {
+      "top": "Homelab·服务器",
+      "second": "虚拟化",
+      "weight": 80
+    },
+    "pve": {
+      "top": "Homelab·服务器",
+      "second": "虚拟化",
+      "weight": 85
+    },
+    "软路由": {
+      "top": "Homelab·服务器",
+      "second": "网络",
+      "weight": 80
+    },
+    "openwrt": {
+      "top": "Homelab·服务器",
+      "second": "网络",
+      "weight": 85
+    }
+  },
+  "生物信息": {
+    "bioinformatics": {
+      "top": "生物信息",
+      "weight": 90
+    },
+    "生物信息": {
+      "top": "生物信息",
+      "weight": 90
+    },
+    "genomics": {
+      "top": "生物信息",
+      "second": "基因组",
+      "weight": 85
+    },
+    "基因组": {
+      "top": "生物信息",
+      "second": "基因组",
+      "weight": 85
+    },
+    "rna-seq": {
+      "top": "生物信息",
+      "second": "转录组",
+      "weight": 90
+    },
+    "单细胞": {
+      "top": "生物信息",
+      "second": "单细胞",
+      "weight": 90
+    },
+    "single cell": {
+      "top": "生物信息",
+      "second": "单细胞",
+      "weight": 90
+    },
+    "scRNA": {
+      "top": "生物信息",
+      "second": "单细胞",
+      "weight": 90
+    },
+    "测序": {
+      "top": "生物信息",
+      "second": "测序",
+      "weight": 80
+    },
+    "sequencing": {
+      "top": "生物信息",
+      "second": "测序",
+      "weight": 80
+    },
+    "fastq": {
+      "top": "生物信息",
+      "second": "数据格式",
+      "weight": 85
+    },
+    "bam": {
+      "top": "生物信息",
+      "second": "数据格式",
+      "weight": 80
+    },
+    "vcf": {
+      "top": "生物信息",
+      "second": "数据格式",
+      "weight": 80
+    },
+    "gatk": {
+      "top": "生物信息",
+      "second": "工具",
+      "weight": 85
+    },
+    "samtools": {
+      "top": "生物信息",
+      "second": "工具",
+      "weight": 85
+    },
+    "bwa": {
+      "top": "生物信息",
+      "second": "工具",
+      "weight": 85
+    },
+    "ncbi": {
+      "top": "生物信息",
+      "second": "数据库",
+      "weight": 80
+    }
+  },
+  "学习资源": {
+    "教程": {
+      "top": "学习资源",
+      "second": "教程",
+      "weight": 70
+    },
+    "tutorial": {
+      "top": "学习资源",
+      "second": "教程",
+      "weight": 70
+    },
+    "指南": {
+      "top": "学习资源",
+      "second": "指南",
+      "weight": 65
+    },
+    "guide": {
+      "top": "学习资源",
+      "second": "指南",
+      "weight": 65
+    },
+    "入门": {
+      "top": "学习资源",
+      "second": "入门",
+      "weight": 65
+    },
+    "getting started": {
+      "top": "学习资源",
+      "second": "入门",
+      "weight": 65
+    },
+    "实战": {
+      "top": "学习资源",
+      "second": "实战",
+      "weight": 70
+    },
+    "最佳实践": {
+      "top": "学习资源",
+      "second": "最佳实践",
+      "weight": 75
+    },
+    "best practice": {
+      "top": "学习资源",
+      "second": "最佳实践",
+      "weight": 75
+    },
+    "cheatsheet": {
+      "top": "学习资源",
+      "second": "速查表",
+      "weight": 75
+    },
+    "速查": {
+      "top": "学习资源",
+      "second": "速查表",
+      "weight": 70
+    },
+    "awesome": {
+      "top": "学习资源",
+      "second": "资源列表",
+      "weight": 70
+    }
+  }
 }

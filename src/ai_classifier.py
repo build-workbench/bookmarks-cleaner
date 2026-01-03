@@ -34,6 +34,13 @@ except ImportError:
 
 from .rule_engine import RuleEngine
 
+# 导入智能规则加载器
+try:
+    from .smart_rule_loader import SmartRuleLoader, merge_with_main_config
+except ImportError:
+    SmartRuleLoader = None
+    merge_with_main_config = None
+
 # 导入占位符模块
 from .placeholder_modules import (
     SemanticAnalyzer, UserProfiler, PerformanceMonitor
@@ -170,6 +177,17 @@ class AIBookmarkClassifier:
         try:
             with open(self.config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
+            
+            # 加载智能规则并合并
+            if SmartRuleLoader is not None and merge_with_main_config is not None:
+                try:
+                    loader = SmartRuleLoader()
+                    smart_rules = loader.load_all()
+                    config = merge_with_main_config(config, smart_rules)
+                    self.logger.info(f"已加载智能规则: {smart_rules.get('_meta', {})}")
+                except Exception as e:
+                    self.logger.warning(f"智能规则加载失败，使用默认配置: {e}")
+            
             return self._normalize_category_config(config)
         except Exception as e:
             self.logger.error(f"配置文件加载失败: {e}")
@@ -437,9 +455,9 @@ class AIBookmarkClassifier:
         merged_facets: Dict[str, str] = {}
 
         method_weights = {
-            'rule_engine': 0.35,
-            'machine_learning': 0.25,
-            'semantic_analyzer': 0.15,
+            'rule_engine': 0.50,  # 提高规则引擎权重
+            'machine_learning': 0.15,  # 降低 ML 权重（因为模型可能过时）
+            'semantic_analyzer': 0.10,
             'user_profiler': 0.10,
             'llm': 0.50,
         }
