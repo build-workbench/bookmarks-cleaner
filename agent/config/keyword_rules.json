@@ -53,10 +53,50 @@
       "second": "GPT",
       "weight": 90
     },
+    "gpt-5": {
+      "top": "AI·大模型",
+      "second": "GPT",
+      "weight": 95
+    },
+    "gpt5": {
+      "top": "AI·大模型",
+      "second": "GPT",
+      "weight": 95
+    },
     "claude": {
       "top": "AI·大模型",
       "second": "Claude",
       "weight": 90
+    },
+    "claude code": {
+      "top": "AI·大模型",
+      "second": "Claude Code",
+      "weight": 95
+    },
+    "claude-code": {
+      "top": "AI·大模型",
+      "second": "Claude Code",
+      "weight": 95
+    },
+    "opus": {
+      "top": "AI·大模型",
+      "second": "Claude",
+      "weight": 85,
+      "context_required": [
+        "claude",
+        "anthropic",
+        "ai"
+      ]
+    },
+    "sonnet": {
+      "top": "AI·大模型",
+      "second": "Claude",
+      "weight": 85,
+      "context_required": [
+        "claude",
+        "anthropic",
+        "ai"
+      ]
     },
     "deepseek": {
       "top": "AI·大模型",
@@ -83,6 +123,11 @@
       "second": "通义千问",
       "weight": 85
     },
+    "qwen3": {
+      "top": "AI·大模型",
+      "second": "通义千问",
+      "weight": 90
+    },
     "通义千问": {
       "top": "AI·大模型",
       "second": "通义千问",
@@ -96,6 +141,16 @@
     "llama": {
       "top": "AI·大模型",
       "second": "Llama",
+      "weight": 85
+    },
+    "glm": {
+      "top": "AI·大模型",
+      "second": "智谱",
+      "weight": 80
+    },
+    "智谱": {
+      "top": "AI·大模型",
+      "second": "智谱",
       "weight": 85
     },
     "transformer": {
@@ -143,6 +198,11 @@
       "second": "框架",
       "weight": 80
     },
+    "eino": {
+      "top": "AI·大模型",
+      "second": "框架",
+      "weight": 80
+    },
     "agent": {
       "top": "AI·大模型",
       "second": "Agent",
@@ -152,6 +212,21 @@
         "llm",
         "智能"
       ]
+    },
+    "sub-agent": {
+      "top": "AI·大模型",
+      "second": "Agent",
+      "weight": 85
+    },
+    "mcp": {
+      "top": "AI·大模型",
+      "second": "MCP",
+      "weight": 80
+    },
+    "model context protocol": {
+      "top": "AI·大模型",
+      "second": "MCP",
+      "weight": 85
     },
     "stable diffusion": {
       "top": "AI·大模型",
@@ -178,6 +253,16 @@
       "second": "AI绘画",
       "weight": 80
     },
+    "ghibli": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 80
+    },
+    "吉卜力": {
+      "top": "AI·大模型",
+      "second": "AI绘画",
+      "weight": 80
+    },
     "copilot": {
       "top": "AI·大模型",
       "second": "AI编程",
@@ -191,6 +276,51 @@
     "ai编程": {
       "top": "AI·大模型",
       "second": "AI编程",
+      "weight": 85
+    },
+    "augment": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "roo code": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "roocode": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "kiro": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "windsurf": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 85
+    },
+    "trae": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 80
+    },
+    "vibe coding": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 80
+    },
+    "vibecoding": {
+      "top": "AI·大模型",
+      "second": "AI编程",
+      "weight": 80
+    },
+    "superclaud": {
+      "top": "AI·大模型",
+      "second": "Claude Code",
       "weight": 85
     }
   },
@@ -646,6 +776,16 @@
       "second": "IDE",
       "weight": 80
     },
+    "idea激活": {
+      "top": "开发工具",
+      "second": "IDE",
+      "weight": 85
+    },
+    "jetbra.in": {
+      "top": "开发工具",
+      "second": "IDE",
+      "weight": 85
+    },
     "vscode": {
       "top": "开发工具",
       "second": "编辑器",
@@ -700,6 +840,41 @@
       "top": "开发工具",
       "second": "API工具",
       "weight": 80
+    },
+    "plantuml": {
+      "top": "开发工具",
+      "second": "图表工具",
+      "weight": 80
+    },
+    "mermaid": {
+      "top": "开发工具",
+      "second": "图表工具",
+      "weight": 80
+    },
+    "graphviz": {
+      "top": "开发工具",
+      "second": "图表工具",
+      "weight": 75
+    },
+    "excalidraw": {
+      "top": "开发工具",
+      "second": "图表工具",
+      "weight": 75
+    },
+    "obsidian": {
+      "top": "开发工具",
+      "second": "笔记工具",
+      "weight": 80
+    },
+    "typora": {
+      "top": "开发工具",
+      "second": "笔记工具",
+      "weight": 80
+    },
+    "notion": {
+      "top": "开发工具",
+      "second": "笔记工具",
+      "weight": 75
     }
   },
   "Homelab·服务器": {
@@ -908,6 +1083,58 @@
       "top": "学习资源",
       "second": "资源列表",
       "weight": 70
+    }
+  },
+  "技术社区": {
+    "linux.do": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 95
+    },
+    "linuxdo": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 95
+    },
+    "开发调优": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "搞七捻三": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "资源荟萃": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "福利羊毛": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "前沿快讯": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "文档共建": {
+      "top": "技术社区",
+      "second": "LinuxDo",
+      "weight": 90
+    },
+    "v2ex": {
+      "top": "技术社区",
+      "second": "V2EX",
+      "weight": 90
+    },
+    "hackernews": {
+      "top": "技术社区",
+      "second": "HackerNews",
+      "weight": 85
     }
   }
 }

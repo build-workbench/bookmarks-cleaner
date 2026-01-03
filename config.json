@@ -158,7 +158,11 @@
             "reka.ai",
             "jina.ai",
             "qwen.ai",
-            "deepseek.com"
+            "deepseek.com",
+            "chat.qwen.ai",
+            "chat.mistral.ai",
+            "build.nvidia.com",
+            "bigmodel.cn"
           ],
           "weight": 15
         },
@@ -167,14 +171,83 @@
           "keywords": [
             "gpt-4",
             "gpt4",
+            "gpt-5",
+            "gpt5",
             "claude 3",
+            "claude 4",
             "gemini",
             "llama",
             "sora",
             "大模型",
-            "llm"
+            "llm",
+            "qwen3",
+            "deepseek-v3",
+            "glm"
           ],
           "weight": 10
+        }
+      ]
+    },
+    "🤖 AI/Claude中转": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "xychatai.com",
+            "new.xychatai.com",
+            "claude.hubp.de",
+            "gaccode.com",
+            "claude.nonocode.cn",
+            "packycode.com",
+            "aicodemirror.com"
+          ],
+          "weight": 20
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "claude code中转",
+            "claude中转",
+            "cc中转"
+          ],
+          "weight": 15
+        }
+      ]
+    },
+    "🤖 AI/AI编程": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "cursor.com",
+            "cursor.sh",
+            "roocode.com",
+            "augment.dev",
+            "trae.ai",
+            "factory.ai",
+            "cto.new",
+            "qodo.ai",
+            "aider.chat",
+            "codeium.com"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "cursor",
+            "augment",
+            "roo code",
+            "roocode",
+            "claude code",
+            "ai编程",
+            "vibe coding",
+            "vibecoding",
+            "kiro",
+            "windsurf",
+            "superclaud"
+          ],
+          "weight": 12
         }
       ]
     },
@@ -487,9 +560,11 @@
           "match": "domain",
           "keywords": [
             "linux.do",
+            "rate.linux.do",
+            "nav.linux.do",
             "v2ex.com"
           ],
-          "weight": 20
+          "weight": 30
         },
         {
           "match": "domain",
@@ -500,9 +575,25 @@
             "hachyderm.io",
             "mastodon.social",
             "hupu.com",
-            "chiphell.com"
+            "chiphell.com",
+            "bbs.pcbeta.com"
           ],
           "weight": 10
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "开发调优",
+            "搞七捻三",
+            "资源荟萃",
+            "福利羊毛",
+            "前沿快讯",
+            "文档共建",
+            "LINUX DO",
+            "LinuxDo",
+            "linux.do"
+          ],
+          "weight": 25
         }
       ]
     },

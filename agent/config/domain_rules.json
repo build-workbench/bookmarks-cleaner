@@ -9,6 +9,10 @@
       "top": "工作",
       "second": "ZEGO"
     },
+    "oa.zego.im": {
+      "top": "工作",
+      "second": "ZEGO"
+    },
     "bgi.com": {
       "top": "工作",
       "second": "BGI"
@@ -40,6 +44,18 @@
     "halos.bgi.com": {
       "top": "工作",
       "second": "BGI"
+    },
+    "chat.bgi.com": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "mailc.genomics.cn": {
+      "top": "工作",
+      "second": "BGI"
+    },
+    "tapd.cn": {
+      "top": "工作",
+      "second": "项目管理"
     }
   },
   "AI·大模型": {
@@ -165,6 +181,26 @@
       "top": "AI·大模型",
       "second": "AI绘画"
     },
+    "ghibliai.tools": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "ghiblio.art": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "ghiblistyle.co": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "styleai.art": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
+    "chatimg.ai": {
+      "top": "AI·大模型",
+      "second": "AI绘画"
+    },
     "runway.ml": {
       "top": "AI·大模型",
       "second": "AI视频"
@@ -208,6 +244,124 @@
     "bolt.new": {
       "top": "AI·大模型",
       "second": "AI编程"
+    },
+    "trae.ai": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "roocode.com": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "augment.dev": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "factory.ai": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "cto.new": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    },
+    "qodo.ai": {
+      "top": "AI·大模型",
+      "second": "AI编程"
+    }
+  },
+  "AI·Claude中转": {
+    "xychatai.com": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "new.xychatai.com": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "claude.hubp.de": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "gaccode.com": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "claude.nonocode.cn": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "packycode.com": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    },
+    "aicodemirror.com": {
+      "top": "AI·大模型",
+      "second": "Claude中转"
+    }
+  },
+  "AI·搜索研究": {
+    "metaso.cn": {
+      "top": "AI·大模型",
+      "second": "AI搜索"
+    },
+    "devv.ai": {
+      "top": "AI·大模型",
+      "second": "AI搜索"
+    },
+    "genspark.ai": {
+      "top": "AI·大模型",
+      "second": "AI搜索"
+    },
+    "search.jina.ai": {
+      "top": "AI·大模型",
+      "second": "AI搜索"
+    },
+    "notebooklm.google.com": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    },
+    "aistudio.google.com": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    },
+    "novix.science": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    },
+    "research.u14.app": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    },
+    "deepread.aizhi.site": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    },
+    "scimaster.bohrium.com": {
+      "top": "AI·大模型",
+      "second": "AI研究"
+    }
+  },
+  "AI·文档工具": {
+    "aipdf.app": {
+      "top": "AI·大模型",
+      "second": "AI文档"
+    },
+    "doc2x.noedgeai.com": {
+      "top": "AI·大模型",
+      "second": "AI文档"
+    },
+    "typeset.io": {
+      "top": "AI·大模型",
+      "second": "AI文档"
+    },
+    "belindoc.com": {
+      "top": "AI·大模型",
+      "second": "AI翻译"
+    },
+    "deepl.com": {
+      "top": "AI·大模型",
+      "second": "AI翻译"
     }
   },
   "代码仓库": {
@@ -571,7 +725,15 @@
     },
     "linux.do": {
       "top": "技术社区",
-      "second": "论坛"
+      "second": "LinuxDo"
+    },
+    "rate.linux.do": {
+      "top": "技术社区",
+      "second": "LinuxDo"
+    },
+    "nav.linux.do": {
+      "top": "技术社区",
+      "second": "LinuxDo"
     },
     "news.ycombinator.com": {
       "top": "技术社区",
@@ -612,6 +774,14 @@
     "infoq.cn": {
       "top": "技术社区",
       "second": "InfoQ"
+    },
+    "chiphell.com": {
+      "top": "技术社区",
+      "second": "Chiphell"
+    },
+    "bbs.pcbeta.com": {
+      "top": "技术社区",
+      "second": "远景论坛"
     }
   },
   "学习资源": {
