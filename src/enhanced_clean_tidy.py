@@ -11,7 +11,6 @@ Enhanced Bookmark Processing System - 增强版书签处理系统
 """
 
 import os
-import sys
 import argparse
 import json
 import glob
