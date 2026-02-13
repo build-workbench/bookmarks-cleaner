@@ -408,7 +408,7 @@ class MemoryOptimizer:
             if hasattr(obj, 'cache_clear'):
                 try:
                     obj.cache_clear()
-                except:
+                except Exception:
                     pass
         
         # 强制垃圾回收

@@ -29,8 +29,7 @@ import re
 from dataclasses import dataclass, field
 import pickle
 
-# 导入其他模块
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 
 @dataclass
 class BookmarkHealth:
@@ -195,7 +194,7 @@ class IntelligentDeduplicator:
             domain2 = urlparse(url2).netloc.lower().replace('www.', '')
             
             return 1.0 if domain1 == domain2 else 0.0
-        except:
+        except Exception:
             return 0.0
     
     def _normalize_url(self, url: str) -> str:
@@ -227,7 +226,7 @@ class IntelligentDeduplicator:
             
             return normalized.rstrip('/')
             
-        except:
+        except Exception:
             return url.lower()
     
     def _normalize_title(self, title: str) -> str:
@@ -475,7 +474,7 @@ class PersonalizedRecommendationSystem:
         """提取域名"""
         try:
             return urlparse(url).netloc.lower().replace('www.', '')
-        except:
+        except Exception:
             return ''
     
     def _normalize_preferences(self):

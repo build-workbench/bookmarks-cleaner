@@ -26,12 +26,8 @@ import hashlib
 from bs4 import BeautifulSoup
 import html
 import re
-from emoji_cleaner import clean_title as clean_emoji_title
-
-# 添加项目路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from enhanced_classifier import EnhancedClassifier, ClassificationResult
+from .emoji_cleaner import clean_title as clean_emoji_title
+from .enhanced_classifier import EnhancedClassifier, ClassificationResult
 
 @dataclass
 class ProcessingStats:

@@ -300,7 +300,7 @@ class BookmarkProcessor:
             # 使用lxml解析器如果可用，否则使用html.parser
             try:
                 soup = BeautifulSoup(content, 'lxml')
-            except:
+            except Exception:
                 soup = BeautifulSoup(content, 'html.parser')
             
             links = soup.find_all('a', href=True)  # 只查找有href的链接

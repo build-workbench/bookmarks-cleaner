@@ -8,11 +8,7 @@ from typing import Optional, Dict, List, Any, Tuple
 from dataclasses import dataclass, field
 import numpy as np
 
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-
-from plugins.base import ClassifierPlugin, PluginMetadata
+from ..base import ClassifierPlugin, PluginMetadata
 
 @dataclass
 class ClassificationResult:
