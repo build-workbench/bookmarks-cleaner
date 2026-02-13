@@ -29,53 +29,64 @@ class BookmarkDeduplicator:
         ]
     
     def remove_duplicates(self, bookmarks: List[Dict]) -> Tuple[List[Dict], List[Dict]]:
-        """移除重复书签 - 高级算法"""
+        """移除重复书签 - 域名预分组 + 组内相似度检测
+
+        优化思路：重复书签几乎总是同域名，因此先按域名分桶，
+        仅在同域名桶内做 O(m²) 比较，避免全局 O(n²)。
+        """
         if not bookmarks:
             return [], []
-        
+
         unique_bookmarks = []
         duplicates = []
-        processed_indices = set()
-        
+
         # 为每个书签生成唯一标识
         for i, bookmark in enumerate(bookmarks):
             bookmark['_original_index'] = i
-        
-        # 逐一比较书签
-        for i, bookmark1 in enumerate(bookmarks):
-            if i in processed_indices:
-                continue
-            
-            # 找到所有与当前书签相似的书签
-            similar_group = [bookmark1]
-            similar_indices = {i}
-            
-            for j, bookmark2 in enumerate(bookmarks[i+1:], i+1):
-                if j in processed_indices:
+
+        # 按域名预分组
+        domain_groups: Dict[str, List[int]] = defaultdict(list)
+        for i, bookmark in enumerate(bookmarks):
+            try:
+                domain = urlparse(bookmark.get('url', '')).netloc.lower().replace('www.', '')
+            except Exception:
+                domain = ''
+            domain_groups[domain].append(i)
+
+        processed_indices: Set[int] = set()
+
+        # 在每个域名组内进行去重
+        for _domain, indices in domain_groups.items():
+            for idx_pos, i in enumerate(indices):
+                if i in processed_indices:
                     continue
-                
-                if self._are_duplicates(bookmark1, bookmark2):
-                    similar_group.append(bookmark2)
-                    similar_indices.add(j)
-            
-            # 处理相似组
-            if len(similar_group) > 1:
-                # 选择最佳代表
-                best_bookmark = self._select_best_bookmark(similar_group)
-                unique_bookmarks.append(best_bookmark)
-                
-                # 其余的标记为重复
-                for bookmark in similar_group:
-                    if bookmark != best_bookmark:
-                        bookmark['duplicate_reason'] = self._get_duplicate_reason(best_bookmark, bookmark)
-                        duplicates.append(bookmark)
-            else:
-                # 没有重复，直接添加
-                unique_bookmarks.append(bookmark1)
-            
-            # 标记为已处理
-            processed_indices.update(similar_indices)
-        
+
+                bookmark1 = bookmarks[i]
+                similar_group = [bookmark1]
+                similar_indices = {i}
+
+                for j in indices[idx_pos + 1:]:
+                    if j in processed_indices:
+                        continue
+
+                    if self._are_duplicates(bookmark1, bookmarks[j]):
+                        similar_group.append(bookmarks[j])
+                        similar_indices.add(j)
+
+                # 处理相似组
+                if len(similar_group) > 1:
+                    best_bookmark = self._select_best_bookmark(similar_group)
+                    unique_bookmarks.append(best_bookmark)
+
+                    for bookmark in similar_group:
+                        if bookmark != best_bookmark:
+                            bookmark['duplicate_reason'] = self._get_duplicate_reason(best_bookmark, bookmark)
+                            duplicates.append(bookmark)
+                else:
+                    unique_bookmarks.append(bookmark1)
+
+                processed_indices.update(similar_indices)
+
         return unique_bookmarks, duplicates
     
     def _are_duplicates(self, bookmark1: Dict, bookmark2: Dict) -> bool:

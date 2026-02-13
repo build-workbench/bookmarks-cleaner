@@ -47,7 +47,7 @@ def run_health_check():
         print(f"pip install {' '.join(missing_packages)}")
     
     # 3. 检查目录结构
-    required_dirs = ['src', 'tests/input', 'tests/output', 'models', 'logs']
+    required_dirs = ['src', 'examples', 'taxonomy', 'models', 'logs']
     for dir_path in required_dirs:
         if os.path.exists(dir_path):
             print(f"[OK] 目录结构: {dir_path}")

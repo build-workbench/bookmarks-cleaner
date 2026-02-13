@@ -1,4 +1,6 @@
 subjects:
+  - preferred: "工作台"
+    variants: ["司内业务", "内部工具", "Workspace"]
   - preferred: "人工智能"
     variants: ["AI", "人工智慧", "大模型", "LLM", "人工智"]
   - preferred: "编程"
