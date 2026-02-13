@@ -32,14 +32,23 @@ dependencies = [
   "pyyaml>=6.0.2",
   "jsonschema>=4.23.0",
   "rich>=13.7.1",
-  "pytest>=8.2.2",
-  "pytest-cov>=5.0.0",
   "chardet>=5.2.0",
   "urllib3>=2.2.2"
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourname/CleanBookmarks"
+Homepage = "https://github.com/LessUp/bookmarks-cleaner"
+
+[project.optional-dependencies]
+dev = [
+  "black>=24.4.2",
+  "flake8>=7.0.0",
+  "mypy>=1.10.0",
+  "types-requests>=2.32.0.20240602",
+  "types-PyYAML>=6.0.12.20240311",
+  "pytest>=8.2.2",
+  "pytest-cov>=5.0.0",
+]
 
 [project.scripts]
 # 命令入口（推荐 pipx 安装后直接使用）

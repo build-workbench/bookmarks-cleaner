@@ -13,14 +13,6 @@ from pathlib import Path
 
 def run_health_check():
     """运行系统健康检查"""
-    import sys
-    import os
-    
-    # 添加当前目录到Python路径
-    current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if current_dir not in sys.path:
-        sys.path.insert(0, current_dir)
-    
     logger = logging.getLogger(__name__)
     
     print("AI智能书签分类系统 - 健康检查")
@@ -30,8 +22,8 @@ def run_health_check():
     
     # 1. 检查Python版本
     python_version = sys.version_info
-    if python_version < (3, 8):
-        issues.append(f"[ERROR] Python版本过低: {python_version.major}.{python_version.minor}, 需要 >= 3.8")
+    if python_version < (3, 10):
+        issues.append(f"[ERROR] Python版本过低: {python_version.major}.{python_version.minor}, 需要 >= 3.10")
     else:
         print(f"[OK] Python版本: {python_version.major}.{python_version.minor}.{python_version.micro}")
     

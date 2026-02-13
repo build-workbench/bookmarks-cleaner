@@ -44,7 +44,6 @@ except ImportError:
     print("安装rich以获得更好的用户体验: pip install rich")
 
 # 导入项目模块
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 class ProgressReporter:
     """进度报告器"""
