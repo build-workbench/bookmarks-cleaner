@@ -22,7 +22,10 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 import hashlib
-from bs4 import BeautifulSoup
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 import html
 import re
 from .emoji_cleaner import clean_title as clean_emoji_title
