@@ -8,7 +8,10 @@ Performance Optimization Module
 import os
 import sys
 import time
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 import threading
 import functools
 from typing import Dict, List, Any, Callable
@@ -62,6 +65,9 @@ class PerformanceMonitor:
     def start_monitoring(self, interval=1.0):
         """开始系统监控"""
         if self.monitoring:
+            return
+        if psutil is None:
+            self.logger.warning("psutil 未安装，系统监控不可用")
             return
         
         self.monitoring = True

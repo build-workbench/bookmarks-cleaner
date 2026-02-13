@@ -1,12 +1,9 @@
 """
 Classifier Plugins
 分类器插件集合
-"""
 
-from .embedding_classifier import EmbeddingClassifier
-from .rule_classifier import RuleClassifierPlugin
-from .ml_classifier import MLClassifierPlugin
-from .llm_classifier import LLMClassifierPlugin
+所有插件均为可选组件，缺少依赖时按需报错而非启动时崩溃。
+"""
 
 __all__ = [
     'EmbeddingClassifier',
@@ -14,3 +11,17 @@ __all__ = [
     'MLClassifierPlugin',
     'LLMClassifierPlugin'
 ]
+
+def __getattr__(name: str):
+    """按需延迟导入插件。"""
+    _mapping = {
+        'EmbeddingClassifier': '.embedding_classifier',
+        'RuleClassifierPlugin': '.rule_classifier',
+        'MLClassifierPlugin': '.ml_classifier',
+        'LLMClassifierPlugin': '.llm_classifier',
+    }
+    if name in _mapping:
+        import importlib
+        module = importlib.import_module(_mapping[name], __name__)
+        return getattr(module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

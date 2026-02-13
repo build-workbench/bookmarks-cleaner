@@ -26,12 +26,8 @@ from datetime import datetime, timedelta
 try:
     from .ml_classifier import MLClassifierWrapper, ML_AVAILABLE as _ML_DEPS_AVAILABLE
 except Exception:
-    try:
-        from ml_classifier import MLClassifierWrapper, ML_AVAILABLE as _ML_DEPS_AVAILABLE
-    except Exception:
-        MLClassifierWrapper = None
-
-        _ML_DEPS_AVAILABLE = False
+    MLClassifierWrapper = None
+    _ML_DEPS_AVAILABLE = False
 
 ML_AVAILABLE = bool(_ML_DEPS_AVAILABLE and MLClassifierWrapper is not None)
 
@@ -39,10 +35,7 @@ ML_AVAILABLE = bool(_ML_DEPS_AVAILABLE and MLClassifierWrapper is not None)
 try:
     from .llm_classifier import LLMClassifier
 except Exception:
-    try:
-        from llm_classifier import LLMClassifier
-    except Exception:
-        LLMClassifier = None
+    LLMClassifier = None
 
 @dataclass
 class EnhancedBookmarkFeatures:
