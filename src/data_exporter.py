@@ -19,7 +19,11 @@ class DataExporter:
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
         self.supported_formats = ['html', 'json', 'markdown', 'csv', 'xml', 'opml']
-        self.export_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    @property
+    def export_timestamp(self) -> str:
+        """每次访问时返回当前时间，确保导出时间戳始终准确。"""
+        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     def export_html(self, organized_bookmarks: Dict, output_file: str, stats: Optional[Dict] = None):
         """导出HTML格式 - 可导入浏览器"""

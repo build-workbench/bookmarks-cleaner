@@ -48,6 +48,8 @@ def main():
     )
     
     # 基本参数
+    parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0.0')
+
     parser.add_argument('-i', '--input', nargs='+', help='输入的HTML书签文件')
     parser.add_argument('-o', '--output', default='output', help='输出目录')
     parser.add_argument('-c', '--config', default='config.json', help='配置文件路径')
@@ -62,6 +64,7 @@ def main():
     parser.add_argument('--threshold', type=float, default=0.7, help='分类置信度阈值')
     parser.add_argument('--log-level', default='INFO', choices=['DEBUG', 'INFO', 'WARNING', 'ERROR'])
     parser.add_argument('--no-ml', action='store_true', help='禁用机器学习功能')
+    parser.add_argument('--limit', type=int, default=0, help='限制处理的书签数量（调试用）')
     
     args = parser.parse_args()
     
@@ -131,7 +134,8 @@ def main():
             results = processor.process_files(
                 input_files=input_files,
                 output_dir=args.output,
-                train_models=args.train
+                train_models=args.train,
+                limit=args.limit if args.limit and args.limit > 0 else 0
             )
             
             logger.info(f"处理完成: {results['processed_bookmarks']} 个书签已分类")

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cleanbook"
-version = "0.1.0"
+version = "2.0.0"
 description = "智能书签清理与分类：规则+ML+LLM（可选）"
 authors = [{ name = "LessUp" }]
 readme = "README.md"
@@ -58,7 +58,7 @@ cleanbook-wizard = "src.enhanced_cli:main"
 [tool.setuptools]
 # 包含包和独立模块
 py-modules = ["main"]
-packages = ["src", "src.cleanbook"]
+packages = ["src", "src.cleanbook", "src.plugins", "src.plugins.classifiers", "src.services"]
 
 [tool.setuptools.package-data]
 # 打包模型与配置（如需）

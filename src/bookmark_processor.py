@@ -9,6 +9,7 @@ import logging
 import os
 import time
 import re
+import threading
 from .emoji_cleaner import clean_title as clean_emoji_title
 
 from typing import List, Dict, Optional, Tuple
@@ -96,6 +97,7 @@ class BookmarkProcessor:
         # 缓存和性能优化
         self._classification_cache = {}
         self._url_validation_cache = {}
+        self._stats_lock = threading.Lock()
         
         # 处理统计
         self.stats = {
@@ -173,7 +175,7 @@ class BookmarkProcessor:
         return self._llm_organizer
     
     def process_files(self, input_files: List[str], output_dir: str = "output", 
-                     train_models: bool = False) -> Dict:
+                     train_models: bool = False, limit: int = 0) -> Dict:
         """处理多个书签文件"""
         if BeautifulSoup is None:
             raise ImportError("缺少依赖 beautifulsoup4（bs4），请先安装：pip install beautifulsoup4")
@@ -201,6 +203,11 @@ class BookmarkProcessor:
                     self.logger.error(f"加载文件失败 {file_path}: {e}")
                     self.stats['errors'] += 1
         
+        # 应用 limit 截断（调试用）
+        if limit and limit > 0 and len(all_bookmarks) > limit:
+            self.logger.info(f"应用 --limit={limit}，截断 {len(all_bookmarks)} -> {limit} 个书签")
+            all_bookmarks = all_bookmarks[:limit]
+
         self.stats['total_bookmarks'] = len(all_bookmarks)
         
         if not all_bookmarks:
@@ -321,17 +328,15 @@ class BookmarkProcessor:
         
         return bookmarks
     
+    _INVALID_URL_PREFIXES = ('javascript:', 'data:', 'chrome:', 'about:', 'file:', 'mailto:')
+
     def _is_valid_url(self, url: str) -> bool:
         """验证URL有效性"""
         if not url:
             return False
-        
-        # 过滤无效URL
-        invalid_prefixes = ['javascript:', 'data:', 'chrome:', 'about:', 'file:', 'mailto:']
-        for prefix in invalid_prefixes:
-            if url.lower().startswith(prefix):
-                return False
-        
+        url_lower = url.lower()
+        if url_lower.startswith(self._INVALID_URL_PREFIXES):
+            return False
         return url.startswith(('http://', 'https://'))
     
     def _classify_bookmarks_parallel(self, bookmarks: List[Dict]) -> List[Dict]:
@@ -339,11 +344,11 @@ class BookmarkProcessor:
         classified_bookmarks = []
         batch_size = 100  # 批处理大小
         
-        # 分批处理以减少内存使用和提高效率
-        for i in range(0, len(bookmarks), batch_size):
-            batch = bookmarks[i:i + batch_size]
-            
-            with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+        # 复用同一个线程池，避免每批重复创建/销毁的开销
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
+            for i in range(0, len(bookmarks), batch_size):
+                batch = bookmarks[i:i + batch_size]
+                
                 # 提交分类任务
                 future_to_bookmark = {
                     executor.submit(self._classify_single_bookmark_cached, bookmark): bookmark
@@ -356,13 +361,14 @@ class BookmarkProcessor:
                     bookmark = future_to_bookmark[future]
                     
                     try:
-                        result = future.result(timeout=30)  # 添加超时
+                        result = future.result(timeout=30)
                         if result:
                             batch_results.append(result)
                             
                     except Exception as e:
                         self.logger.error(f"分类失败 {bookmark.get('url', 'unknown')}: {e}")
-                        self.stats['errors'] += 1
+                        with self._stats_lock:
+                            self.stats['errors'] += 1
                 
                 classified_bookmarks.extend(batch_results)
                 
@@ -429,9 +435,10 @@ class BookmarkProcessor:
                 **cached_data
             }
             
-            # 更新分类统计
+            # 更新分类统计（线程安全）
             category = cached_data['category']
-            self.stats['categories_found'][category] = self.stats['categories_found'].get(category, 0) + 1
+            with self._stats_lock:
+                self.stats['categories_found'][category] = self.stats['categories_found'].get(category, 0) + 1
             
             return classified_bookmark
             
