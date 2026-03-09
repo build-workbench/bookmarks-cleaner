@@ -30,10 +30,10 @@ try:
 except ImportError:
     LLMBookmarkOrganizer = None
 
-# 导入占位符模块
-from .placeholder_modules import (
-    DataExporter, BookmarkDeduplicator, HealthChecker
-)
+# 导入核心组件
+from .data_exporter import DataExporter
+from .deduplicator import BookmarkDeduplicator
+from .bookmark_health_checker import HealthChecker
 
 class BookmarkProcessor:
     """书签处理器主类"""
@@ -140,7 +140,6 @@ class BookmarkProcessor:
     def deduplicator(self):
         """Lazy loading deduplicator"""
         if self._deduplicator is None:
-            from .placeholder_modules import BookmarkDeduplicator
             self._deduplicator = BookmarkDeduplicator()
         return self._deduplicator
     
@@ -148,7 +147,6 @@ class BookmarkProcessor:
     def health_checker(self):
         """Lazy loading health checker"""
         if self._health_checker is None:
-            from .placeholder_modules import HealthChecker
             self._health_checker = HealthChecker()
         return self._health_checker
     
@@ -156,7 +154,6 @@ class BookmarkProcessor:
     def exporter(self):
         """Lazy loading exporter"""
         if self._exporter is None:
-            from .placeholder_modules import DataExporter
             self._exporter = DataExporter(config=self.config)
         return self._exporter
     
@@ -241,6 +238,9 @@ class BookmarkProcessor:
 
         # 可选：调用 LLM 进行更高层次的整理
         self.llm_organizer_meta = None
+        self.stats['llm_organizer_used'] = False
+        self.stats.pop('llm_organizer_meta', None)
+
         if self.llm_organizer and self.llm_organizer.enabled():
             try:
                 llm_result = self.llm_organizer.organize(
@@ -257,16 +257,6 @@ class BookmarkProcessor:
                 self.stats['llm_organizer_used'] = True
                 if self.llm_organizer_meta:
                     self.stats['llm_organizer_meta'] = self.llm_organizer_meta
-                elif 'llm_organizer_meta' in self.stats:
-                    self.stats.pop('llm_organizer_meta', None)
-            else:
-                self.stats['llm_organizer_used'] = False
-                if 'llm_organizer_meta' in self.stats:
-                    self.stats.pop('llm_organizer_meta', None)
-        else:
-            self.stats['llm_organizer_used'] = False
-            if 'llm_organizer_meta' in self.stats:
-                self.stats.pop('llm_organizer_meta', None)
 
         organized_bookmarks = self._sort_organized_structure(organized_bookmarks)
         

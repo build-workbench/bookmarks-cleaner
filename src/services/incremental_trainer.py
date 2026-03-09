@@ -210,7 +210,7 @@ class IncrementalTrainer:
         if self.model is None:
             return None
         
-        version_id = datetime.now().strftime('%Y%m%d_%H%M%S')
+        version_id = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
         version_path = os.path.join(self.model_dir, f'version_{version_id}')
         
         try:

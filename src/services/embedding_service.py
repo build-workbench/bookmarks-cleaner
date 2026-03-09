@@ -53,7 +53,8 @@ class EmbeddingService:
             from sklearn.feature_extraction.text import TfidfVectorizer
             self._fallback_vectorizer = TfidfVectorizer(
                 max_features=self._embedding_dim,
-                ngram_range=(1, 2),
+                analyzer='char_wb',
+                ngram_range=(1, 3),
                 lowercase=True
             )
             self.logger.info("Initialized TF-IDF fallback vectorizer")
@@ -129,9 +130,12 @@ class EmbeddingService:
             TF-IDF 向量
         """
         if not self._fallback_fitted:
-            # 需要先 fit
-            self._fallback_vectorizer.fit([text])
-            self._fallback_fitted = True
+            try:
+                self._fallback_vectorizer.fit([text])
+                self._fallback_fitted = True
+            except ValueError:
+                # 文本太短或全是停用词，无法构建词汇表
+                return np.zeros(self._embedding_dim, dtype=np.float32)
         
         try:
             embedding = self._fallback_vectorizer.transform([text]).toarray()[0]
@@ -141,7 +145,18 @@ class EmbeddingService:
             return embedding.astype(np.float32)
         except Exception as e:
             self.logger.error(f"TF-IDF embedding failed: {e}")
-            return np.zeros(self._embedding_dim, dtype=np.float32)
+            return self._hash_embedding(text)
+
+    def _hash_embedding(self, text: str) -> np.ndarray:
+        """基于哈希的确定性嵌入，作为最终降级方案。"""
+        import hashlib
+        h = hashlib.sha256(text.encode('utf-8')).digest()
+        rng = np.random.RandomState(int.from_bytes(h[:4], 'little'))
+        vec = rng.randn(self._embedding_dim).astype(np.float32)
+        norm = np.linalg.norm(vec)
+        if norm > 0:
+            vec /= norm
+        return vec
     
     def embed_batch(self, texts: List[str]) -> np.ndarray:
         """
@@ -182,7 +197,8 @@ class EmbeddingService:
         norm2 = np.linalg.norm(embedding2)
         if norm1 == 0 or norm2 == 0:
             return 0.0
-        return float(np.dot(embedding1, embedding2) / (norm1 * norm2))
+        sim = float(np.dot(embedding1, embedding2) / (norm1 * norm2))
+        return max(-1.0, min(1.0, sim))
     
     def get_embedding_dim(self) -> int:
         """
@@ -192,6 +208,13 @@ class EmbeddingService:
             嵌入维度
         """
         return self._embedding_dim
+
+    # 别名，保持与测试/外部代码兼容
+    get_embedding_dimension = get_embedding_dim
+
+    def _get_cache_key(self, text: str) -> str:
+        """生成缓存键"""
+        return text
     
     def is_transformer_available(self) -> bool:
         """

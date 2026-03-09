@@ -15,7 +15,7 @@ import logging
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import hashlib
 import re
 from urllib.parse import urlparse
@@ -42,10 +42,14 @@ except ImportError:
     SmartRuleLoader = None
     merge_with_main_config = None
 
-# 导入占位符模块
-from .placeholder_modules import (
-    SemanticAnalyzer, UserProfiler, PerformanceMonitor
-)
+# 导入核心分析组件
+from .semantic_analyzer import SemanticAnalyzer
+from .user_profiler import UserProfiler
+
+try:
+    from .performance_optimizer import PerformanceMonitor
+except ImportError:
+    PerformanceMonitor = None  # type: ignore[misc,assignment]
 
 
 @dataclass
@@ -107,9 +111,9 @@ class AIBookmarkClassifier:
         self._ml_classifier: Optional[MLClassifierWrapper] = None
         self._llm_classifier: Optional[LLMClassifier] = None
 
-        # 缓存
+        # 缓存（OrderedDict 实现 LRU 淘汰）
         self.feature_cache: Dict[str, BookmarkFeatures] = {}
-        self.classification_cache: Dict[str, ClassificationResult] = {}
+        self.classification_cache: OrderedDict[str, ClassificationResult] = OrderedDict()
         self._max_cache_size = 5000
 
         # 统计
@@ -150,9 +154,12 @@ class AIBookmarkClassifier:
         return self._user_profiler
 
     @property
-    def performance_monitor(self) -> PerformanceMonitor:
-        if self._performance_monitor is None:
-            self._performance_monitor = PerformanceMonitor()
+    def performance_monitor(self) -> Optional['PerformanceMonitor']:
+        if self._performance_monitor is None and PerformanceMonitor is not None:
+            try:
+                self._performance_monitor = PerformanceMonitor()
+            except Exception as e:
+                self.logger.warning(f"性能监控器初始化失败: {e}")
         return self._performance_monitor
 
     @property
@@ -300,6 +307,7 @@ class AIBookmarkClassifier:
         cache_key = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
         if cache_key in self.classification_cache:
             self.stats['cache_hits'] += 1
+            self.classification_cache.move_to_end(cache_key)  # LRU 更新
             cached = self.classification_cache[cache_key]
             cached.processing_time = (datetime.now() - start_time).total_seconds()
             return cached
@@ -310,43 +318,38 @@ class AIBookmarkClassifier:
         # 多方法融合
         results: List[ClassificationResult] = []
 
+        def _collect(raw):
+            """将 dict / ClassificationResult / None 统一追加到 results。"""
+            if raw is None:
+                return
+            results.append(self._to_classification_result(raw))
+
         # 1) 规则引擎
-        rule_result = self.rule_engine.classify(features)
-        if rule_result:
-            results.append(rule_result)
+        _collect(self.rule_engine.classify(features))
 
         # 2) 机器学习
         if self.ml_classifier:
-            ml_result = self.ml_classifier.classify(features)
-            if ml_result:
-                results.append(ml_result)
+            _collect(self.ml_classifier.classify(features))
 
         # 3) 语义分析
         if self.config.get('ai_settings', {}).get('use_semantic_analysis', True):
-            semantic_result = self.semantic_analyzer.classify(features)
-            if semantic_result:
-                results.append(semantic_result)
+            _collect(self.semantic_analyzer.classify(features))
 
         # 4) 用户画像
         if self.config.get('ai_settings', {}).get('use_user_profiling', True):
-            user_result = self.user_profiler.classify(features)
-            if user_result:
-                results.append(user_result)
+            _collect(self.user_profiler.classify(features))
 
         # 5) LLM（可选）
         if self.llm_classifier and self.llm_classifier.enabled():
             try:
-                llm_result = self.llm_classifier.classify(
-                    url,
-                    title,
+                _collect(self.llm_classifier.classify(
+                    url, title,
                     context={
                         'domain': features.domain,
                         'content_type': features.content_type,
                         'language': features.language,
                     },
-                )
-                if llm_result:
-                    results.append(llm_result)
+                ))
             except Exception as e:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
@@ -376,11 +379,31 @@ class AIBookmarkClassifier:
         self._cache_result(cache_key, final_result)
         return final_result
 
+    @staticmethod
+    def _to_classification_result(raw) -> ClassificationResult:
+        """将 dict 或 ClassificationResult 统一为 ClassificationResult。"""
+        if isinstance(raw, ClassificationResult):
+            return raw
+        if isinstance(raw, dict):
+            return ClassificationResult(
+                category=raw.get('category', '未分类'),
+                confidence=float(raw.get('confidence', 0.0)),
+                subcategory=raw.get('subcategory'),
+                reasoning=raw.get('reasoning', []),
+                alternatives=raw.get('alternatives', []),
+                processing_time=float(raw.get('processing_time', 0.0)),
+                method=raw.get('method', 'unknown'),
+                facets=raw.get('facets', {}),
+            )
+        raise TypeError(f"Unexpected classification result type: {type(raw)}")
+
     def _cache_result(self, cache_key: str, result: ClassificationResult):
-        if len(self.classification_cache) >= self._max_cache_size:
-            oldest_key = next(iter(self.classification_cache))
-            del self.classification_cache[oldest_key]
-        self.classification_cache[cache_key] = result
+        if cache_key in self.classification_cache:
+            self.classification_cache.move_to_end(cache_key)
+        else:
+            if len(self.classification_cache) >= self._max_cache_size:
+                self.classification_cache.popitem(last=False)  # 淘汰最久未使用
+            self.classification_cache[cache_key] = result
 
     def _ensemble_classification(self, results: List[ClassificationResult], features: BookmarkFeatures) -> ClassificationResult:
         if not results:
@@ -406,18 +429,11 @@ class AIBookmarkClassifier:
         }
 
         for res in results:
-            if isinstance(res, dict):
-                method = res.get('method', 'unknown')
-                category = self._normalize_category_string(res.get('category', '未分类')) or '未分类'
-                confidence = res.get('confidence', 0.0)
-                reasoning = res.get('reasoning', [])
-                facets = res.get('facets', {}) or {}
-            else:
-                method = res.method
-                category = self._normalize_category_string(res.category) or '未分类'
-                confidence = res.confidence
-                reasoning = res.reasoning
-                facets = getattr(res, 'facets', {}) or {}
+            method = res.method
+            category = self._normalize_category_string(res.category) or '未分类'
+            confidence = res.confidence
+            reasoning = res.reasoning
+            facets = res.facets or {}
 
             weight = method_weights.get(method, 0.1)
             category_scores[category] += confidence * weight

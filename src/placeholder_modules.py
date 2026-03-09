@@ -1,38 +1,32 @@
-"""
-Placeholder Modules - Backward Compatibility Forwarding Layer
+"""Backward Compatibility Forwarding Layer (DEPRECATED)
 
-Original implementations have been split into independent modules:
-- semantic_analyzer.py       -> SemanticAnalyzer
-- user_profiler.py           -> UserProfiler
-- deduplicator.py            -> BookmarkDeduplicator
-- bookmark_health_checker.py -> HealthChecker, HealthStatus
-- data_exporter.py           -> DataExporter
-- performance_optimizer.py   -> PerformanceMonitor
-"""
+此模块已弃用。请直接从对应模块导入：
 
-from .semantic_analyzer import SemanticAnalyzer
-from .user_profiler import UserProfiler
-from .deduplicator import BookmarkDeduplicator
-from .bookmark_health_checker import HealthChecker, HealthStatus
-from .data_exporter import DataExporter
+    from src.semantic_analyzer import SemanticAnalyzer
+    from src.user_profiler import UserProfiler
+    from src.deduplicator import BookmarkDeduplicator
+    from src.bookmark_health_checker import HealthChecker, HealthStatus
+    from src.data_exporter import DataExporter
+    from src.performance_optimizer import PerformanceMonitor
+"""
+import warnings as _warnings
+
+_warnings.warn(
+    "placeholder_modules is deprecated; import from the real modules directly.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from .semantic_analyzer import SemanticAnalyzer  # noqa: F401
+from .user_profiler import UserProfiler  # noqa: F401
+from .deduplicator import BookmarkDeduplicator  # noqa: F401
+from .bookmark_health_checker import HealthChecker, HealthStatus  # noqa: F401
+from .data_exporter import DataExporter  # noqa: F401
 
 try:
-    from .performance_optimizer import PerformanceMonitor
+    from .performance_optimizer import PerformanceMonitor  # noqa: F401
 except Exception:
-    class PerformanceMonitor:
-        """PerformanceMonitor fallback stub."""
-        def __init__(self, **kwargs):
-            self.metrics = {}
-        def get_summary(self):
-            return self.metrics
-        def __getattr__(self, name):
-            if name.startswith("_"):
-                raise AttributeError(name)
-            raise AttributeError(name)
-
-# Keep datetime import for any legacy code that did:
-#   from .placeholder_modules import datetime
-from datetime import datetime
+    PerformanceMonitor = None  # type: ignore[misc,assignment]
 
 __all__ = [
     "SemanticAnalyzer",

@@ -31,6 +31,9 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
+from .category_utils import strip_category_prefix, normalize_category_string
+
+
 class LLMClassifier:
     def __init__(self, config_path: str = "config.json"):
         self.config_path = config_path
@@ -152,26 +155,10 @@ class LLMClassifier:
 
     @staticmethod
     def _strip_category_prefix(text: str) -> str:
-        if not text:
-            return ""
-        s = str(text).strip()
-        i = 0
-        while i < len(s) and not ("\u4e00" <= s[i] <= "\u9fff" or s[i].isalnum()):
-            i += 1
-        return s[i:].strip() if i < len(s) else s
+        return strip_category_prefix(text)
 
     def _normalize_category_string(self, category: str) -> str:
-        if not category:
-            return ""
-        cat = str(category).strip()
-        if not cat:
-            return ""
-        if '/' in cat:
-            main, sub = cat.split('/', 1)
-            main_n = self._strip_category_prefix(main)
-            sub_n = self._strip_category_prefix(sub)
-            return f"{main_n}/{sub_n}" if sub_n else main_n
-        return self._strip_category_prefix(cat)
+        return normalize_category_string(category)
 
     def _collect_valid_categories(self, config: Dict) -> List[str]:
         cats = []

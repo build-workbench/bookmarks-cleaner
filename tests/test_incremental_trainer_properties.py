@@ -296,7 +296,7 @@ class TestAtomicSerialization:
         """
         失败时不应该留下部分状态。
         """
-        trainer, temp_dir = create_trainer()
+        trainer, temp_dir = create_trainer(batch_size=2)
         try:
             model_dir = trainer.model_dir
             

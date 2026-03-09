@@ -12,10 +12,7 @@ import logging
 import glob
 from pathlib import Path
 
-# 添加项目路径
-PROJECT_ROOT = Path(__file__).parent
-sys.path.insert(0, str(PROJECT_ROOT))
-
+from src import __version__
 from src.ai_classifier import AIBookmarkClassifier
 from src.bookmark_processor import BookmarkProcessor
 from src.cli_interface import CLIInterface
@@ -48,7 +45,7 @@ def main():
     )
     
     # 基本参数
-    parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0.0')
+    parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {__version__}')
 
     parser.add_argument('-i', '--input', nargs='+', help='输入的HTML书签文件')
     parser.add_argument('-o', '--output', default='output', help='输出目录')
