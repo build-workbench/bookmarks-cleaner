@@ -64,6 +64,11 @@ venv.bak/
 # Sphinx documentation
 docs/_build/
 
+# VitePress
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+node_modules/
+
 # PyBuilder
 target/
 
