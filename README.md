@@ -1,6 +1,9 @@
 # CleanBook — Smart Bookmark Cleaning & Classification
 
-[![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://lessup.github.io/bookmarks-cleaner/)
+[![CI](https://github.com/LessUp/bookmarks-cleaner/actions/workflows/ci.yml/badge.svg)](https://github.com/LessUp/bookmarks-cleaner/actions/workflows/ci.yml)
+[![Docs](https://github.com/LessUp/bookmarks-cleaner/actions/workflows/pages.yml/badge.svg)](https://lessup.github.io/bookmarks-cleaner/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
 English | [简体中文](README.zh-CN.md)
 
