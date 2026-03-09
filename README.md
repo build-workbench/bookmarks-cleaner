@@ -1,6 +1,8 @@
-# CleanBook —— 智能书签清理与分类（中文）
+# CleanBook —— 智能书签清理与分类
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20Pages-blue)](https://lessup.github.io/bookmarks-cleaner/)
+
+简体中文 | [English](README.en.md)
 
 KISS：规则 + 机器学习 + 可选 LLM，默认离线可用。统一清理标题 emoji，强力去重，输出 HTML/Markdown/JSON。
 

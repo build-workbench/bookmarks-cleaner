@@ -63,13 +63,18 @@ export default defineConfig({
       },
     ],
 
+    editLink: {
+      pattern: 'https://github.com/LessUp/bookmarks-cleaner/edit/master/docs/:path',
+      text: '在 GitHub 上编辑此页',
+    },
+
     socialLinks: [
       { icon: "github", link: "https://github.com/LessUp/bookmarks-cleaner" },
     ],
 
     footer: {
-      message: "MIT License",
-      copyright: "© 2024-present LessUp",
+      message: "基于 MIT 许可发布",
+      copyright: "Copyright © 2025-2026 LessUp",
     },
 
     outline: {
@@ -85,6 +90,11 @@ export default defineConfig({
     lastUpdated: {
       text: "最后更新",
     },
+
+    returnToTopLabel: '返回顶部',
+    sidebarMenuLabel: '菜单',
+    darkModeSwitchLabel: '主题',
+    externalLinkIcon: true,
 
     search: {
       provider: "local",
