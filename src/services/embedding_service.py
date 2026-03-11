@@ -3,9 +3,15 @@ Embedding Service - 嵌入服务
 提供基于 Transformer 模型的文本向量化能力
 """
 
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, TYPE_CHECKING
 import numpy as np
+
+if TYPE_CHECKING:
+    from models.feature_store import FeatureStore
+    from models.bookmark_features import BookmarkFeatures
 
 class EmbeddingService:
     """Transformer 嵌入服务"""
