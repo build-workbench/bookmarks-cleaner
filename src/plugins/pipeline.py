@@ -3,13 +3,18 @@ Classifier Pipeline - 分类器管道
 协调多个分类方法的执行顺序和结果融合
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Tuple, Any, TYPE_CHECKING
 from collections import defaultdict
 
 from .registry import PluginRegistry
+
+if TYPE_CHECKING:
+    from ..ai_classifier import BookmarkFeatures, ClassificationResult
 
 class FusionStrategy(Enum):
     """融合策略"""

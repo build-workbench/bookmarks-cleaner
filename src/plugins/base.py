@@ -3,9 +3,14 @@ Plugin Base Classes and Interfaces
 插件基类和接口定义
 """
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from dataclasses import dataclass, field
+
+if TYPE_CHECKING:
+    from ..ai_classifier import BookmarkFeatures, ClassificationResult
 
 @dataclass
 class PluginMetadata:
