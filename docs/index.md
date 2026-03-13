@@ -4,82 +4,72 @@ layout: home
 hero:
   name: CleanBook
   text: 智能书签清理与分类
-  tagline: 规则 + ML + 可选 LLM · 默认离线可用 · Python 3.10+
+  tagline: 规则优先，ML 辅助，LLM 可选；默认离线可用的浏览器书签整理工具
   actions:
     - theme: brand
-      text: 快速上手
+      text: 快速开始
       link: /quickstart_zh
     - theme: alt
       text: 系统架构
       link: /design/system_architecture
     - theme: alt
-      text: GitHub
-      link: https://github.com/LessUp/bookmarks-cleaner
+      text: 开发指南
+      link: /guides/development_guide
 
 features:
-  - title: 🎯 规则优先 · 配置驱动
-    details: 基于受控词表（Controlled Vocabulary）与分面分类（Faceted Classification），在 config.json 和 taxonomy/*.yaml 中定义规则与权重，无需改代码即可定制。
-  - title: 🤖 ML 辅助 · 自动沉淀
-    details: 高置信度样本自动沉淀为训练集，轻量 scikit-learn 模型渐进增强分类准确率；--train 一键训练。
-  - title: 💡 LLM 可选 · 自动降级
-    details: 支持 OpenAI 兼容接口（GPT-4o-mini 等），含二次聚类组织器；未配置或调用失败时自动回退到离线路径。
-  - title: 📦 多格式导出
-    details: 输出 HTML（Netscape 格式可直接导入浏览器）、Markdown、JSON；分类结构最多两级，结果简洁可读。
-  - title: 🧹 统一 Emoji 清理
-    details: 读入 → 标准化 → 导出三处兜底清理标题 emoji 前缀，避免跨浏览器导出时叠加重复。
-  - title: 🔗 去重 · 健康巡检
-    details: 快速去重 + 高级去重全时开启，合并跨浏览器导出更稳；可选 --health-check 链接可达性巡检。
+  - title: 默认离线可用
+    details: 不依赖云服务即可完成清理、去重、分类与导出，适合本地批处理和长期维护。
+  - title: 配置驱动
+    details: 通过 `config.json` 与词表配置调节规则、阈值和目录组织，不必先改代码。
+  - title: 渐进增强
+    details: 在规则优先基础上叠加 ML、语义分析和可选 OpenAI 兼容 LLM，失败时自动回退。
+  - title: 多格式输出
+    details: 支持 HTML、Markdown、JSON，兼顾浏览器回导、知识库归档和二次处理。
 ---
 
-## 处理流水线
+## 项目定位
 
-```
-浏览器书签 HTML
-    │
-    ▼
-┌─────────────────────────────────────────────┐
-│  BookmarkProcessor                          │
-│  加载 → 快速去重 → 高级去重 → emoji 清理    │
-├─────────────────────────────────────────────┤
-│  AIBookmarkClassifier                       │
-│  ┌──────┐ ┌────┐ ┌──────┐ ┌────┐ ┌─────┐  │
-│  │ 规则 │→│ ML │→│ 语义 │→│画像│→│ LLM │  │
-│  └──────┘ └────┘ └──────┘ └────┘ └─────┘  │
-│           加权投票 → 融合置信度              │
-├─────────────────────────────────────────────┤
-│  TaxonomyStandardizer                       │
-│  受控词表映射 → subject + resource_type     │
-├─────────────────────────────────────────────┤
-│  DataExporter                               │
-│  HTML · Markdown · JSON                     │
-└─────────────────────────────────────────────┘
-```
+CleanBook 面向“长期维护浏览器书签”的场景：先完成清理、去重和规范化，再根据规则与模型把链接组织成稳定、可读、可持续演进的分类结构。
 
-## 最小示例
+## 适合谁
 
-```powershell
-# 安装（推荐 pipx）
-pipx install .
+- 想先离线整理书签，再视需要引入 ML / LLM 的个人用户
+- 需要统一团队书签分类规则、词表和输出格式的维护者
+- 想了解书签处理流水线、分类融合与配置驱动设计的开发者
 
-# 处理书签
-cleanbook -i examples/demo_bookmarks.html -o output
+## 从哪里开始
 
-# 批处理 + 训练 ML
-cleanbook -i "tests/input/*.html" --train
+1. 先看 [快速上手](/quickstart_zh)，完成一次最小运行。
+2. 再看 [书签管理最佳实践](/design/bookmark_best_practices_zh)，确定分类规则和整理习惯。
+3. 需要理解实现时，继续阅读 [系统架构](/design/system_architecture) 与 [开发指南](/guides/development_guide)。
 
-# 交互向导
-cleanbook-wizard
-```
+## 推荐阅读路径
 
-## 技术栈
+### 我只想把书签整理好
 
-| 组件 | 技术 |
-|------|------|
-| 语言 | Python 3.10+ |
-| CLI | Click + Rich（交互向导） |
-| 解析 | BeautifulSoup4 + lxml |
-| ML | scikit-learn · jieba · langdetect |
-| LLM | OpenAI 兼容接口（可选） |
-| 导出 | HTML (Netscape) · Markdown · JSON |
-| 分类体系 | 受控词表 + 分面分类（YAML 配置） |
-| 质量 | pytest · flake8 · mypy |
+- [快速上手](/quickstart_zh)
+- [书签管理最佳实践](/design/bookmark_best_practices_zh)
+- [LLM 提示词模板](/llm_prompt_templates)
+
+### 我想理解系统怎么工作
+
+- [设计说明](/DESIGN)
+- [系统架构](/design/system_architecture)
+- [ML 设计](/design/ml_design_zh)
+
+### 我准备参与开发
+
+- [开发指南](/guides/development_guide)
+- [设计说明](/DESIGN)
+- [技术报告](/technical_report)
+
+## 核心文档
+
+| 类别 | 页面 | 说明 |
+|------|------|------|
+| 快速开始 | [快速上手](/quickstart_zh) | 安装、最小示例、常用参数 |
+| 使用指南 | [书签管理最佳实践](/design/bookmark_best_practices_zh) | 配置思路、目录组织与日常维护建议 |
+| 架构设计 | [设计说明](/DESIGN) / [系统架构](/design/system_architecture) | 流水线、模块边界与分类策略 |
+| 开发指南 | [开发指南](/guides/development_guide) | 环境搭建、测试与扩展入口 |
+| 参考 | [LLM 提示词模板](/llm_prompt_templates) | 提示词结构与可选接口配置 |
+| 归档 | [技术报告](/technical_report) | 历史补充材料与扩展说明 |

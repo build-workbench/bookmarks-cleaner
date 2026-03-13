@@ -3,74 +3,70 @@ import { defineConfig } from "vitepress";
 export default defineConfig({
   lang: "zh-CN",
   title: "CleanBook",
-  description: "智能书签清理与分类：规则 + ML + LLM（可选）",
-
-  // GitHub Pages 部署时的 base 路径
+  description: "智能书签清理与分类：默认离线可用，支持规则、ML 与可选 LLM",
   base: "/bookmarks-cleaner/",
-
   lastUpdated: true,
   cleanUrls: true,
 
-  head: [
-    ["link", { rel: "icon", type: "image/svg+xml", href: "/bookmarks-cleaner/favicon.svg" }],
-  ],
-
   themeConfig: {
-    logo: "/favicon.svg",
-
     nav: [
-      { text: "快速上手", link: "/quickstart_zh" },
-      { text: "设计文档", link: "/DESIGN" },
+      { text: "概览", link: "/" },
+      { text: "快速开始", link: "/quickstart_zh" },
+      { text: "使用指南", link: "/design/bookmark_best_practices_zh" },
       {
-        text: "深入",
-        items: [
-          { text: "系统架构", link: "/design/system_architecture" },
-          { text: "ML 设计", link: "/design/ml_design_zh" },
-          { text: "LLM 提示词", link: "/llm_prompt_templates" },
-          { text: "技术报告", link: "/technical_report" },
-        ],
-      },
-      {
-        text: "GitHub",
-        link: "https://github.com/LessUp/bookmarks-cleaner",
-      },
-    ],
-
-    sidebar: [
-      {
-        text: "入门",
-        items: [
-          { text: "简介", link: "/" },
-          { text: "快速上手", link: "/quickstart_zh" },
-        ],
-      },
-      {
-        text: "设计",
+        text: "架构设计",
         items: [
           { text: "设计说明", link: "/DESIGN" },
           { text: "系统架构", link: "/design/system_architecture" },
           { text: "ML 设计", link: "/design/ml_design_zh" },
-          { text: "书签管理最佳实践", link: "/design/bookmark_best_practices_zh" },
+        ],
+      },
+      { text: "开发指南", link: "/guides/development_guide" },
+      { text: "参考", link: "/llm_prompt_templates" },
+      { text: "归档", link: "/technical_report" },
+    ],
+
+    sidebar: [
+      {
+        text: "概览",
+        items: [{ text: "文档首页", link: "/" }],
+      },
+      {
+        text: "快速开始",
+        items: [{ text: "快速上手", link: "/quickstart_zh" }],
+      },
+      {
+        text: "使用指南",
+        items: [{ text: "书签管理最佳实践", link: "/design/bookmark_best_practices_zh" }],
+      },
+      {
+        text: "架构设计",
+        items: [
+          { text: "设计说明", link: "/DESIGN" },
+          { text: "系统架构", link: "/design/system_architecture" },
+          { text: "ML 设计", link: "/design/ml_design_zh" },
         ],
       },
       {
-        text: "进阶",
-        items: [
-          { text: "LLM 提示词模板", link: "/llm_prompt_templates" },
-          { text: "技术报告", link: "/technical_report" },
-          { text: "开发指南", link: "/guides/development_guide" },
-        ],
+        text: "开发指南",
+        items: [{ text: "开发指南", link: "/guides/development_guide" }],
+      },
+      {
+        text: "参考",
+        items: [{ text: "LLM 提示词模板", link: "/llm_prompt_templates" }],
+      },
+      {
+        text: "归档",
+        items: [{ text: "技术报告", link: "/technical_report" }],
       },
     ],
 
     editLink: {
-      pattern: 'https://github.com/LessUp/bookmarks-cleaner/edit/master/docs/:path',
-      text: '在 GitHub 上编辑此页',
+      pattern: "https://github.com/LessUp/bookmarks-cleaner/edit/master/docs/:path",
+      text: "在 GitHub 上编辑此页",
     },
 
-    socialLinks: [
-      { icon: "github", link: "https://github.com/LessUp/bookmarks-cleaner" },
-    ],
+    socialLinks: [{ icon: "github", link: "https://github.com/LessUp/bookmarks-cleaner" }],
 
     footer: {
       message: "基于 MIT 许可发布",
@@ -91,9 +87,9 @@ export default defineConfig({
       text: "最后更新",
     },
 
-    returnToTopLabel: '返回顶部',
-    sidebarMenuLabel: '菜单',
-    darkModeSwitchLabel: '主题',
+    returnToTopLabel: "返回顶部",
+    sidebarMenuLabel: "菜单",
+    darkModeSwitchLabel: "主题",
     externalLinkIcon: true,
 
     search: {
