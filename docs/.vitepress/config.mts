@@ -7,6 +7,17 @@ export default defineConfig({
   base: "/bookmarks-cleaner/",
   lastUpdated: true,
   cleanUrls: true,
+  head: [
+    ["link", { rel: "canonical", href: "https://lessup.github.io/bookmarks-cleaner/" }],
+    ["meta", { name: "theme-color", content: "#0f172a" }],
+    ["meta", { property: "og:type", content: "website" }],
+    ["meta", { property: "og:title", content: "CleanBook" }],
+    ["meta", { property: "og:description", content: "智能书签清理与分类：默认离线可用，支持规则、ML 与可选 LLM" }],
+    ["meta", { property: "og:url", content: "https://lessup.github.io/bookmarks-cleaner/" }],
+    ["meta", { name: "twitter:card", content: "summary" }],
+    ["meta", { name: "twitter:title", content: "CleanBook" }],
+    ["meta", { name: "twitter:description", content: "默认离线可用的书签清理与分类工具，支持规则、ML 与可选 LLM" }],
+  ],
 
   themeConfig: {
     nav: [
