@@ -22,6 +22,8 @@ from urllib.parse import urlparse
 
 import requests
 
+from .resource_loader import load_json_config, resolve_config_path
+
 _SYSTEM_PROMPT = (
     "You are an elite bookmark knowledge architect. "
     "Reorganize categories for maximum clarity and usefulness. "
@@ -44,8 +46,9 @@ class LLMOrganizerStats:
 class LLMBookmarkOrganizer:
     """通过 LLM 生成更高层次的书签组织结构。"""
 
-    def __init__(self, config_path: str = "config.json", config: Optional[Dict[str, Any]] = None):
-        self.config_path = config_path
+    def __init__(self, config_path: str | None = None, config: Optional[Dict[str, Any]] = None):
+        resolved_path, _ = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         self.config = config or self._load_config()
         self.llm_conf: Dict[str, Any] = self.config.get("llm", {}) or {}
         self.organizer_conf: Dict[str, Any] = self.llm_conf.get("organizer", {}) or {}
@@ -418,8 +421,5 @@ class LLMBookmarkOrganizer:
         return total
 
     def _load_config(self) -> Dict[str, Any]:
-        try:
-            with open(self.config_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
+        data, _, _ = load_json_config(self.config_path)
+        return data

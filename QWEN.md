@@ -56,10 +56,10 @@ AI智能书签分类系统是一个基于人工智能技术的书签管理工具
 pip install -r requirements.txt
 
 # 运行健康检查
-python src/health_checker.py
+python main.py --health-check
 
 # 处理书签（命令行模式）
-python main.py -i tests/input/*.html
+python main.py -i examples/demo_bookmarks.html
 
 # 启动交互模式
 python main.py --interactive

@@ -27,11 +27,14 @@ except ImportError:
 
 from .bookmark_processor import BookmarkProcessor
 from .ai_classifier import AIBookmarkClassifier
+from .resource_loader import resolve_config_path
 
 class CLIInterface:
     """CLI交互界面"""
-    
-    def __init__(self):
+
+    def __init__(self, config_path: str | None = None):
+        resolved_path, _ = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         self.console = Console() if RICH_AVAILABLE else None
         self.processor = None
         self.classifier = None
@@ -143,6 +146,7 @@ class CLIInterface:
         
         # 初始化处理器
         self.processor = BookmarkProcessor(
+            config_path=self.config_path,
             max_workers=workers,
             use_ml=use_ml
         )
@@ -180,7 +184,7 @@ class CLIInterface:
     
     def _select_input_files(self) -> List[str]:
         """选择输入文件"""
-        default_path = "tests/input"
+        default_path = "examples"
         if RICH_AVAILABLE:
             raw = Prompt.ask("输入HTML书签文件/目录（可用逗号分隔多个文件）", default=default_path)
         else:
@@ -749,10 +753,7 @@ class CLIInterface:
             self._warning("没有可清理的缓存")
     
     def _show_current_config(self):
-        config_path = "config.json"
-        if not os.path.exists(config_path):
-            self._error(f"配置文件不存在: {config_path}")
-            return
+        config_path = self.config_path
 
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -802,10 +803,7 @@ class CLIInterface:
                 print(f"  category_order: {', '.join([str(x) for x in order])}")
     
     def _modify_config(self):
-        config_path = "config.json"
-        if not os.path.exists(config_path):
-            self._error(f"配置文件不存在: {config_path}")
-            return
+        config_path = self.config_path
 
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -895,10 +893,7 @@ class CLIInterface:
         self._success("配置已重载（下次操作将重新加载配置）")
     
     def _export_config(self):
-        config_path = "config.json"
-        if not os.path.exists(config_path):
-            self._error(f"配置文件不存在: {config_path}")
-            return
+        config_path = self.config_path
 
         ts = datetime.now().strftime('%Y%m%d_%H%M%S')
         default_path = os.path.join('output', f'config_export_{ts}.json')
@@ -919,7 +914,7 @@ class CLIInterface:
 
     def _get_processor(self) -> BookmarkProcessor:
         if self.processor is None:
-            self.processor = BookmarkProcessor()
+            self.processor = BookmarkProcessor(config_path=self.config_path)
         return self.processor
 
     def _get_classifier(self) -> AIBookmarkClassifier:
@@ -930,7 +925,7 @@ class CLIInterface:
             except Exception:
                 pass
         if self.classifier is None:
-            self.classifier = AIBookmarkClassifier()
+            self.classifier = AIBookmarkClassifier(config_path=self.config_path)
         return self.classifier
 
     def _select_output_json_report(self) -> Optional[str]:

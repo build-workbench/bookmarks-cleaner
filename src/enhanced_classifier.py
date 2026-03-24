@@ -13,6 +13,8 @@ import os
 import json
 import re
 import time
+
+from .resource_loader import load_json_config, resolve_config_path
 from typing import Dict, List, Tuple, Optional, Set
 from urllib.parse import urlparse
 from collections import defaultdict, Counter
@@ -77,8 +79,9 @@ class ClassificationResult:
 class EnhancedClassifier:
     """增强版分类器"""
     
-    def __init__(self, config_path: str = "config.json"):
-        self.config_path = config_path
+    def __init__(self, config_path: str | None = None):
+        resolved_path, _ = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         self.config = self._load_config()
         self.logger = self._setup_logger()
         
@@ -137,13 +140,8 @@ class EnhancedClassifier:
     
     def _load_config(self) -> Dict:
         """加载配置文件"""
-        try:
-            with open(self.config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            return config
-        except Exception as e:
-            logging.getLogger(__name__).error(f"Failed to load config: {e}")
-            return self._get_default_config()
+        config, _, _ = load_json_config(self.config_path)
+        return config
     
     def _get_default_config(self) -> Dict:
         """默认配置"""

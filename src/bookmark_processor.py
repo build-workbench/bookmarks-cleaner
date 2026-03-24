@@ -24,6 +24,7 @@ except ImportError:
 from .ai_classifier import AIBookmarkClassifier
 from .taxonomy_standardizer import TaxonomyStandardizer
 from .category_utils import strip_category_prefix, normalize_category_string, normalize_category_config
+from .resource_loader import load_json_config, resolve_config_path
 
 try:
     from .llm_organizer import LLMBookmarkOrganizer
@@ -40,12 +41,13 @@ class BookmarkProcessor:
     
     def __init__(
         self,
-        config_path: str = "config.json",
+        config_path: str | None = None,
         max_workers: int = 4,
         use_ml: bool = True,
         confidence_threshold: Optional[float] = None,
     ):
-        self.config_path = config_path
+        resolved_path, self._explicit_config = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         # 优化线程池大小：限制最大线程数避免过度竞争
         self.max_workers = min(max_workers, 32)  # 限制最大32线程
         self.use_ml = use_ml
@@ -65,14 +67,27 @@ class BookmarkProcessor:
         self.logger = logging.getLogger(__name__)
         
         # 初始化组件
-        try:
-            with open(config_path, 'r', encoding='utf-8') as f:
-                self.config = json.load(f)
-            self._config_load_ok = True
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            self.logger.error(f"无法加载或解析配置文件 {config_path}: {e}")
-            self.config = {}
-            self._config_load_ok = False
+        loaded_config, _, explicit = load_json_config(self.config_path)
+        self.config = self._normalize_category_config(loaded_config)
+        self._config_load_ok = True
+        self._explicit_config = explicit
+
+        if not isinstance(self.config.get('category_rules'), dict) or not self.config.get('category_rules'):
+            source = '显式配置' if explicit else '默认配置'
+            raise ValueError(f"{source}缺少有效的 category_rules: {self.config_path}")
+
+        ai_settings = self.config.get('ai_settings')
+        if not isinstance(ai_settings, dict):
+            ai_settings = {}
+            self.config['ai_settings'] = ai_settings
+
+        if max_workers is not None:
+            ai_settings['max_workers'] = self.max_workers
+
+        if use_ml is not None:
+            ai_settings['enable_learning'] = bool(use_ml)
+
+        self.confidence_threshold = ai_settings.get('confidence_threshold') if self.confidence_threshold is None else self.confidence_threshold
 
         self.config = self._normalize_category_config(self.config)
 
@@ -125,8 +140,7 @@ class BookmarkProcessor:
     def classifier(self):
         """Lazy loading classifier"""
         if self._classifier is None:
-            injected_config = self.config if getattr(self, '_config_load_ok', False) else None
-            self._classifier = AIBookmarkClassifier(self.config_path, enable_ml=self.use_ml, config=injected_config)
+            self._classifier = AIBookmarkClassifier(self.config_path, enable_ml=self.use_ml, config=self.config)
 
             if self.confidence_threshold is not None:
                 ai_settings = self._classifier.config.get('ai_settings')

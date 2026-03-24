@@ -1,0 +1,192 @@
+{
+  "show_confidence_indicator": false,
+  "ai_settings": {
+    "confidence_threshold": 0.4,
+    "use_semantic_analysis": true,
+    "use_user_profiling": true,
+    "cache_size": 10000,
+    "max_workers": 4,
+    "enable_learning": true
+  },
+  "llm": {
+    "enable": false,
+    "provider": "openai",
+    "base_url": "https://api.openai.com",
+    "model": "gpt-4o-mini",
+    "api_key_env": "OPENAI_API_KEY",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "timeout_seconds": 25,
+    "max_retries": 1,
+    "prompt": {
+      "task_description": "请作为 CleanBook-Agent，精准识别浏览器书签的主题、意图与优先级。",
+      "steps": [
+        "解析书签标题、URL、域名、上下文，识别核心主题",
+        "匹配提供的主/子分类，必要时返回 '未分类' 并说明原因",
+        "输出包含 category、confidence、reasons、facets、priority_tags 的 JSON"
+      ],
+      "scoring_notes": "若分类不确定，请降低置信度并说明疑点；需要人工复核时，在 facets.priority_tags 中加入 'review'。",
+      "force_json": true
+    },
+    "organizer": {
+      "enable": false,
+      "model": "",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "timeout_seconds": 40,
+      "max_retries": 1,
+      "max_examples_per_category": 5,
+      "max_domains_per_category": 5,
+      "max_tokens": 1800,
+      "force_json": true
+    }
+  },
+  "title_cleaning_rules": {
+    "prefixes": [
+      "登录 |",
+      "Sign in ·",
+      "登录 "
+    ],
+    "suffixes": [
+      "- V2EX",
+      "· GitHub",
+      "| Microsoft Learn",
+      " - 知乎",
+      " - 简书",
+      " | 酷 壳 - CoolShell"
+    ],
+    "replacements": {
+      "&": "&",
+      "<": "<",
+      ">": ">",
+      "--- ": "- ",
+      "(7条消息)": ""
+    }
+  },
+  "taxonomy": {
+    "subjects_file": "taxonomy/subjects.yaml",
+    "resource_types_file": "taxonomy/resource_types.yaml"
+  },
+  "processing_order": [
+    "priority_rules",
+    "category_rules"
+  ],
+  "category_order": [
+    "💼 工作台",
+    "🤖 AI",
+    "💻 编程",
+    "🧬 生物",
+    "📚 学习",
+    "👥 社区",
+    "📰 资讯",
+    "🎮 娱乐",
+    "📂 其他"
+  ],
+  "domain_grouping_rules": {
+    "🤖 AI": [
+      "openai.com",
+      "deepseek.com",
+      "chatglm.cn",
+      "huggingface.co",
+      "labs.google",
+      "replicate.com",
+      "perplexity.ai",
+      "mistral.ai"
+    ],
+    "💻 编程": [
+      "github.com",
+      "gitlab.com",
+      "docker.com",
+      "kubernetes.io",
+      "python.org",
+      "rust-lang.org",
+      "go.dev"
+    ],
+    "🧬 生物": [
+      "broadinstitute.org",
+      "bioconda.github.io",
+      "illumina.com",
+      "cngb.org",
+      "stomics.tech",
+      "nature.com"
+    ],
+    "👥 社区": [
+      "linux.do",
+      "v2ex.com",
+      "news.ycombinator.com",
+      "reddit.com"
+    ],
+    "💼 工作台": [
+      "zego.im",
+      "zego.cloud",
+      "genomics.cn",
+      "bgi.com",
+      "dingtalk.com"
+    ]
+  },
+  "priority_rules": {
+    "💼 工作台/司内业务": {
+      "weight": 100,
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "zego.im",
+            "zego.cloud",
+            "bgi.com",
+            "genomics.cn",
+            "dingtalk.com"
+          ]
+        }
+      ]
+    }
+  },
+  "category_rules": {
+    "🤖 AI/模型平台": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "openai.com",
+            "huggingface.co",
+            "cohere.com",
+            "anthropic.com",
+            "chatglm.cn",
+            "hunyuan.tencent.com",
+            "baichuan-ai.com",
+            "mistral.ai",
+            "reka.ai",
+            "jina.ai",
+            "qwen.ai",
+            "deepseek.com",
+            "chat.qwen.ai",
+            "chat.mistral.ai",
+            "build.nvidia.com",
+            "bigmodel.cn"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "gpt-4",
+            "gpt4",
+            "gpt-5",
+            "gpt5",
+            "claude 3",
+            "claude 4",
+            "gemini",
+            "llama",
+            "sora",
+            "大模型",
+            "llm",
+            "qwen3",
+            "deepseek-v3",
+            "glm"
+          ],
+          "weight": 10
+        }
+      ]
+    }
+  }
+}

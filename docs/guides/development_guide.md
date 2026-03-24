@@ -4,7 +4,7 @@
 
 ### 1.1 开发环境要求
 
-- **Python**: 3.8+ (推荐 3.9+)
+- **Python**: 3.10+
 - **操作系统**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
 - **内存**: 最低 4GB, 推荐 8GB+
 - **存储**: 最低 2GB 可用空间
@@ -49,7 +49,7 @@ pip install -r requirements.txt
 pip install pytest pytest-cov black flake8 mypy
 
 # 运行健康检查
-python src/health_checker.py
+python main.py --health-check
 ```
 
 ## 2. 代码结构
@@ -75,22 +75,18 @@ CleanBookmarks/
 │   ├── health_checker.py         # 健康检查
 │   └── placeholder_modules.py    # 占位符模块
 ├── tests/                     # 测试代码
-│   ├── __init__.py
-│   ├── test_ai_classifier.py     # AI分类器测试
-│   ├── test_rule_engine.py       # 规则引擎测试
-│   ├── test_processor.py         # 处理器测试
-│   ├── input/                    # 测试输入文件
-│   └── output/                   # 测试输出文件
+│   ├── test_runtime_paths.py     # 运行路径/资源/CLI smoke tests
+│   ├── test_suite.py             # 历史综合测试
+│   └── test_*_properties.py      # 属性测试
 ├── models/                    # AI模型存储
 ├── logs/                      # 日志文件
 ├── docs/                      # 文档
 │   ├── api/                      # API文档
 │   ├── guides/                   # 使用指南
 │   └── design/                   # 设计文档
-└── scripts/                   # 脚本工具
-    ├── setup.py                  # 安装脚本
-    ├── lint.py                   # 代码检查脚本
-    └── benchmark.py              # 性能测试脚本
+├── taxonomy/                  # taxonomy 词表
+├── examples/                  # 示例书签文件
+└── docs/                      # 文档
 ```
 
 ### 2.2 代码规范

@@ -32,11 +32,13 @@ from urllib.parse import parse_qs, urlparse
 import requests
 
 from .category_utils import strip_category_prefix, normalize_category_string
+from .resource_loader import load_json_config, resolve_config_path
 
 
 class LLMClassifier:
-    def __init__(self, config_path: str = "config.json"):
-        self.config_path = config_path
+    def __init__(self, config_path: str | None = None):
+        resolved_path, _ = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         self.config = self._load_config()
         self.llm_conf = self.config.get("llm", {}) or {}
         from .llm_prompt_builder import LLMPromptBuilder
@@ -147,11 +149,8 @@ class LLMClassifier:
 
     # -------------------- Internal helpers --------------------
     def _load_config(self) -> Dict:
-        try:
-            with open(self.config_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
+        data, _, _ = load_json_config(self.config_path)
+        return data
 
     @staticmethod
     def _strip_category_prefix(text: str) -> str:

@@ -30,6 +30,7 @@ import html
 import re
 from .emoji_cleaner import clean_title as clean_emoji_title
 from .enhanced_classifier import EnhancedClassifier, ClassificationResult
+from .resource_loader import resolve_config_path
 
 @dataclass
 class ProcessingStats:
@@ -51,10 +52,11 @@ class ProcessingStats:
 class EnhancedBookmarkProcessor:
     """增强版书签处理器"""
     
-    def __init__(self, config_file: str = "config.json", max_workers: int = 4):
-        self.config_file = config_file
+    def __init__(self, config_file: str | None = None, max_workers: int = 4):
+        resolved_path, _ = resolve_config_path(config_file)
+        self.config_file = str(resolved_path)
         self.max_workers = max_workers
-        self.classifier = EnhancedClassifier(config_file)
+        self.classifier = EnhancedClassifier(self.config_file)
         
         # 处理状态
         self.processed_bookmarks = []
@@ -594,8 +596,8 @@ def main():
     )
     
     parser.add_argument('-i', '--input', nargs='+', default=[], help='输入的HTML书签文件路径')
-    parser.add_argument('-c', '--config', default='config.json', help='配置文件路径')
-    parser.add_argument('-o', '--output-dir', default='tests/output', help='输出目录')
+    parser.add_argument('-c', '--config', default=None, help='配置文件路径；默认使用内置配置')
+    parser.add_argument('-o', '--output-dir', default='output', help='输出目录')
     parser.add_argument('--html-output', default='bookmarks_enhanced.html', help='HTML输出文件名')
     parser.add_argument('--md-output', default='bookmarks_enhanced.md', help='Markdown输出文件名')
     parser.add_argument('--json-output', default='bookmarks_report.json', help='JSON报告文件名')
@@ -606,14 +608,14 @@ def main():
     args = parser.parse_args()
     
     # 获取输入文件
-    input_files = args.input if args.input else glob.glob('tests/input/*.html')
+    input_files = args.input if args.input else glob.glob('examples/*.html')
     
     if not input_files:
         if os.path.exists('bookmarks_2025_7_1.html'):
             input_files = ['bookmarks_2025_7_1.html']
         else:
             print("❌ 错误: 未找到输入文件")
-            print("请将书签文件放在 tests/input/ 目录下，或使用 -i 参数指定文件")
+            print("请将书签文件放在 examples/ 目录下，或使用 -i 参数指定文件")
             return
     
     print(f"🚀 开始处理书签文件: {input_files}")

@@ -7,9 +7,12 @@ import logging
 import os
 import re
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import yaml
+
+from ..resource_loader import resolve_taxonomy_path
 
 
 class TaxonomyService:
@@ -26,8 +29,12 @@ class TaxonomyService:
             config: 配置字典
         """
         self.config = config or {}
-        self.taxonomy_path = self.config.get('taxonomy_path', 'taxonomy/subjects.yaml')
-        self.migrations_path = self.config.get('migrations_path', 'taxonomy/migrations')
+        self.taxonomy_path = resolve_taxonomy_path(self.config, 'subjects_file', 'taxonomy/subjects.yaml')
+        migrations_value = self.config.get('migrations_path', 'taxonomy/migrations')
+        migrations_candidate = Path(str(migrations_value)).expanduser()
+        if not migrations_candidate.is_absolute():
+            migrations_candidate = (Path.cwd() / migrations_candidate).resolve()
+        self.migrations_path = migrations_candidate
         
         # 分类层级结构
         self._hierarchy: Dict = {}
@@ -42,10 +49,10 @@ class TaxonomyService:
     
     def _load_taxonomy(self):
         """加载分类体系"""
-        if not os.path.exists(self.taxonomy_path):
+        if not self.taxonomy_path.exists():
             self._hierarchy = {'subjects': []}
             return
-        
+
         try:
             with open(self.taxonomy_path, 'r', encoding='utf-8') as f:
                 self._hierarchy = yaml.safe_load(f) or {'subjects': []}
@@ -56,8 +63,8 @@ class TaxonomyService:
     def _save_taxonomy(self):
         """保存分类体系"""
         try:
-            os.makedirs(os.path.dirname(self.taxonomy_path), exist_ok=True)
-            
+            os.makedirs(self.taxonomy_path.parent, exist_ok=True)
+
             with open(self.taxonomy_path, 'w', encoding='utf-8') as f:
                 yaml.dump(
                     self._hierarchy,

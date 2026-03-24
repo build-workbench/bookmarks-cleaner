@@ -28,8 +28,8 @@ python main.py --help
 # 处理单个书签 HTML 文件
 cleanbook -i examples/demo_bookmarks.html -o output
 
-# 批处理多个文件并训练 ML
-cleanbook -i "tests/input/*.html" --train
+# 处理示例文件并训练 ML
+cleanbook -i examples/demo_bookmarks.html --train
 
 # 交互向导
 cleanbook-wizard
@@ -42,7 +42,7 @@ cleanbook-wizard
 - `--workers` 并行线程数（默认 4）
 - `--train` 启用机器学习训练（高置信度样本）
 - `--no-ml` 关闭机器学习路径（仅规则/语义/画像）
-- `--health-check` 运行链接可达性巡检
+- `--health-check` 运行系统健康检查（只读）
 
 ## LLM 分类（可选）
 

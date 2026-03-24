@@ -22,12 +22,15 @@ python main.py --health-check
 
 ### Testing
 ```bash
-# Run all tests
-python tests/test_suite.py
+# Run focused runtime tests
+pytest -q tests/test_runtime_paths.py
+
+# Run broader test suite
+pytest -q
 
 # Test with sample data
 python main.py -i examples/demo_bookmarks.html -o output/
-python main.py -i "tests/input/*.html" --train
+python main.py -i examples/demo_bookmarks.html --train
 ```
 
 ### Development Workflow
@@ -160,13 +163,18 @@ Configure in `config.json` under `llm` section.
 ## Common Development Tasks
 
 ### Adding Classification Rules
-Edit `config.json` → `category_rules` array:
+Edit `config.json` → `category_rules` mapping:
 ```json
 {
-  "name": "GitHub",
-  "domain_patterns": ["github.com"],
-  "category": "💻 编程",
-  "weight": 90
+  "💻 编程/代码仓库": {
+    "rules": [
+      {
+        "match": "domain",
+        "keywords": ["github.com"],
+        "weight": 20
+      }
+    ]
+  }
 }
 ```
 

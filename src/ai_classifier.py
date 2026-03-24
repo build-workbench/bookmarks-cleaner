@@ -34,6 +34,7 @@ except ImportError:
 
 from .rule_engine import RuleEngine
 from .category_utils import strip_category_prefix, normalize_category_string, normalize_category_config
+from .resource_loader import load_json_config, resolve_config_path
 
 # 导入智能规则加载器
 try:
@@ -97,8 +98,9 @@ class ClassificationResult:
 class AIBookmarkClassifier:
     """AI智能书签分类器"""
 
-    def __init__(self, config_path: str = "config.json", enable_ml: bool = True, config: Optional[Dict] = None):
-        self.config_path = config_path
+    def __init__(self, config_path: str | None = None, enable_ml: bool = True, config: Optional[Dict] = None):
+        resolved_path, self._explicit_config = resolve_config_path(config_path)
+        self.config_path = str(resolved_path)
         self.enable_ml = enable_ml
         self.logger = logging.getLogger(__name__)
 
@@ -182,24 +184,22 @@ class AIBookmarkClassifier:
         return self._llm_classifier
 
     def _load_config(self) -> Dict:
-        try:
-            with open(self.config_path, 'r', encoding='utf-8') as f:
-                config = json.load(f)
-            
-            # 加载智能规则并合并
-            if SmartRuleLoader is not None and merge_with_main_config is not None:
-                try:
-                    loader = SmartRuleLoader()
-                    smart_rules = loader.load_all()
-                    config = merge_with_main_config(config, smart_rules)
-                    self.logger.info(f"已加载智能规则: {smart_rules.get('_meta', {})}")
-                except Exception as e:
-                    self.logger.warning(f"智能规则加载失败，使用默认配置: {e}")
-            
-            return self._normalize_category_config(config)
-        except Exception as e:
-            self.logger.error(f"配置文件加载失败: {e}")
-            return self._get_default_config()
+        config, _, explicit = load_json_config(self.config_path)
+
+        if SmartRuleLoader is not None and merge_with_main_config is not None:
+            try:
+                loader = SmartRuleLoader()
+                smart_rules = loader.load_all()
+                config = merge_with_main_config(config, smart_rules)
+                self.logger.info(f"已加载智能规则: {smart_rules.get('_meta', {})}")
+            except Exception as e:
+                self.logger.warning(f"智能规则加载失败，保留主配置: {e}")
+
+        normalized = self._normalize_category_config(config)
+        if not isinstance(normalized.get("category_rules"), dict) or not normalized.get("category_rules"):
+            source = "显式配置" if explicit else "默认配置"
+            raise ValueError(f"{source}缺少有效的 category_rules: {self.config_path}")
+        return normalized
 
     @staticmethod
     def _strip_category_prefix(text: str) -> str:
@@ -212,52 +212,8 @@ class AIBookmarkClassifier:
         return normalize_category_config(config)
 
     def _get_default_config(self) -> Dict:
-        return {
-            "ai_settings": {
-                "confidence_threshold": 0.7,
-                "use_semantic_analysis": True,
-                "use_user_profiling": True,
-                "cache_size": 10000,
-            },
-            "category_rules": {
-                "AI/机器学习": {
-                    "rules": [
-                        {"match": "domain", "keywords": ["openai.com", "huggingface.co"], "weight": 20},
-                        {"match": "title", "keywords": ["machine learning", "深度学习", "neural", "AI"], "weight": 15},
-                    ]
-                },
-                "技术/编程": {
-                    "rules": [
-                        {"match": "domain", "keywords": ["github.com", "stackoverflow.com"], "weight": 20},
-                        {"match": "title", "keywords": ["programming", "code", "编程", "代码"], "weight": 10},
-                    ]
-                },
-            },
-            "category_hierarchy": {
-                "AI": ["机器学习", "深度学习", "自然语言处理", "计算机视觉"],
-                "技术": ["编程", "前端", "后端", "DevOps", "数据库"],
-                "学习": ["教程", "文档", "课程", "书籍"],
-                "工具": ["在线工具", "开发工具", "设计工具"],
-            },
-            "llm": {
-                "enable": False,
-                "provider": "openai",
-                "base_url": "https://api.openai.com",
-                "model": "gpt-4o-mini",
-                "api_key_env": "OPENAI_API_KEY",
-                "temperature": 0.0,
-                "top_p": 1.0,
-                "timeout_seconds": 25,
-                "max_retries": 1,
-                "organizer": {
-                    "enable": False,
-                    "max_examples_per_category": 5,
-                    "max_domains_per_category": 5,
-                    "max_tokens": 1800,
-                    "force_json": True
-                }
-            },
-        }
+        config, _, _ = load_json_config(None)
+        return self._normalize_category_config(config)
 
     def extract_features(self, url: str, title: str) -> BookmarkFeatures:
         cache_key = f"{url}::{title}"
@@ -509,7 +465,7 @@ class AIBookmarkClassifier:
 
     def _determine_subcategory(self, category: str, features: BookmarkFeatures) -> Optional[str]:
         hierarchy = self.config.get('category_hierarchy', {})
-        if category in hierarchy:
+        if isinstance(hierarchy, dict) and category in hierarchy:
             subs = hierarchy[category]
             title_lower = features.title.lower()
             for sub in subs:

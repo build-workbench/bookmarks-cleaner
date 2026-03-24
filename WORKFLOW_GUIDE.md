@@ -74,7 +74,7 @@ python main.py [OPTIONS]
 选项:
   -i, --input FILES        输入的HTML书签文件 (必须)。可使用通配符，如 "folder/*.html"。
   -o, --output DIR         输出目录 (默认: output)。
-  -c, --config FILE        配置文件路径 (默认: config.json)。
+  -c, --config FILE        配置文件路径（默认使用内置配置）。
   --interactive            启动交互模式。
   --train                  使用输入文件作为训练数据，训练机器学习模型。
   --health-check           运行健康检查，验证环境和配置。
@@ -136,19 +136,15 @@ python main.py [OPTIONS]
     - `path`: 匹配URL的路径部分
     - `url_ends_with`: 匹配URL的结尾 (e.g., `.pdf`)
 
-### 分类层次 (`category_hierarchy`)
+### taxonomy 与分类字符串
 
-定义分类之间的父子关系，有助于更好地组织和展示。
+当前主流程优先使用 `category_rules` 中的分类字符串（如 `💻 编程/代码仓库`），再通过 `taxonomy/subjects.yaml` 与 `taxonomy/resource_types.yaml` 做标准化。
 
-```json
-{
-  "category_hierarchy": {
-    "技术": ["编程", "前端", "后端", "DevOps"],
-    "AI": ["机器学习", "深度学习", "NLP"],
-    "学习": ["教程", "文档", "课程"]
-  }
-}
-```
+这意味着大多数情况下无需维护额外的 `category_hierarchy`，而是直接维护：
+
+- `config.json` 中的 `category_rules`
+- `config.json` 中的 `category_order`
+- `taxonomy/*.yaml` 中的受控词表
 
 ## 🔬 开发与贡献
 

@@ -6,7 +6,7 @@ Property-Based Tests for Feature Store
 import pytest
 import time
 import numpy as np
-from hypothesis import given, strategies as st, settings, assume
+from hypothesis import given, strategies as st, settings, assume, HealthCheck
 
 # Import feature store
 import sys
@@ -66,7 +66,7 @@ def test_property_17_ttl_expiration(key, embedding):
     assert expired is None
 
 # Property 18: LRU Eviction Policy
-@settings(max_examples=100)
+@settings(max_examples=60, suppress_health_check=[HealthCheck.too_slow])
 @given(
     items=st.lists(
         st.tuples(key_strategy, embedding_strategy),

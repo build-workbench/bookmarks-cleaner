@@ -479,7 +479,7 @@ class InteractiveBookmarkManager:
         self.cli.info("书签处理功能")
         
         # 选择输入文件
-        input_dir = "tests/input"
+        input_dir = "examples"
         if os.path.exists(input_dir):
             html_files = [f for f in os.listdir(input_dir) if f.endswith('.html')]
             if html_files:
@@ -505,7 +505,7 @@ class InteractiveBookmarkManager:
         """查看处理结果"""
         self.cli.info("查看处理结果")
         
-        output_dir = "tests/output"
+        output_dir = "output"
         if os.path.exists(output_dir):
             files = os.listdir(output_dir)
             if files:
@@ -546,21 +546,21 @@ class InteractiveBookmarkManager:
         
         if config_choice == '1':
             # 显示配置
-            config_file = "config.json"
-            if os.path.exists(config_file):
-                try:
-                    with open(config_file, 'r', encoding='utf-8') as f:
-                        config = json.load(f)
-                    
-                    self.cli.print_stats({
-                        '分类规则数量': len(config.get('category_rules', {})),
-                        '分类顺序数量': len(config.get('category_order', [])),
-                        '高级设置': json.dumps(config.get('advanced_settings', {}), ensure_ascii=False)
-                    }, "当前配置")
-                except Exception as e:
-                    self.cli.error(f"读取配置失败: {e}")
-            else:
-                self.cli.error("配置文件不存在")
+            try:
+                from .resource_loader import load_json_config
+            except Exception:
+                from resource_loader import load_json_config
+
+            try:
+                config, resolved_config, _ = load_json_config(None)
+                self.cli.print_stats({
+                    '配置文件': str(resolved_config),
+                    '分类规则数量': len(config.get('category_rules', {})),
+                    '分类顺序数量': len(config.get('category_order', [])),
+                    'AI设置': json.dumps(config.get('ai_settings', {}), ensure_ascii=False)
+                }, "当前配置")
+            except Exception as e:
+                self.cli.error(f"读取配置失败: {e}")
     
     def show_statistics(self):
         """显示统计分析"""
@@ -653,12 +653,7 @@ class InteractiveBookmarkManager:
 def main():
     """主函数"""
     try:
-        try:
-            from .cli_interface import CLIInterface
-        except Exception:
-            from cli_interface import CLIInterface
-
-        CLIInterface().run()
+        InteractiveBookmarkManager().run()
     except Exception as e:
         print(f"程序启动失败: {e}")
         sys.exit(1)

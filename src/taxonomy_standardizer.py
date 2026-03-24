@@ -1,7 +1,8 @@
-import os
 import re
 import yaml
 from typing import Dict, Optional, Tuple
+
+from .resource_loader import resolve_taxonomy_path
 
 
 class TaxonomyStandardizer:
@@ -12,13 +13,10 @@ class TaxonomyStandardizer:
         self._load_subjects()
         self._load_resource_types()
 
-    def _get_path(self, key: str, default_path: str) -> str:
-        tax = self.config.get("taxonomy", {}) or {}
-        return tax.get(key, default_path)
+    def _get_path(self, key: str, default_path: str):
+        return resolve_taxonomy_path(self.config, key, default_path)
 
-    def _load_yaml(self, path: str) -> Dict:
-        if not path or not os.path.exists(path):
-            return {}
+    def _load_yaml(self, path) -> Dict:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f) or {}

@@ -34,6 +34,9 @@ import jsonschema
 from jsonschema import validate
 import copy
 
+from .resource_loader import load_json_config, resolve_config_path
+from .category_utils import normalize_category_config
+
 @dataclass
 class ConfigChange:
     """配置变更记录"""
@@ -71,6 +74,15 @@ class ConfigValidator:
                         "cache_size": {"type": "integer", "minimum": 100}
                     }
                 },
+                "ai_settings": {
+                    "type": "object",
+                    "properties": {
+                        "confidence_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+                        "cache_size": {"type": "integer", "minimum": 100},
+                        "max_workers": {"type": "integer", "minimum": 1}
+                    }
+                },
+                "show_confidence_indicator": {"type": "boolean"},
                 "category_rules": {
                     "type": "object",
                     "patternProperties": {
@@ -167,8 +179,9 @@ class ConfigFileHandler(FileSystemEventHandler):
 class EnhancedConfigManager:
     """增强配置管理器"""
     
-    def __init__(self, primary_config_path: str = "config.json"):
-        self.primary_config_path = primary_config_path
+    def __init__(self, primary_config_path: str | None = None):
+        resolved_path, _ = resolve_config_path(primary_config_path)
+        self.primary_config_path = str(resolved_path)
         self.config = {}
         self.config_history = []
         self.change_listeners = []
@@ -199,31 +212,12 @@ class EnhancedConfigManager:
             self.start_file_monitoring()
         except Exception as e:
             self.logger.error(f"初始化配置失败: {e}")
-            self.config = self._get_default_config()
+            self.config = normalize_category_config(self._get_default_config())
     
     def _get_default_config(self) -> Dict:
         """获取默认配置"""
-        return {
-            "title_cleaning_rules": {
-                "prefixes": ["登录 |", "Sign in ·"],
-                "suffixes": ["- V2EX", "· GitHub"],
-                "replacements": {"&amp;": "&", "&lt;": "<", "&gt;": ">"}
-            },
-            "advanced_settings": {
-                "classification_threshold": 0.6,
-                "learning_rate": 0.1,
-                "max_categories": 50,
-                "cache_size": 10000
-            },
-            "category_rules": {
-                "未分类": {
-                    "rules": [
-                        {"match": "title", "keywords": [".*"], "weight": 1}
-                    ]
-                }
-            },
-            "category_order": ["未分类"]
-        }
+        config, _, _ = load_json_config(None)
+        return normalize_category_config(config)
     
     def reload_config(self) -> bool:
         """重新加载配置"""
@@ -231,9 +225,10 @@ class EnhancedConfigManager:
             try:
                 # 加载主配置文件
                 new_config = self._load_config_file(self.primary_config_path)
-                
+
                 # 应用环境变量覆盖
                 new_config = self._apply_env_overrides(new_config)
+                new_config = normalize_category_config(new_config)
                 
                 # 验证配置
                 validation_errors = self.validator.validate(new_config)
@@ -286,26 +281,30 @@ class EnhancedConfigManager:
         
         # 环境变量映射
         env_mappings = {
-            f"{self.env_prefix}CLASSIFICATION_THRESHOLD": ("advanced_settings", "classification_threshold", float),
+            f"{self.env_prefix}CLASSIFICATION_THRESHOLD": ("ai_settings", "confidence_threshold", float),
             f"{self.env_prefix}LEARNING_RATE": ("advanced_settings", "learning_rate", float),
             f"{self.env_prefix}MAX_CATEGORIES": ("advanced_settings", "max_categories", int),
-            f"{self.env_prefix}CACHE_SIZE": ("advanced_settings", "cache_size", int),
-            f"{self.env_prefix}SHOW_CONFIDENCE": ("advanced_settings", "show_confidence_indicators", bool)
+            f"{self.env_prefix}CACHE_SIZE": ("ai_settings", "cache_size", int),
+            f"{self.env_prefix}SHOW_CONFIDENCE": (None, "show_confidence_indicator", bool)
         }
         
         for env_var, (section, key, type_func) in env_mappings.items():
             value = os.getenv(env_var)
             if value is not None:
                 try:
-                    if section not in config:
-                        config[section] = {}
-                    
                     if type_func == bool:
-                        config[section][key] = value.lower() in ('true', '1', 'yes', 'on')
+                        cast_value = value.lower() in ('true', '1', 'yes', 'on')
                     else:
-                        config[section][key] = type_func(value)
-                    
-                    self.logger.info(f"环境变量覆盖: {env_var} = {config[section][key]}")
+                        cast_value = type_func(value)
+
+                    if section is None:
+                        config[key] = cast_value
+                    else:
+                        if section not in config:
+                            config[section] = {}
+                        config[section][key] = cast_value
+
+                    self.logger.info(f"环境变量覆盖: {env_var} = {cast_value}")
                 except (ValueError, TypeError) as e:
                     self.logger.warning(f"环境变量 {env_var} 值无效: {value}, 错误: {e}")
         
@@ -500,7 +499,7 @@ class EnhancedConfigManager:
 # 全局配置管理器实例
 _global_config_manager = None
 
-def get_config_manager(config_path: str = "config.json") -> EnhancedConfigManager:
+def get_config_manager(config_path: str | None = None) -> EnhancedConfigManager:
     """获取全局配置管理器"""
     global _global_config_manager
     if _global_config_manager is None:

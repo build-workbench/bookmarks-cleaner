@@ -33,8 +33,7 @@ dependencies = [
   "jsonschema>=4.23.0",
   "rich>=13.7.1",
   "chardet>=5.2.0",
-  "urllib3>=2.2.2",
-  "hypothesis>=6.0.0"
+  "urllib3>=2.2.2"
 ]
 
 [project.urls]
@@ -64,4 +63,4 @@ packages = ["src", "src.cleanbook", "src.plugins", "src.plugins.classifiers", "s
 
 [tool.setuptools.package-data]
 # 打包模型与配置（如需）
-"src" = ["**/*.pkl", "**/*.json"]
+"src" = ["**/*.pkl", "**/*.json", "resources/taxonomy/*.yaml"]
