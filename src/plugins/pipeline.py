@@ -16,6 +16,7 @@ from .registry import PluginRegistry
 if TYPE_CHECKING:
     from ..ai_classifier import BookmarkFeatures, ClassificationResult
 
+
 class FusionStrategy(Enum):
     """融合策略"""
     WEIGHTED_VOTING = "weighted_voting"
@@ -145,68 +146,56 @@ class ClassifierPipeline:
     def _weighted_voting(self, results: List[Tuple[str, 'ClassificationResult']]) -> 'ClassificationResult':
         """
         加权投票融合
-        
+
         Args:
             results: (插件名, 分类结果) 元组列表
-            
+
         Returns:
             融合后的分类结果
         """
+        from ..ai_classifier import ClassificationResult
+
         category_scores: Dict[str, float] = defaultdict(float)
-        
+
         for method_name, result in results:
             weight = self.method_weights.get(method_name, 1.0)
             score = result.confidence * weight
             category_scores[result.category] += score
-        
+
         # 检查冲突
         if len(set(r[1].category for r in results)) > 1:
             category_scores = self._resolve_conflicts(category_scores, results)
-        
+
         # 选择最高分
         if not category_scores:
             return self._default_result()
-        
+
         best_category = max(category_scores, key=category_scores.get)
         total_score = sum(category_scores.values())
         confidence = category_scores[best_category] / total_score if total_score > 0 else 0
-        
+
         # 生成备选分类
         alternatives = [
-            (cat, score/total_score) 
-            for cat, score in category_scores.items() 
+            (cat, score/total_score)
+            for cat, score in category_scores.items()
             if cat != best_category
         ]
         alternatives.sort(key=lambda x: x[1], reverse=True)
-        
+
         # 生成推理过程
         reasoning = [f"Weighted voting from {len(results)} methods"]
         for method_name, result in results:
             reasoning.append(
                 f"{method_name}: {result.category} ({result.confidence:.2f})"
             )
-        
-        # Import ClassificationResult here to avoid circular import
-        from dataclasses import dataclass, field
-        from typing import List, Tuple, Dict
-        
-        @dataclass
-        class ClassificationResult:
-            category: str
-            confidence: float
-            score_breakdown: Dict[str, float] = field(default_factory=dict)
-            alternative_categories: List[Tuple[str, float]] = field(default_factory=list)
-            reasoning: List[str] = field(default_factory=list)
-            processing_time: float = 0.0
-            method: str = "unknown"
-        
+
         return ClassificationResult(
             category=best_category,
             confidence=confidence,
-            score_breakdown=dict(category_scores),
-            alternative_categories=alternatives[:5],
+            subcategory=None,
             reasoning=reasoning,
-            method='pipeline_fusion'
+            alternatives=alternatives[:5],
+            method='pipeline_fusion',
         )
     
     def _stacking(self, results: List[Tuple[str, 'ClassificationResult']]) -> 'ClassificationResult':
@@ -271,30 +260,17 @@ class ClassifierPipeline:
     def _default_result(self) -> 'ClassificationResult':
         """
         返回默认分类结果
-        
+
         Returns:
             默认分类结果
         """
-        from dataclasses import dataclass, field
-        from typing import List, Tuple, Dict
-        
-        @dataclass
-        class ClassificationResult:
-            category: str
-            confidence: float
-            score_breakdown: Dict[str, float] = field(default_factory=dict)
-            alternative_categories: List[Tuple[str, float]] = field(default_factory=list)
-            reasoning: List[str] = field(default_factory=list)
-            processing_time: float = 0.0
-            method: str = "unknown"
-        
+        from ..ai_classifier import ClassificationResult
+
         return ClassificationResult(
             category="未分类",
             confidence=0.0,
-            score_breakdown={},
-            alternative_categories=[],
             reasoning=["No plugins available or all plugins failed"],
-            method='default'
+            method='default',
         )
     
     def update_method_weight(self, method_name: str, accuracy: float):

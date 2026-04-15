@@ -10,6 +10,7 @@ import os
 import time
 import re
 import threading
+from collections import OrderedDict
 from .emoji_cleaner import clean_title as clean_emoji_title
 
 from typing import List, Dict, Optional, Tuple
@@ -89,13 +90,7 @@ class BookmarkProcessor:
 
         self.confidence_threshold = ai_settings.get('confidence_threshold') if self.confidence_threshold is None else self.confidence_threshold
 
-        self.config = self._normalize_category_config(self.config)
-
         if self.confidence_threshold is not None:
-            ai_settings = self.config.get('ai_settings')
-            if not isinstance(ai_settings, dict):
-                ai_settings = {}
-                self.config['ai_settings'] = ai_settings
             ai_settings['confidence_threshold'] = self.confidence_threshold
 
         # 标准化层（受控词表）
@@ -109,9 +104,10 @@ class BookmarkProcessor:
         self._llm_organizer = None
         self.llm_organizer_meta: Optional[Dict] = None
         
-        # 缓存和性能优化
-        self._classification_cache = {}
-        self._url_validation_cache = {}
+        # 缓存和性能优化 (OrderedDict with LRU eviction)
+        self._max_cache_size = 10000
+        self._classification_cache: OrderedDict = OrderedDict()
+        self._url_validation_cache: OrderedDict = OrderedDict()
         self._stats_lock = threading.Lock()
         
         # 处理统计
@@ -388,21 +384,22 @@ class BookmarkProcessor:
         try:
             url = bookmark['url']
             title = bookmark['title']
-            
+
             # 创建缓存键
             cache_key = f"{url}|{title}"
-            
-            # 检查缓存
+
+            # 检查缓存 (with LRU update)
             if cache_key in self._classification_cache:
+                self._classification_cache.move_to_end(cache_key)
                 cached_result = self._classification_cache[cache_key]
                 return {
                     **bookmark,
                     **cached_result
                 }
-            
+
             # 使用AI分类器
             result = self.classifier.classify(url, title)
-            
+
             # 处理分类结果（可能是对象或字典）
             if hasattr(result, 'category'):
                 # ClassificationResult对象
@@ -428,11 +425,12 @@ class BookmarkProcessor:
                     'processing_time': result.get('processing_time', 0.0),
                     'facets': result.get('facets', {})
                 }
-            
-            # 限制缓存大小
-            if len(self._classification_cache) < 10000:
-                self._classification_cache[cache_key] = cached_data
-            
+
+            # LRU cache eviction
+            if len(self._classification_cache) >= self._max_cache_size:
+                self._classification_cache.popitem(last=False)
+            self._classification_cache[cache_key] = cached_data
+
             # 构建结果
             classified_bookmark = {
                 **bookmark,

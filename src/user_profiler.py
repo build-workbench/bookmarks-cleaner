@@ -11,10 +11,13 @@ from collections import defaultdict, Counter
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 
+# Pre-compiled regex pattern for performance
+_WORD_REGEX = re.compile(r'[a-zA-Z\u4e00-\u9fff]{2,}')
+
 
 class UserProfiler:
     """用户画像分析器 - 基于用户行为的个性化分类"""
-    
+
     def __init__(self, profile_file: str = 'user_profile.json'):
         self.profile_file = profile_file
         self.preferences = self._load_preferences()
@@ -222,7 +225,7 @@ class UserProfiler:
     
     def _extract_words(self, text: str) -> List[str]:
         """提取文本中的单词"""
-        words = re.findall(r'[a-zA-Z\u4e00-\u9fff]{2,}', text.lower())
+        words = _WORD_REGEX.findall(text.lower())
         return [w for w in words if len(w) > 2]
     
     def update_preferences(self, features, category: str, confidence: float = 1.0):

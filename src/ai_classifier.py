@@ -20,6 +20,10 @@ import hashlib
 import re
 from urllib.parse import urlparse
 
+# Pre-compiled regex patterns for performance
+_CHINESE_REGEX = re.compile(r'[\u4e00-\u9fff]')
+_ENGLISH_REGEX = re.compile(r'[a-zA-Z]')
+
 # 导入子模块
 try:
     from .ml_classifier import MLClassifierWrapper
@@ -79,7 +83,7 @@ class BookmarkFeatures:
 
     @property
     def has_chinese(self) -> bool:
-        return bool(re.search(r'[\u4e00-\u9fff]', self.title))
+        return bool(_CHINESE_REGEX.search(self.title))
 
 
 @dataclass
@@ -114,9 +118,10 @@ class AIBookmarkClassifier:
         self._llm_classifier: Optional[LLMClassifier] = None
 
         # 缓存（OrderedDict 实现 LRU 淘汰）
-        self.feature_cache: Dict[str, BookmarkFeatures] = {}
+        self.feature_cache: OrderedDict[str, BookmarkFeatures] = OrderedDict()
         self.classification_cache: OrderedDict[str, ClassificationResult] = OrderedDict()
         self._max_cache_size = 5000
+        self._max_feature_cache_size = 10000
 
         # 统计
         self.stats = {
@@ -218,6 +223,7 @@ class AIBookmarkClassifier:
     def extract_features(self, url: str, title: str) -> BookmarkFeatures:
         cache_key = f"{url}::{title}"
         if cache_key in self.feature_cache:
+            self.feature_cache.move_to_end(cache_key)  # LRU 更新
             return self.feature_cache[cache_key]
 
         try:
@@ -246,8 +252,10 @@ class AIBookmarkClassifier:
                 language=language,
             )
 
-            if len(self.feature_cache) < self.config.get('ai_settings', {}).get('cache_size', 10000):
-                self.feature_cache[cache_key] = features
+            # LRU 缓存淘汰
+            if len(self.feature_cache) >= self._max_feature_cache_size:
+                self.feature_cache.popitem(last=False)
+            self.feature_cache[cache_key] = features
 
             return features
         except Exception as e:
@@ -492,9 +500,9 @@ class AIBookmarkClassifier:
         return 'webpage'
 
     def _detect_language(self, title: str) -> str:
-        if re.search(r'[\u4e00-\u9fff]', title):
+        if _CHINESE_REGEX.search(title):
             return 'zh'
-        elif re.search(r'[a-zA-Z]', title):
+        elif _ENGLISH_REGEX.search(title):
             return 'en'
         else:
             return 'unknown'
@@ -510,9 +518,13 @@ class AIBookmarkClassifier:
         self.user_profiler.update_preferences(features, correct_category)
         if self.ml_classifier:
             self.ml_classifier.online_learn(features, correct_category)
-        cache_key = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
-        if cache_key in self.classification_cache:
-            del self.classification_cache[cache_key]
+        # Invalidate both caches
+        feature_cache_key = f"{url}::{title}"
+        if feature_cache_key in self.feature_cache:
+            del self.feature_cache[feature_cache_key]
+        classification_cache_key = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
+        if classification_cache_key in self.classification_cache:
+            del self.classification_cache[classification_cache_key]
         self.logger.debug(f"学习反馈: {predicted_category} -> {correct_category}")
 
     def get_statistics(self) -> Dict:

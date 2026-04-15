@@ -24,6 +24,10 @@ from collections import defaultdict, Counter
 import hashlib
 import re
 
+# Pre-compiled regex patterns for performance
+_CHINESE_REGEX = re.compile(r'[\u4e00-\u9fff]')
+_DIGIT_REGEX = re.compile(r'\d')
+
 # 机器学习相关导入
 try:
     from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
@@ -142,9 +146,9 @@ class BookmarkFeatureExtractor(BaseEstimator, TransformerMixin):
         """中文分词"""
         if not self.use_chinese:
             return text.split()
-        
+
         # 检测是否包含中文
-        if re.search(r'[\u4e00-\u9fff]', text):
+        if _CHINESE_REGEX.search(text):
             return list(jieba.cut(text))
         else:
             return text.split()
@@ -167,9 +171,9 @@ class BookmarkFeatureExtractor(BaseEstimator, TransformerMixin):
             domain_depth = len(domain.split('.'))
             path_depth = len(path_segments)
             has_https = 1.0 if url.startswith('https') else 0.0
-            has_numbers = 1.0 if re.search(r'\d', title) else 0.0
-            has_chinese = 1.0 if re.search(r'[\u4e00-\u9fff]', title) else 0.0
-            
+            has_numbers = 1.0 if _DIGIT_REGEX.search(title) else 0.0
+            has_chinese = 1.0 if _CHINESE_REGEX.search(title) else 0.0
+
             features.append([
                 url_length, title_length, domain_depth, path_depth,
                 has_https, has_numbers, has_chinese

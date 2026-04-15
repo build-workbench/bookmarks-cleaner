@@ -4,22 +4,14 @@ Embedding Classifier Plugin - 基于嵌入的分类器插件
 """
 
 import logging
-from typing import Optional, Dict, List, Any, Tuple
-from dataclasses import dataclass, field
+from typing import Optional, Dict, List, Any, Tuple, TYPE_CHECKING
 import numpy as np
 
 from ..base import ClassifierPlugin, PluginMetadata
 
-@dataclass
-class ClassificationResult:
-    """分类结果"""
-    category: str
-    confidence: float
-    score_breakdown: Dict[str, float] = field(default_factory=dict)
-    alternative_categories: List[Tuple[str, float]] = field(default_factory=list)
-    reasoning: List[str] = field(default_factory=list)
-    processing_time: float = 0.0
-    method: str = "embedding"
+if TYPE_CHECKING:
+    from ...ai_classifier import ClassificationResult, BookmarkFeatures
+
 
 class EmbeddingClassifier(ClassifierPlugin):
     """基于嵌入的分类器插件"""
@@ -78,58 +70,59 @@ class EmbeddingClassifier(ClassifierPlugin):
         self._category_prototypes.clear()
         self.logger.info("EmbeddingClassifier shutdown")
     
-    def classify(self, features) -> Optional[ClassificationResult]:
+    def classify(self, features) -> Optional['ClassificationResult']:
         """
         执行分类
-        
+
         Args:
             features: 书签特征对象
-            
+
         Returns:
             分类结果
         """
+        from ...ai_classifier import ClassificationResult
+
         if not self._initialized or not self._embedding_service:
             return None
-        
+
         if not self._category_prototypes:
             return None
-        
+
         try:
             # 生成书签嵌入
             text = f"{features.title} {features.url}"
             bookmark_embedding = self._embedding_service.embed(text)
-            
+
             # 计算与各类别原型的相似度
             similarities = {}
             for category, prototype in self._category_prototypes.items():
                 sim = self._embedding_service.compute_similarity(bookmark_embedding, prototype)
                 similarities[category] = sim
-            
+
             if not similarities:
                 return None
-            
+
             # 选择最相似的类别
             best_category = max(similarities, key=similarities.get)
             best_similarity = similarities[best_category]
-            
+
             # 检查是否超过阈值
             if best_similarity < self._similarity_threshold:
                 return None
-            
+
             # 生成备选类别
             alternatives = [
                 (cat, sim) for cat, sim in similarities.items()
                 if cat != best_category
             ]
             alternatives.sort(key=lambda x: x[1], reverse=True)
-            
+
             return ClassificationResult(
                 category=best_category,
                 confidence=best_similarity,
-                score_breakdown=similarities,
-                alternative_categories=alternatives[:5],
                 reasoning=[f"Cosine similarity with '{best_category}' prototype: {best_similarity:.3f}"],
-                method="embedding"
+                alternatives=alternatives[:5],
+                method="embedding",
             )
         except Exception as e:
             self.logger.error(f"Classification failed: {e}")
@@ -138,7 +131,7 @@ class EmbeddingClassifier(ClassifierPlugin):
     def supports_batch(self) -> bool:
         return True
     
-    def classify_batch(self, features_list) -> List[Optional[ClassificationResult]]:
+    def classify_batch(self, features_list) -> List[Optional['ClassificationResult']]:
         """批量分类"""
         return [self.classify(f) for f in features_list]
     

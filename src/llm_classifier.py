@@ -34,6 +34,11 @@ import requests
 from .category_utils import strip_category_prefix, normalize_category_string
 from .resource_loader import load_json_config, resolve_config_path
 
+# Pre-compiled regex patterns for performance
+_CHINESE_REGEX = re.compile(r'[\u4e00-\u9fff]')
+_ENGLISH_REGEX = re.compile(r'[a-zA-Z]')
+_KEYWORD_REGEX = re.compile(r'[a-zA-Z\u4e00-\u9fff]{2,}')
+
 
 class LLMClassifier:
     def __init__(self, config_path: str | None = None):
@@ -267,7 +272,7 @@ class LLMClassifier:
         return hints
 
     def _extract_keywords(self, text: str) -> List[str]:
-        tokens = re.findall(r"[a-zA-Z\u4e00-\u9fff]{2,}", text.lower())
+        tokens = _KEYWORD_REGEX.findall(text.lower())
         seen = set()
         keywords = []
         for token in tokens:
@@ -277,9 +282,9 @@ class LLMClassifier:
         return keywords
 
     def _detect_language(self, text: str) -> str:
-        if re.search(r"[\u4e00-\u9fff]", text):
+        if _CHINESE_REGEX.search(text):
             return "zh"
-        if re.search(r"[a-zA-Z]", text):
+        if _ENGLISH_REGEX.search(text):
             return "en"
         return "unknown"
 

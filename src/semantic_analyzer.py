@@ -9,10 +9,14 @@ from collections import Counter
 from typing import Dict, List, Optional, Set
 from urllib.parse import urlparse
 
+# Pre-compiled regex patterns for performance
+_ALPHA_REGEX = re.compile(r'[a-zA-Z]+')
+_WORD_REGEX = re.compile(r'[a-zA-Z\u4e00-\u9fff]+')
+
 
 class SemanticAnalyzer:
     """语义分析器 - 基于词向量和语义相似度的分类"""
-    
+
     def __init__(self, config: Dict = None):
         self.config = config or {}
         self.category_keywords = self._load_category_keywords()
@@ -118,20 +122,20 @@ class SemanticAnalyzer:
     def _analyze_domain_semantics(self, domain: str) -> Dict[str, float]:
         """分析域名语义"""
         scores = {}
-        
+
         # 检查域名模式
         for pattern, category in self.domain_patterns.items():
             if re.search(pattern, domain, re.IGNORECASE):
                 scores[category] = scores.get(category, 0) + 0.8
-        
+
         # 检查域名中的关键词
-        domain_words = re.findall(r'[a-zA-Z]+', domain.lower())
+        domain_words = _ALPHA_REGEX.findall(domain.lower())
         for word in domain_words:
             if len(word) > 2 and word not in self.stopwords:
                 for category, keywords in self.category_keywords.items():
                     if word in [kw.lower() for kw in keywords]:
                         scores[category] = scores.get(category, 0) + 0.3
-        
+
         return scores
     
     def _analyze_title_semantics(self, title: str) -> Dict[str, float]:
@@ -155,28 +159,28 @@ class SemanticAnalyzer:
     def _analyze_path_semantics(self, url: str) -> Dict[str, float]:
         """分析URL路径语义"""
         scores = {}
-        
+
         try:
             parsed = urlparse(url)
-            path_words = re.findall(r'[a-zA-Z]+', parsed.path.lower())
-            
+            path_words = _ALPHA_REGEX.findall(parsed.path.lower())
+
             for word in path_words:
                 if len(word) > 2 and word not in self.stopwords:
                     for category, keywords in self.category_keywords.items():
                         if word in [kw.lower() for kw in keywords]:
                             scores[category] = scores.get(category, 0) + 0.2
-        
+
         except Exception:
             pass
-        
+
         return scores
-    
+
     def _extract_keywords(self, text: str) -> List[str]:
         """提取关键词"""
         # 简单的关键词提取
-        words = re.findall(r'[a-zA-Z\u4e00-\u9fff]+', text.lower())
+        words = _WORD_REGEX.findall(text.lower())
         keywords = []
-        
+
         for word in words:
             if len(word) > 2 and word not in self.stopwords:
                 keywords.append(word)

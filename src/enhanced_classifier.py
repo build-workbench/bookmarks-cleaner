@@ -17,12 +17,17 @@ import time
 from .resource_loader import load_json_config, resolve_config_path
 from typing import Dict, List, Tuple, Optional, Set
 from urllib.parse import urlparse
-from collections import defaultdict, Counter
+from collections import defaultdict, Counter, OrderedDict
 from functools import lru_cache
 import hashlib
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+
+# Pre-compiled regex patterns for performance
+_DIGIT_REGEX = re.compile(r'\d')
+_CHINESE_CHARS_REGEX = re.compile(r'[\u4e00-\u9fff]+')
+_WORD_REGEX = re.compile(r'\b\w+\b')
 
 # 导入机器学习分类器
 try:
@@ -62,33 +67,27 @@ class EnhancedBookmarkFeatures:
         self.domain_depth = len(self.domain.split('.'))
         self.path_depth = len(self.path_segments)
         self.title_length = len(self.title)
-        self.has_numbers = bool(re.search(r'\d', self.title))
+        self.has_numbers = bool(_DIGIT_REGEX.search(self.title))
         self.is_secure = self.url.startswith('https://')
 
-@dataclass
-class ClassificationResult:
-    """分类结果"""
-    category: str
-    confidence: float
-    score_breakdown: Dict[str, float]
-    alternative_categories: List[Tuple[str, float]]
-    reasoning: List[str]
-    processing_time: float = 0.0
-    features_used: List[str] = field(default_factory=list)
+# Use ClassificationResult from ai_classifier for consistency
+from .ai_classifier import ClassificationResult
 
 class EnhancedClassifier:
     """增强版分类器"""
-    
+
     def __init__(self, config_path: str | None = None):
         resolved_path, _ = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
         self.config = self._load_config()
         self.logger = self._setup_logger()
-        
-        # 缓存系统
-        self.url_cache = {}
-        self.classification_cache = {}
-        self.feature_cache = {}
+
+        # 缓存系统 (OrderedDict with LRU eviction)
+        self._max_cache_size = 10000
+        self._max_feature_cache_size = 10000
+        self.url_cache: OrderedDict = OrderedDict()
+        self.classification_cache: OrderedDict = OrderedDict()
+        self.feature_cache: OrderedDict = OrderedDict()
         
         # 统计信息
         self.stats = {
@@ -188,13 +187,14 @@ class EnhancedClassifier:
         """增强的特征提取"""
         cache_key = f"{url}::{title}"
         if cache_key in self.feature_cache:
+            self.feature_cache.move_to_end(cache_key)  # LRU update
             return self.feature_cache[cache_key]
-        
+
         try:
             parsed = self._parse_url_cached(url)
             domain = parsed.netloc.lower().replace('www.', '')
             path_segments = [seg for seg in parsed.path.split('/') if seg]
-            
+
             # 查询参数解析
             query_params = {}
             if parsed.query:
@@ -202,13 +202,13 @@ class EnhancedClassifier:
                     if '=' in param:
                         key, value = param.split('=', 1)
                         query_params[key] = value
-            
+
             # 内容类型检测
             content_type = self._detect_content_type(url, title, path_segments)
-            
+
             # 语言检测
             language = self._detect_language(title)
-            
+
             features = EnhancedBookmarkFeatures(
                 url=url,
                 title=title,
@@ -218,17 +218,18 @@ class EnhancedClassifier:
                 content_type=content_type,
                 language=language
             )
-            
-            # 缓存结果
-            if len(self.feature_cache) < self.config.get('advanced_settings', {}).get('cache_size', 10000):
-                self.feature_cache[cache_key] = features
-            
+
+            # LRU cache eviction
+            if len(self.feature_cache) >= self._max_feature_cache_size:
+                self.feature_cache.popitem(last=False)
+            self.feature_cache[cache_key] = features
+
             return features
-            
+
         except Exception as e:
             self.logger.error(f"Feature extraction failed for {url}: {e}")
             return EnhancedBookmarkFeatures(
-                url=url, title=title, domain="", path_segments=[], 
+                url=url, title=title, domain="", path_segments=[],
                 query_params={}, content_type="unknown", language="unknown"
             )
     
@@ -286,28 +287,29 @@ class EnhancedClassifier:
         """语言检测"""
         if not title:
             return 'unknown'
-        
+
         # 检测中文字符
-        if self.compiled_patterns.get('chinese_chars', re.compile(r'')).search(title):
+        if _CHINESE_CHARS_REGEX.search(title):
             return 'zh'
-        
+
         # 简单的语言检测
         common_english_words = {'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
-        words = set(re.findall(r'\b\w+\b', title.lower()))
-        
+        words = set(_WORD_REGEX.findall(title.lower()))
+
         if len(words & common_english_words) > 0:
             return 'en'
-        
+
         return 'unknown'
     
     def classify(self, url: str, title: str, context: Optional[Dict] = None) -> ClassificationResult:
         """主分类方法"""
         start_time = time.time()
-        
+
         # 检查缓存
         cache_key = f"{url}::{title}"
         if cache_key in self.classification_cache:
             self.stats['cache_hits'] += 1
+            self.classification_cache.move_to_end(cache_key)  # LRU update
             cached_result = self.classification_cache[cache_key]
             cached_result.processing_time = time.time() - start_time
             return cached_result
@@ -397,58 +399,52 @@ class EnhancedClassifier:
                 result = ClassificationResult(
                     category="未分类",
                     confidence=0.0,
-                    score_breakdown={},
-                    alternative_categories=[],
                     reasoning=["没有匹配的分类规则"],
-                    features_used=features_used
                 )
             else:
                 # 计算置信度
                 total_score = sum(scores.values())
                 normalized_scores = {cat: score/total_score for cat, score in scores.items()}
-                
+
                 # 选择最佳分类
                 best_category = max(normalized_scores, key=normalized_scores.get)
                 confidence = normalized_scores[best_category]
-                
+
                 # 应用置信度提升因子
                 boost_factor = self.config.get('advanced_settings', {}).get('confidence_boost_factor', 1.0)
                 if confidence > 0.7:
                     confidence = min(1.0, confidence * boost_factor)
-                
+
                 # 备选分类
-                alternatives = [(cat, score) for cat, score in normalized_scores.items() 
+                alternatives = [(cat, score) for cat, score in normalized_scores.items()
                               if cat != best_category]
                 alternatives.sort(key=lambda x: x[1], reverse=True)
-                
+
                 result = ClassificationResult(
                     category=best_category,
                     confidence=confidence,
-                    score_breakdown=dict(normalized_scores),
-                    alternative_categories=alternatives[:5],
                     reasoning=reasoning,
-                    features_used=list(set(features_used))
+                    alternatives=alternatives[:5],
                 )
-            
+
             # 记录处理时间
             result.processing_time = time.time() - start_time
-            
+
             # 更新统计信息
             self._update_stats(result)
-            
-            # 缓存结果
-            if len(self.classification_cache) < self.config.get('advanced_settings', {}).get('cache_size', 10000):
-                self.classification_cache[cache_key] = result
-            
+
+            # LRU cache eviction
+            if len(self.classification_cache) >= self._max_cache_size:
+                self.classification_cache.popitem(last=False)
+            self.classification_cache[cache_key] = result
+
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Classification failed for {url}: {e}")
             return ClassificationResult(
                 category="未分类",
                 confidence=0.0,
-                score_breakdown={},
-                alternative_categories=[],
                 reasoning=[f"分类失败: {str(e)}"],
                 processing_time=time.time() - start_time
             )
