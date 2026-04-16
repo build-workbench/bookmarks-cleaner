@@ -124,18 +124,18 @@ class MLClassifierPlugin(ClassifierPlugin):
             
             if confidence < 0.3:  # 最低置信度阈值
                 return None
-            
+
             return ClassificationResult(
                 category=category,
                 confidence=confidence,
                 score_breakdown={},
-                alternative_categories=[],
+                alternatives=[],
                 reasoning=[f"ML model prediction with confidence {confidence:.2f}"],
                 method='machine_learning',
                 facets={}
             )
-            
-        except Exception as e:
+
+        except (AttributeError, KeyError, TypeError, ValueError) as e:
             self.logger.error(f"ML classification failed: {e}")
             return None
     
@@ -180,15 +180,15 @@ class MLClassifierPlugin(ClassifierPlugin):
                         category=category,
                         confidence=confidence,
                         score_breakdown={},
-                        alternative_categories=[],
+                        alternatives=[],
                         reasoning=[f"ML model prediction with confidence {confidence:.2f}"],
                         method='machine_learning',
                         facets={}
                     ))
-            
+
             return results
-            
-        except Exception as e:
+
+        except (AttributeError, KeyError, TypeError, ValueError) as e:
             self.logger.error(f"ML batch classification failed: {e}")
             return [None] * len(features_list)
     

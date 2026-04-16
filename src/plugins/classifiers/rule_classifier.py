@@ -93,18 +93,18 @@ class RuleClassifierPlugin(ClassifierPlugin):
             
             # 转换为 ClassificationResult
             alternatives = result.get('alternatives', [])
-            
+
             return ClassificationResult(
                 category=result['category'],
                 confidence=result['confidence'],
                 score_breakdown=result.get('score_breakdown', {}),
-                alternative_categories=alternatives,
+                alternatives=alternatives,
                 reasoning=result.get('reasoning', []),
                 method='rule_engine',
                 facets=result.get('facets', {})
             )
-            
-        except Exception as e:
+
+        except (AttributeError, KeyError, TypeError) as e:
             self.logger.error(f"Rule classification failed: {e}")
             return None
     

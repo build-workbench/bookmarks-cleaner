@@ -4,13 +4,10 @@ Embedding Classifier Plugin - 基于嵌入的分类器插件
 """
 
 import logging
-from typing import Optional, Dict, List, Any, Tuple, TYPE_CHECKING
+from typing import Optional, Dict, List, Any, Tuple
 import numpy as np
 
-from ..base import ClassifierPlugin, PluginMetadata
-
-if TYPE_CHECKING:
-    from ...ai_classifier import ClassificationResult, BookmarkFeatures
+from ..base import ClassifierPlugin, PluginMetadata, ClassificationResult, BookmarkFeatures
 
 
 class EmbeddingClassifier(ClassifierPlugin):
@@ -70,7 +67,7 @@ class EmbeddingClassifier(ClassifierPlugin):
         self._category_prototypes.clear()
         self.logger.info("EmbeddingClassifier shutdown")
     
-    def classify(self, features) -> Optional['ClassificationResult']:
+    def classify(self, features: BookmarkFeatures) -> Optional[ClassificationResult]:
         """
         执行分类
 
@@ -80,8 +77,6 @@ class EmbeddingClassifier(ClassifierPlugin):
         Returns:
             分类结果
         """
-        from ...ai_classifier import ClassificationResult
-
         if not self._initialized or not self._embedding_service:
             return None
 
@@ -131,7 +126,7 @@ class EmbeddingClassifier(ClassifierPlugin):
     def supports_batch(self) -> bool:
         return True
     
-    def classify_batch(self, features_list) -> List[Optional['ClassificationResult']]:
+    def classify_batch(self, features_list: List[BookmarkFeatures]) -> List[Optional[ClassificationResult]]:
         """批量分类"""
         return [self.classify(f) for f in features_list]
     

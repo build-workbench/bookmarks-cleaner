@@ -109,18 +109,18 @@ class LLMClassifierPlugin(ClassifierPlugin):
             
             if result is None:
                 return None
-            
+
             return ClassificationResult(
                 category=result['category'],
                 confidence=result['confidence'],
                 score_breakdown={},
-                alternative_categories=[],
+                alternatives=[],
                 reasoning=result.get('reasoning', []),
                 method='llm',
                 facets=result.get('facets', {})
             )
-            
-        except Exception as e:
+
+        except (AttributeError, KeyError, TypeError, ValueError) as e:
             self.logger.error(f"LLM classification failed: {e}")
             return None
     
