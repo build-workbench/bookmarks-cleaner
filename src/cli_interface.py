@@ -70,7 +70,7 @@ class CLIInterface:
         
         except KeyboardInterrupt:
             self._info("程序被用户中断")
-        except Exception as e:
+        except (ValueError, TypeError, IOError) as e:
             self._error(f"程序执行出错: {e}")
         finally:
             self._info("感谢使用AI智能书签分类系统!")
@@ -178,8 +178,8 @@ class CLIInterface:
                 )
             
             self._show_processing_results(stats)
-            
-        except Exception as e:
+
+        except (ValueError, IOError, AttributeError) as e:
             self._error(f"处理失败: {e}")
     
     def _select_input_files(self) -> List[str]:
@@ -353,8 +353,8 @@ class CLIInterface:
             else:
                 self._info(f"文件路径: {file_path}")
                 self._info(f"文件大小: {os.path.getsize(file_path)} 字节")
-                
-        except Exception as e:
+
+        except (FileNotFoundError, IOError, json.JSONDecodeError) as e:
             self._error(f"读取文件失败: {e}")
     
     def _show_json_statistics(self, stats: Dict):
@@ -428,7 +428,7 @@ class CLIInterface:
             for fp in input_files:
                 try:
                     bookmarks.extend(processor._load_bookmarks_from_file(fp))
-                except Exception as e:
+                except (FileNotFoundError, IOError, ValueError) as e:
                     self._warning(f"读取失败 {fp}: {e}")
 
         elif choice == '2':
@@ -440,7 +440,7 @@ class CLIInterface:
                     data = json.load(f)
                 organized = data.get('bookmarks') if isinstance(data, dict) else None
                 bookmarks = self._flatten_organized_bookmarks(organized)
-            except Exception as e:
+            except (json.JSONDecodeError, IOError, KeyError) as e:
                 self._error(f"读取JSON报告失败: {e}")
                 return
 
@@ -453,7 +453,7 @@ class CLIInterface:
             results = processor.health_checker.check_bookmarks(bookmarks)
             summary = processor.health_checker.get_summary(results)
             self._show_health_summary(summary)
-        except Exception as e:
+        except (IOError, AttributeError, ConnectionError) as e:
             self._error(f"健康检查失败: {e}")
     
     def _show_statistics(self):
@@ -631,7 +631,7 @@ class CLIInterface:
         try:
             classifier.save_model(path)
             self._success(f"模型已保存到: {path}")
-        except Exception as e:
+        except (IOError, pickle.PickleError, AttributeError) as e:
             self._error(f"模型保存失败: {e}")
     
     def _load_model(self):
@@ -644,7 +644,7 @@ class CLIInterface:
         try:
             classifier.load_model(path)
             self._success(f"模型已加载: {path}")
-        except Exception as e:
+        except (FileNotFoundError, pickle.PickleError, json.JSONDecodeError) as e:
             self._error(f"模型加载失败: {e}")
     
     def _retrain_model(self):
@@ -661,7 +661,7 @@ class CLIInterface:
         try:
             with open(report_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-        except Exception as e:
+        except (FileNotFoundError, json.JSONDecodeError, IOError) as e:
             self._error(f"读取JSON报告失败: {e}")
             return
 
@@ -676,8 +676,8 @@ class CLIInterface:
             try:
                 ml.ml_classifier.training_data.clear()
                 ml.ml_classifier.training_labels.clear()
-            except Exception:
-                pass
+            except (AttributeError, TypeError) as e:
+                self.logger.debug(f"清空训练缓存失败: {e}")
 
         if RICH_AVAILABLE:
             min_conf = float(Prompt.ask("训练最小置信度", default="0.8"))
@@ -697,7 +697,7 @@ class CLIInterface:
             conf_raw = bm.get('confidence', 0.0)
             try:
                 confidence = float(conf_raw) if conf_raw is not None else 0.0
-            except Exception:
+            except (TypeError, ValueError):
                 confidence = 0.0
 
             if confidence < min_conf:
@@ -713,7 +713,7 @@ class CLIInterface:
 
         try:
             ok = ml.train_model()
-        except Exception as e:
+        except (ValueError, RuntimeError, AttributeError) as e:
             self._error(f"训练失败: {e}")
             return
 
@@ -729,14 +729,14 @@ class CLIInterface:
                 self.processor._classification_cache.clear()
                 self.processor._url_validation_cache.clear()
                 cleared.append('处理器缓存')
-            except Exception:
-                pass
+            except (AttributeError, TypeError) as e:
+                self.logger.debug(f"清理处理器缓存失败: {e}")
 
         classifier = self.classifier
         if classifier is None and self.processor is not None:
             try:
                 classifier = self.processor.classifier
-            except Exception:
+            except (AttributeError, TypeError):
                 classifier = None
 
         if classifier is not None:
@@ -744,8 +744,8 @@ class CLIInterface:
                 classifier.feature_cache.clear()
                 classifier.classification_cache.clear()
                 cleared.append('分类器缓存')
-            except Exception:
-                pass
+            except (AttributeError, TypeError) as e:
+                self.logger.debug(f"清理分类器缓存失败: {e}")
 
         if cleared:
             self._success(f"已清理: {', '.join(cleared)}")
@@ -758,14 +758,14 @@ class CLIInterface:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 raw = json.load(f)
-        except Exception as e:
+        except (FileNotFoundError, json.JSONDecodeError, IOError) as e:
             self._error(f"读取配置失败: {e}")
             return
 
         display = raw
         try:
             display = self._get_processor().config
-        except Exception:
+        except (AttributeError, TypeError, ValueError):
             display = raw
 
         ai = display.get('ai_settings', {}) if isinstance(display, dict) else {}
@@ -808,7 +808,7 @@ class CLIInterface:
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-        except Exception as e:
+        except (FileNotFoundError, json.JSONDecodeError, IOError) as e:
             self._error(f"读取配置失败: {e}")
             return
 
@@ -872,7 +872,7 @@ class CLIInterface:
                 current = llm.get('api_key_env', 'OPENAI_API_KEY')
                 llm['api_key_env'] = Prompt.ask("llm.api_key_env", default=str(current)) if RICH_AVAILABLE else (input(f"llm.api_key_env (默认: {current}): ").strip() or str(current))
 
-        except Exception as e:
+        except (KeyError, TypeError, ValueError) as e:
             self._error(f"配置修改失败: {e}")
             return
 
@@ -884,7 +884,7 @@ class CLIInterface:
             with open(config_path, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=2)
             self._success("配置已更新")
-        except Exception as e:
+        except (IOError, PermissionError) as e:
             self._error(f"写入配置失败: {e}")
     
     def _reload_config(self):
@@ -909,7 +909,7 @@ class CLIInterface:
             with open(out_path, 'w', encoding='utf-8') as wf:
                 wf.write(content)
             self._success(f"配置已导出: {out_path}")
-        except Exception as e:
+        except (IOError, PermissionError) as e:
             self._error(f"配置导出失败: {e}")
 
     def _get_processor(self) -> BookmarkProcessor:
@@ -922,8 +922,8 @@ class CLIInterface:
             try:
                 self.classifier = self.processor.classifier
                 return self.classifier
-            except Exception:
-                pass
+            except (AttributeError, TypeError) as e:
+                self.logger.debug(f"获取分类器失败: {e}")
         if self.classifier is None:
             self.classifier = AIBookmarkClassifier(config_path=self.config_path)
         return self.classifier
@@ -957,7 +957,7 @@ class CLIInterface:
                 choice = int(input(f"选择文件 (1-{len(files)}): ") or "1")
             if 1 <= choice <= len(files):
                 return os.path.join(output_dir, files[choice - 1])
-        except Exception:
+        except (ValueError, TypeError):
             self._error("无效的选择")
             return None
 
