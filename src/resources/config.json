@@ -5,8 +5,26 @@
     "use_semantic_analysis": true,
     "use_user_profiling": true,
     "cache_size": 10000,
+    "feature_cache_size": 10000,
     "max_workers": 4,
-    "enable_learning": true
+    "enable_learning": true,
+    "enable_ml": true
+  },
+  "ml_settings": {
+    "model_dir": "models/ml",
+    "online_buffer_size": 1000,
+    "min_samples_for_training": 10,
+    "feature_dim": 500
+  },
+  "health_check_settings": {
+    "timeout_seconds": 10,
+    "max_workers": 20,
+    "retry_count": 2
+  },
+  "active_learning_settings": {
+    "confidence_threshold": 0.6,
+    "max_requests_per_session": 10,
+    "persist_path": "data/active_learning"
   },
   "llm": {
     "enable": false,

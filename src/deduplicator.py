@@ -49,7 +49,7 @@ class BookmarkDeduplicator:
         for i, bookmark in enumerate(bookmarks):
             try:
                 domain = urlparse(bookmark.get('url', '')).netloc.lower().replace('www.', '')
-            except Exception:
+            except (ValueError, AttributeError):
                 domain = ''
             domain_groups[domain].append(i)
 
@@ -151,11 +151,11 @@ class BookmarkDeduplicator:
             
             # 计算路径相似度
             path_sim = SequenceMatcher(None, parsed1.path, parsed2.path).ratio()
-            
+
             # 如果路径非常相似，认为是重复
             return path_sim >= 0.9
-            
-        except Exception:
+
+        except (ValueError, AttributeError):
             return False
     
     def _normalize_url(self, url: str) -> str:
@@ -191,8 +191,8 @@ class BookmarkDeduplicator:
                 normalized += f"?{query_string}"
             
             return normalized
-            
-        except Exception:
+
+        except (ValueError, AttributeError, KeyError):
             return url.lower().strip()
     
     def _calculate_url_similarity(self, url1: str, url2: str) -> float:
@@ -215,10 +215,10 @@ class BookmarkDeduplicator:
             
             # 加权平均
             overall_sim = domain_sim * 0.5 + path_sim * 0.3 + query_sim * 0.2
-            
+
             return overall_sim
-            
-        except Exception:
+
+        except (ValueError, AttributeError):
             # 如果解析失败，使用字符串相似度
             return SequenceMatcher(None, url1, url2).ratio()
     
@@ -362,7 +362,7 @@ class BookmarkDeduplicator:
                 try:
                     domain = urlparse(url).netloc
                     stats['duplicate_domains'][domain] += 1
-                except Exception:
+                except (ValueError, AttributeError):
                     pass
         
         return dict(stats)

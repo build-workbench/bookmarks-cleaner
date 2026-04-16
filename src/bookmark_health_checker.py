@@ -178,7 +178,8 @@ class HealthChecker:
         try:
             parsed = urlparse(url)
             return parsed.scheme in ['http', 'https'] and parsed.netloc
-        except Exception:
+        except (ValueError, AttributeError) as e:
+            self.logger.debug(f"URL验证失败: {url} - {e}")
             return False
     
     def _check_dns(self, url: str) -> Dict:
@@ -212,15 +213,15 @@ class HealthChecker:
             try:
                 content = response.content[:10240]
                 result['content'] = content
-            except Exception:
-                pass
+            except (requests.exceptions.RequestException, IOError) as e:
+                self.logger.debug(f"读取响应内容失败: {e}")
         except requests.exceptions.Timeout:
             result['errors'].append(f'请求超时 (>{self.timeout}s)')
         except requests.exceptions.ConnectionError as e:
             result['errors'].append(f'连接错误: {str(e)}')
         except requests.exceptions.RequestException as e:
             result['errors'].append(f'请求异常: {str(e)}')
-        except Exception as e:
+        except (ValueError, AttributeError) as e:
             result['errors'].append(f'HTTP检查出错: {str(e)}')
         return result
     
@@ -244,7 +245,15 @@ class HealthChecker:
                     expires_at = datetime.strptime(cert['notAfter'], '%b %d %H:%M:%S %Y %Z')
                     ssl_info['expires_at'] = expires_at.isoformat()
                     ssl_info['days_until_expiry'] = (expires_at - datetime.now()).days
-        except Exception as e:
+        except ssl.SSLError as e:
+            ssl_info['errors'].append(f'SSL握手失败: {str(e)}')
+        except socket.timeout:
+            ssl_info['errors'].append('SSL连接超时')
+        except socket.gaierror as e:
+            ssl_info['errors'].append(f'DNS解析失败: {str(e)}')
+        except (ConnectionRefusedError, ConnectionResetError) as e:
+            ssl_info['errors'].append(f'连接被拒绝: {str(e)}')
+        except (ValueError, OSError) as e:
             ssl_info['errors'].append(f'SSL检查失败: {str(e)}')
         return ssl_info
     
@@ -265,8 +274,10 @@ class HealthChecker:
             lang_match = re.search(r'<html[^>]*lang=["\']([^"\'>]+)["\']', text_content, re.IGNORECASE)
             if lang_match:
                 content_info['language'] = lang_match.group(1)
-        except Exception:
-            pass
+        except (UnicodeDecodeError, LookupError) as e:
+            self.logger.debug(f"内容解码失败: {e}")
+        except re.error as e:
+            self.logger.debug(f"正则匹配失败: {e}")
         return content_info
     
     def _determine_health_status(self, http_result: Dict, check_result: Dict) -> HealthStatus:
