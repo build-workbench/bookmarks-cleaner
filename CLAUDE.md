@@ -2,6 +2,22 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ IMPORTANT: Spec-Driven Development
+
+This project follows **Spec-Driven Development (SDD)** methodology. **Before writing any code**, always review the specification documents in the `/specs` directory:
+
+- `/specs/product/`: Product requirements and acceptance criteria
+- `/specs/rfc/`: Technical design documents and architecture proposals (See RFC 0001 for architecture upgrade)
+- `/specs/testing/`: BDD test specifications and acceptance tests
+
+**AI Agent Workflow**:
+1. **Review Specs First**: Read relevant specs before coding
+2. **Spec-First Update**: For new features or interface changes, update specs first and wait for confirmation
+3. **Implement to Spec**: Code must 100% comply with specs (no gold-plating)
+4. **Test against Spec**: Write tests based on spec acceptance criteria
+
+For complete AI agent workflow instructions, see `AGENTS.md`.
+
 ## Quick Start Commands
 
 ### Installation & Setup
