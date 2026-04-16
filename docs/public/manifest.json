@@ -1,0 +1,118 @@
+{
+  "name": "CleanBook - Smart Bookmark Cleaner",
+  "short_name": "CleanBook",
+  "description": "智能书签清理与分类工具 - Smart bookmark cleaning and classification tool",
+  "start_url": "/bookmarks-cleaner/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "scope": "/bookmarks-cleaner/",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "developer_tools", "education"],
+  "icons": [
+    {
+      "src": "/bookmarks-cleaner/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/bookmarks-cleaner/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/bookmarks-cleaner/screenshots/desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "CleanBook Documentation Homepage"
+    },
+    {
+      "src": "/bookmarks-cleaner/screenshots/mobile.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "CleanBook Mobile View"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "快速开始",
+      "short_name": "开始",
+      "description": "查看快速上手指南",
+      "url": "/bookmarks-cleaner/zh/quickstart",
+      "icons": [{ "src": "/bookmarks-cleaner/icons/shortcut-start.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Quick Start",
+      "short_name": "Start",
+      "description": "View quick start guide",
+      "url": "/bookmarks-cleaner/en/quickstart",
+      "icons": [{ "src": "/bookmarks-cleaner/icons/shortcut-start.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "GitHub",
+      "short_name": "Code",
+      "description": "View source code on GitHub",
+      "url": "https://github.com/LessUp/bookmarks-cleaner",
+      "icons": [{ "src": "/bookmarks-cleaner/icons/shortcut-github.png", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "display_override": ["standalone", "browser"],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  },
+  "scope_extensions": [
+    {
+      "origin": "https://lessup.github.io"
+    }
+  ]
+}

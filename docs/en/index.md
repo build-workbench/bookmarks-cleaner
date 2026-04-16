@@ -1,6 +1,5 @@
 ---
 layout: home
-
 hero:
   name: CleanBook
   text: Smart Bookmark Cleaner & Classifier
@@ -13,10 +12,7 @@ hero:
       text: Quick Start
       link: /en/quickstart
     - theme: alt
-      text: Architecture
-      link: /en/design/architecture
-    - theme: alt
-      text: GitHub
+      text: View on GitHub
       link: https://github.com/LessUp/bookmarks-cleaner
 
 features:
@@ -40,67 +36,199 @@ features:
     details: Multi-level feature extraction based on domain, title, and URL. Fusion of rule engine and machine learning achieves 91.4% classification accuracy.
 ---
 
-## Project Positioning
+<script setup>
+import HomeHero from '../.vitepress/theme/components/HomeHero.vue'
+import TerminalDemo from '../.vitepress/theme/components/TerminalDemo.vue'
+import StatsCounter from '../.vitepress/theme/components/StatsCounter.vue'
+import PipelineDiagram from '../.vitepress/theme/components/PipelineDiagram.vue'
+
+const terminalLines = [
+  { type: 'input', content: 'cleanbook -i bookmarks.html -o output/', delay: 500 },
+  { type: 'output', content: '✓ Loaded 1,247 bookmarks from bookmarks.html', delay: 300 },
+  { type: 'output', content: '✓ Removed 23 duplicates', delay: 200 },
+  { type: 'output', content: '✓ Classified 1,224 bookmarks (91.4% accuracy)', delay: 400 },
+  { type: 'output', content: '✓ Generated output/bookmarks_clean.html', delay: 200 },
+  { type: 'output', content: '✓ Done in 2.34s', delay: 100 },
+  { type: 'input', content: 'cleanbook-wizard', delay: 800 },
+]
+
+const pipelineSteps = [
+  { 
+    title: 'Data Parsing', 
+    description: 'Parse HTML/JSON bookmark files, extract URLs, titles, and folder structures',
+    icon: '📄',
+    meta: ['Netscape HTML', 'JSON', 'Chrome/Firefox']
+  },
+  { 
+    title: 'Smart Deduplication', 
+    description: 'URL normalization and multi-dimensional similarity detection for duplicate links',
+    icon: '🔍',
+    meta: ['URL Norm', 'SimHash', 'Levenshtein']
+  },
+  { 
+    title: 'Multi-Level Classification', 
+    description: 'Rules engine + ML + Semantic analysis + LLM fusion classification',
+    icon: '🤖',
+    meta: ['91.4% Acc', 'Fusion Voting', 'Auto-Fallback']
+  },
+  { 
+    title: 'Output Generation', 
+    description: 'Generate organized bookmark files and statistical reports',
+    icon: '📦',
+    meta: ['HTML', 'Markdown', 'JSON']
+  },
+]
+</script>
+
+<HomeHero
+  :version="'2.0.0'"
+  :statusText="'Stable'"
+  :subtitle="'Smart Bookmark Cleaner & Classifier'"
+  :description="'Rules-first, ML-assisted, LLM-optional. Offline-ready browser bookmark organization tool.'"
+  :actions="[
+    { text: 'Quick Start →', link: '/en/quickstart', theme: 'brand' },
+    { text: 'GitHub', link: 'https://github.com/LessUp/bookmarks-cleaner', theme: 'alt' }
+  ]"
+/>
+
+## Why CleanBook?
+
+<StatsCounter
+  :stats="[
+    { value: 91.4, suffix: '%', label: 'Classification Accuracy', description: 'Tested on 10000+ bookmarks' },
+    { value: 50, suffix: '+', label: 'Bookmarks/sec', description: 'Single-core processing' },
+    { value: 0, suffix: '', label: 'Network Required', description: 'Runs offline by default' },
+    { value: 3, suffix: '', label: 'Output Formats', description: 'HTML / JSON / Markdown' },
+  ]"
+/>
+
+## Try It Now
+
+<TerminalDemo
+  :lines="terminalLines"
+  :title="'cleanbook — bash'"
+  :prompt="'$'"
+/>
+
+## Processing Pipeline
+
+<PipelineDiagram
+  :steps="pipelineSteps"
+/>
+
+## Core Features
+
+### 🚀 Offline-First Design
+
+CleanBook's core philosophy is "offline-first". **No cloud services required** to clean, deduplicate, classify and export your bookmarks. Your data never leaves your device.
+
+### ⚙️ Configuration-Driven
+
+All features can be configured via JSON — no code changes needed:
+
+```json
+{
+  "category_rules": {
+    "Technology/AI": {
+      "rules": [
+        { "match": "domain", "keywords": ["openai.com", "huggingface.co"], "weight": 15 }
+      ]
+    }
+  },
+  "ai_settings": {
+    "confidence_threshold": 0.7,
+    "cache_size": 10000
+  }
+}
+```
+
+### 🤖 Progressive Intelligence
+
+Multi-layer classification with automatic fallback:
+
+```
+Rules Engine (30%) + ML Classifier (25%) + Semantic Analysis (20%) + LLM (15%) + User Profile (10%)
+```
+
+When any layer is unavailable, the system automatically redistributes weights to other layers, ensuring classification quality.
+
+### 📦 Multi-Format Export
+
+Support for multiple output formats to meet different needs:
+
+| Format | Use Case | Features |
+|--------|----------|----------|
+| HTML | Browser Import | Standard Netscape format, all browsers supported |
+| JSON | Data Analysis | Structured data for further processing |
+| Markdown | Knowledge Base | Perfect for Notion/Obsidian |
+
+## Get Started
+
+### Installation
+
+::: code-group
+
+```bash [pipx - Recommended]
+pipx install cleanbook
+```
+
+```bash [pip]
+pip install cleanbook
+```
+
+```bash [From Source]
+git clone https://github.com/LessUp/bookmarks-cleaner.git
+cd bookmarks-cleaner && pip install .
+```
+
+:::
+
+### First Run
+
+```bash
+# Basic cleaning
+cleanbook -i bookmarks.html -o output/
+
+# With ML training
+cleanbook -i bookmarks.html --train
+
+# Interactive wizard
+cleanbook-wizard
+```
+
+## Target Users
 
 CleanBook targets the scenario of "long-term browser bookmark maintenance":
-start with cleaning, deduplication and normalization, then organize links
-into stable, readable, and sustainably evolving classification structures
-based on rules and models.
 
-## Who is it For
+- **Individual Users**: Heavy browser users who want to organize bookmarks offline first, then optionally introduce ML/LLM
+- **Team Maintainers**: Technical leads who need unified team bookmark classification rules, vocabularies and output formats
+- **Developers**: Open source contributors who want to understand bookmark processing pipelines and configuration-driven design
 
-- **Individual Users**: Heavy browser users who want to organize bookmarks
-  offline first, then optionally introduce ML/LLM
-- **Team Maintainers**: Technical leads who need unified team bookmark
-  classification rules, vocabularies and output formats
-- **Developers**: Open source contributors who want to understand bookmark
-  processing pipelines, classification fusion and configuration-driven design
+## Learning Paths
 
-## Where to Start
+### I just want to organize my bookmarks
+1. [Quick Start](/en/quickstart) - Installation and basic usage
+2. [Best Practices](/en/guide/best-practices) - Classification strategies and organization habits
+3. [LLM Templates](/en/reference/llm-templates) - Optimize classification quality
 
-1. Read the [**Quick Start**](/en/quickstart) guide to complete a minimal run
-2. Review [**Best Practices**](/en/guide/best-practices) to establish
-   classification rules and organization habits
-3. When you need to understand the implementation, continue reading
-   [**System Architecture**](/en/design/architecture) and
-   [**Development Guide**](/en/guide/development)
+### I want to understand how it works
+1. [Design Overview](/en/design/overview) - Overall architecture philosophy
+2. [System Architecture](/en/design/architecture) - Module design and data flow
+3. [ML Design](/en/design/ml-design) - Classification algorithms and models
 
-## Recommended Reading Paths
-
-::: tip I just want to organize my bookmarks
-- [Quick Start](/en/quickstart)
-- [Best Practices](/en/guide/best-practices)
-- [LLM Prompt Templates](/en/reference/llm-templates)
-:::
-
-::: tip I want to understand how the system works
-- [Design Overview](/en/design/overview)
-- [System Architecture](/en/design/architecture)
-- [ML Design](/en/design/ml-design)
-:::
-
-::: tip I want to contribute to development
-- [Development Guide](/en/guide/development)
-- [Design Overview](/en/design/overview)
-- [Technical Report](/en/advanced/technical-report)
-:::
-
-## Core Documentation
-
-| Category | Page | Description |
-|----------|------|-------------|
-| Quick Start | [Quick Start](/en/quickstart) | Installation, minimal example, common parameters |
-| User Guide | [Best Practices](/en/guide/best-practices) | Configuration ideas, directory organization and maintenance tips |
-| Architecture | [Design Overview](/en/design/overview) / [System Architecture](/en/design/architecture) | Pipeline, module boundaries and classification strategies |
-| Development | [Development Guide](/en/guide/development) | Environment setup, testing and extension points |
-| Reference | [LLM Templates](/en/reference/llm-templates) | Prompt structure and optional interface configuration |
-| Archive | [Technical Report](/en/advanced/technical-report) | Historical supplementary materials and extended notes |
+### I want to contribute
+1. [Development Guide](/en/guide/development) - Environment setup and contribution guidelines
+2. [Design Overview](/en/design/overview) - Understand core design decisions
+3. [Technical Report](/en/advanced/technical-report) - Deep technical details
 
 ---
 
-<footer style="text-align: center; margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--vp-c-divider);">
-  <p>Released under MIT License · Copyright © 2025-2026 LessUp</p>
-  <p style="margin-top: 0.5rem;">
-    <a href="/zh/">中文</a> · <a href="https://github.com/LessUp/bookmarks-cleaner">GitHub</a> · <a href="https://github.com/LessUp/bookmarks-cleaner/releases">Releases</a>
-  </p>
-</footer>
+<p align="center" style="margin-top: 4rem;">
+  <a href="https://github.com/LessUp/bookmarks-cleaner" target="_blank">
+    <img src="https://img.shields.io/github/stars/LessUp/bookmarks-cleaner?style=social" alt="GitHub Stars">
+  </a>
+</p>
+
+<p align="center" style="color: var(--vp-c-text-3); margin-top: 1rem;">
+  Made with ❤️ by <a href="https://github.com/LessUp">LessUp</a>
+</p>

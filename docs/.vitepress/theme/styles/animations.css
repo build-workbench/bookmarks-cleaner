@@ -1,0 +1,556 @@
+/**
+ * CleanBook Theme - Animations & Effects
+ * Modern, smooth animations for enhanced UX
+ */
+
+/* ========================================
+   Keyframe Animations
+   ======================================== */
+
+/* Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Fade In Up */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Down */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fade In Scale */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Slide In Left */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Slide In Right */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Pulse Glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px -5px var(--cb-brand);
+  }
+  50% {
+    box-shadow: 0 0 40px -5px var(--cb-brand);
+  }
+}
+
+/* Gradient Flow */
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Float */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Rotate */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Bounce */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Typing Cursor */
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Terminal Cursor */
+@keyframes terminalCursor {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+/* Progress Bar */
+@keyframes progress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: var(--progress-value, 100%);
+  }
+}
+
+/* Shake */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Pulse Ring */
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Glow Pulse */
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 5px var(--cb-brand));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px var(--cb-brand));
+  }
+}
+
+/* ========================================
+   Animation Utility Classes
+   ======================================== */
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.6s ease forwards;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s ease forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.6s ease forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.6s ease forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-rotate {
+  animation: rotate 2s linear infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-terminal-cursor {
+  animation: terminalCursor 1s step-end infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 1.5s ease-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+
+/* ========================================
+   Animation Delays
+   ======================================== */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+.delay-900 { animation-delay: 900ms; }
+.delay-1000 { animation-delay: 1000ms; }
+
+/* ========================================
+   Scroll-triggered Animations
+   ======================================== */
+
+/* Use Intersection Observer pattern - initial state */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.scroll-animate.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children animations */
+.stagger-children > * {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.stagger-children.is-visible > * {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.stagger-children.is-visible > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children.is-visible > *:nth-child(2) { animation-delay: 100ms; }
+.stagger-children.is-visible > *:nth-child(3) { animation-delay: 200ms; }
+.stagger-children.is-visible > *:nth-child(4) { animation-delay: 300ms; }
+.stagger-children.is-visible > *:nth-child(5) { animation-delay: 400ms; }
+.stagger-children.is-visible > *:nth-child(6) { animation-delay: 500ms; }
+
+/* ========================================
+   Hover Effects
+   ======================================== */
+
+.hover-lift {
+  transition: transform var(--cb-transition), box-shadow var(--cb-transition);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--cb-shadow-xl);
+}
+
+.hover-scale {
+  transition: transform var(--cb-transition);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: box-shadow var(--cb-transition);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--cb-shadow-glow);
+}
+
+.hover-brightness {
+  transition: filter var(--cb-transition);
+}
+
+.hover-brightness:hover {
+  filter: brightness(1.1);
+}
+
+/* ========================================
+   Page Load Sequence
+   ======================================== */
+
+.page-load-sequence .animate-on-load {
+  opacity: 0;
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.page-load-sequence .animate-on-load:nth-child(1) { animation-delay: 0ms; }
+.page-load-sequence .animate-on-load:nth-child(2) { animation-delay: 100ms; }
+.page-load-sequence .animate-on-load:nth-child(3) { animation-delay: 200ms; }
+.page-load-sequence .animate-on-load:nth-child(4) { animation-delay: 300ms; }
+.page-load-sequence .animate-on-load:nth-child(5) { animation-delay: 400ms; }
+
+/* ========================================
+   Terminal/Console Animations
+   ======================================== */
+
+.terminal-line {
+  opacity: 0;
+  animation: fadeIn 0.1s ease forwards;
+}
+
+.terminal-line:nth-child(1) { animation-delay: 0ms; }
+.terminal-line:nth-child(2) { animation-delay: 200ms; }
+.terminal-line:nth-child(3) { animation-delay: 400ms; }
+.terminal-line:nth-child(4) { animation-delay: 600ms; }
+.terminal-line:nth-child(5) { animation-delay: 800ms; }
+.terminal-line:nth-child(6) { animation-delay: 1000ms; }
+.terminal-line:nth-child(7) { animation-delay: 1200ms; }
+.terminal-line:nth-child(8) { animation-delay: 1400ms; }
+
+/* Typing effect */
+.typing-effect {
+  overflow: hidden;
+  border-right: 2px solid var(--cb-brand);
+  white-space: nowrap;
+  animation: 
+    typing 2s steps(40, end),
+    blink 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from { width: 0 }
+  to { width: 100% }
+}
+
+/* ========================================
+   Skeleton Loading
+   ======================================== */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--vp-c-bg-soft) 0%,
+    var(--vp-c-bg-alt) 50%,
+    var(--vp-c-bg-soft) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--cb-radius);
+}
+
+/* ========================================
+   Performance Optimizations
+   ======================================== */
+
+/* GPU acceleration for animated elements */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ========================================
+   Interactive Micro-interactions
+   ======================================== */
+
+/* Button press effect */
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Focus ring animation */
+.focus-ring-animate {
+  position: relative;
+}
+
+.focus-ring-animate::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 2px solid var(--cb-brand);
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all var(--cb-transition-fast);
+}
+
+.focus-ring-animate:focus::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Success checkmark animation */
+@keyframes checkmark {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.checkmark-animate path {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: checkmark 0.5s ease forwards;
+}
+
+/* Loading spinner */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* ========================================
+   Hero Section Effects
+   ======================================== */
+
+.hero-gradient-bg {
+  background: var(--cb-gradient-hero);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-gradient-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Floating particles effect */
+@keyframes float-particle {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(10px, -20px) rotate(90deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-5px, -40px) rotate(180deg);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translate(-15px, -20px) rotate(270deg);
+    opacity: 0.5;
+  }
+}
+
+.float-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--cb-brand);
+  border-radius: 50%;
+  animation: float-particle 8s ease-in-out infinite;
+}

@@ -1,0 +1,520 @@
+/**
+ * CleanBook Theme - Additional Custom Styles
+ * Extra polish and utility classes
+ */
+
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Gradient Text */
+.gradient-text {
+  background: var(--cb-gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(15, 23, 42, 0.7);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Card Shadow Variants */
+.card-shadow-sm { box-shadow: var(--cb-shadow-sm); }
+.card-shadow { box-shadow: var(--cb-shadow); }
+.card-shadow-md { box-shadow: var(--cb-shadow-md); }
+.card-shadow-lg { box-shadow: var(--cb-shadow-lg); }
+.card-shadow-xl { box-shadow: var(--cb-shadow-xl); }
+.card-glow { box-shadow: var(--cb-shadow-glow); }
+
+/* Gradient Borders */
+.gradient-border {
+  position: relative;
+  background: var(--vp-c-bg);
+  border-radius: var(--cb-radius-lg);
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: calc(var(--cb-radius-lg) + 2px);
+  background: var(--cb-gradient-primary);
+  z-index: -1;
+}
+
+/* ========================================
+   Hero Section Enhancements
+   ======================================== */
+
+.hero-banner {
+  position: relative;
+  padding: 6rem 0;
+  overflow: hidden;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59, 130, 246, 0.15), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(139, 92, 246, 0.1), transparent);
+  pointer-events: none;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.hero-subtitle {
+  font-size: clamp(1.125rem, 3vw, 1.5rem);
+  color: var(--vp-c-text-2);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   Feature Grid
+   ======================================== */
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+.feature-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+/* ========================================
+   Code Block Enhancements
+   ======================================== */
+
+.vp-doc [class*='language-'] {
+  position: relative;
+}
+
+.vp-doc [class*='language-']::before {
+  content: attr(class);
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  font-size: 0.75rem;
+  color: var(--cb-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Copy button enhancement */
+.vp-doc [class*='language-'] button.copy {
+  border-radius: var(--cb-radius);
+  background: var(--cb-gray-700);
+  color: white;
+  opacity: 0;
+  transition: all var(--cb-transition-fast);
+}
+
+.vp-doc [class*='language-']:hover button.copy {
+  opacity: 1;
+}
+
+/* ========================================
+   Link Cards
+   ======================================== */
+
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--cb-radius);
+  background: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  transition: all var(--cb-transition);
+  text-decoration: none;
+  color: inherit;
+}
+
+.link-card:hover {
+  transform: translateX(4px);
+  border-color: var(--cb-brand);
+  box-shadow: var(--cb-shadow-md);
+}
+
+.link-card-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cb-gradient-primary);
+  border-radius: var(--cb-radius);
+  color: white;
+  font-size: 1.25rem;
+}
+
+.link-card-content {
+  flex: 1;
+}
+
+.link-card-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.link-card-desc {
+  font-size: 0.875rem;
+  color: var(--vp-c-text-2);
+}
+
+.link-card-arrow {
+  color: var(--cb-gray-400);
+  transition: transform var(--cb-transition-fast);
+}
+
+.link-card:hover .link-card-arrow {
+  transform: translateX(4px);
+  color: var(--cb-brand);
+}
+
+/* ========================================
+   Icon List
+   ======================================== */
+
+.icon-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.icon-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.icon-list li:last-child {
+  border-bottom: none;
+}
+
+.icon-list .icon {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vp-c-brand-soft);
+  border-radius: var(--cb-radius-sm);
+  color: var(--cb-brand);
+  font-size: 0.875rem;
+}
+
+/* ========================================
+   Command Palette Style List
+   ======================================== */
+
+.cmd-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: var(--cb-radius);
+  overflow: hidden;
+}
+
+.cmd-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--vp-c-divider);
+  transition: background var(--cb-transition-fast);
+}
+
+.cmd-list-item:last-child {
+  border-bottom: none;
+}
+
+.cmd-list-item:hover {
+  background: var(--vp-c-bg-soft);
+}
+
+.cmd-list-key {
+  font-family: var(--cb-font-mono);
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: var(--cb-radius-sm);
+  color: var(--cb-brand);
+  white-space: nowrap;
+}
+
+.cmd-list-desc {
+  flex: 1;
+  color: var(--vp-c-text-2);
+}
+
+/* ========================================
+   Tag/Pill Styles
+   ======================================== */
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border-radius: var(--cb-radius-full);
+  background: var(--vp-c-bg-soft);
+  color: var(--vp-c-text-2);
+  transition: all var(--cb-transition-fast);
+}
+
+.tag:hover {
+  background: var(--vp-c-brand-soft);
+  color: var(--cb-brand);
+}
+
+.tag.active {
+  background: var(--cb-brand);
+  color: white;
+}
+
+/* ========================================
+   Status Indicators
+   ======================================== */
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status.online::before {
+  background: var(--cb-accent-green);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+}
+
+.status.offline::before {
+  background: var(--cb-accent-red);
+}
+
+.status.pending::before {
+  background: var(--cb-accent-orange);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========================================
+   Keyboard Shortcuts
+   ======================================== */
+
+kbd {
+  font-family: var(--cb-font-mono);
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  border-bottom-width: 2px;
+  border-radius: var(--cb-radius-sm);
+  color: var(--vp-c-text-1);
+}
+
+/* ========================================
+   Section Dividers
+   ======================================== */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 3rem 0;
+  color: var(--vp-c-text-3);
+  font-size: 0.875rem;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--vp-c-divider);
+}
+
+.section-divider.gradient::before,
+.section-divider.gradient::after {
+  height: 2px;
+  background: var(--cb-gradient-primary);
+}
+
+/* ========================================
+   Image Containers
+   ======================================== */
+
+.img-container {
+  border-radius: var(--cb-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--cb-shadow-lg);
+  margin: 1.5rem 0;
+}
+
+.img-container img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform var(--cb-transition-slow);
+}
+
+.img-container:hover img {
+  transform: scale(1.02);
+}
+
+.img-caption {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--vp-c-text-2);
+  margin-top: 0.75rem;
+  font-style: italic;
+}
+
+/* ========================================
+   Quote/Callout Styles
+   ======================================== */
+
+.callout {
+  padding: 1.25rem;
+  border-radius: var(--cb-radius);
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.callout-icon {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  font-size: 1.25rem;
+}
+
+.callout-content {
+  padding-left: 2.5rem;
+}
+
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.callout-learn {
+  background: rgba(59, 130, 246, 0.08);
+  border-left: 3px solid var(--cb-brand);
+}
+
+.callout-tip-inline {
+  background: rgba(16, 185, 129, 0.08);
+  border-left: 3px solid var(--cb-accent-green);
+}
+
+.callout-warning-inline {
+  background: rgba(245, 158, 11, 0.08);
+  border-left: 3px solid var(--cb-accent-orange);
+}
+
+/* ========================================
+   Responsive Utilities
+   ======================================== */
+
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  
+  .text-center-mobile {
+    text-align: center !important;
+  }
+  
+  .hero-banner {
+    padding: 4rem 0;
+  }
+}
+
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Accessibility Helpers
+   ======================================== */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.focus-outline {
+  outline: 2px solid var(--cb-brand);
+  outline-offset: 2px;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.75rem 1.5rem;
+  background: var(--cb-brand);
+  color: white;
+  font-weight: 500;
+  border-radius: var(--cb-radius);
+  z-index: 9999;
+  transition: top var(--cb-transition-fast);
+}
+
+.skip-link:focus {
+  top: 1rem;
+}

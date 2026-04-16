@@ -1,4 +1,4 @@
-name: Deploy Docs
+name: Deploy Docs to GitHub Pages
 
 on:
   push:
@@ -10,28 +10,32 @@ on:
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
+# SEO: Set permissions
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Prevent concurrent deployments
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
+  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          sparse-checkout: |
-            docs
-          sparse-checkout-cone-mode: false
+          fetch-depth: 0 # Required for lastUpdated
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
+        with:
+          static_site_generator: vitepress
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -40,26 +44,59 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
+      - name: Restore cache
+        uses: actions/cache@v4
+        with:
+          path: docs/.vitepress/cache
+          key: ${{ runner.os }}-vitepress-${{ hashFiles('docs/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vitepress-
+
       - name: Install dependencies
         run: npm ci
         working-directory: docs
 
-      - name: Build docs
+      - name: Build with VitePress
         run: npm run docs:build
         working-directory: docs
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
+
+      - name: Check build output
+        run: |
+          ls -la docs/.vitepress/dist
+          echo "=== Build artifacts ==="
+          find docs/.vitepress/dist -type f | head -20
+          echo "=== File count ==="
+          find docs/.vitepress/dist -type f | wc -l
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
+  # Deploy job
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Post-deployment checks
+  verify:
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for deployment
+        run: sleep 30
+
+      - name: Check site health
+        run: |
+          curl -sSf https://lessup.github.io/bookmarks-cleaner/ > /dev/null && echo "✓ Site is live" || echo "✗ Site check failed"
+          curl -sSf https://lessup.github.io/bookmarks-cleaner/sitemap.xml > /dev/null && echo "✓ Sitemap accessible" || echo "✗ Sitemap not found"
+          curl -sSf https://lessup.github.io/bookmarks-cleaner/robots.txt > /dev/null && echo "✓ Robots.txt accessible" || echo "✗ Robots.txt not found"

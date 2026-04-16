@@ -1,0 +1,611 @@
+/**
+ * CleanBook VitePress Theme - Main Styles
+ * Modern, Clean, Professional Design
+ */
+
+/* ========================================
+   CSS Custom Properties (Design Tokens)
+   ======================================== */
+:root {
+  /* Brand Colors */
+  --cb-brand: #3b82f6;
+  --cb-brand-light: #60a5fa;
+  --cb-brand-dark: #2563eb;
+  --cb-brand-darker: #1d4ed8;
+  
+  /* Accent Colors */
+  --cb-accent-purple: #8b5cf6;
+  --cb-accent-cyan: #06b6d4;
+  --cb-accent-green: #10b981;
+  --cb-accent-orange: #f59e0b;
+  --cb-accent-pink: #ec4899;
+  --cb-accent-red: #ef4444;
+  
+  /* Gradients */
+  --cb-gradient-primary: linear-gradient(135deg, var(--cb-brand) 0%, var(--cb-accent-purple) 100%);
+  --cb-gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  --cb-gradient-card: linear-gradient(145deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  --cb-gradient-glow: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+  
+  /* Neutral Colors */
+  --cb-gray-50: #f8fafc;
+  --cb-gray-100: #f1f5f9;
+  --cb-gray-200: #e2e8f0;
+  --cb-gray-300: #cbd5e1;
+  --cb-gray-400: #94a3b8;
+  --cb-gray-500: #64748b;
+  --cb-gray-600: #475569;
+  --cb-gray-700: #334155;
+  --cb-gray-800: #1e293b;
+  --cb-gray-900: #0f172a;
+  
+  /* Semantic Colors */
+  --cb-success: #10b981;
+  --cb-warning: #f59e0b;
+  --cb-error: #ef4444;
+  --cb-info: #3b82f6;
+  
+  /* Shadows */
+  --cb-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --cb-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --cb-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --cb-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --cb-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --cb-shadow-glow: 0 0 40px -10px var(--cb-brand);
+  --cb-shadow-glow-sm: 0 0 20px -5px var(--cb-brand);
+  
+  /* Border Radius */
+  --cb-radius-sm: 4px;
+  --cb-radius: 8px;
+  --cb-radius-md: 12px;
+  --cb-radius-lg: 16px;
+  --cb-radius-xl: 24px;
+  --cb-radius-full: 9999px;
+  
+  /* Transitions */
+  --cb-transition-fast: 150ms ease;
+  --cb-transition: 250ms ease;
+  --cb-transition-slow: 350ms ease;
+  --cb-transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Typography */
+  --cb-font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --cb-font-mono: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+  
+  /* Spacing Scale */
+  --cb-space-1: 0.25rem;
+  --cb-space-2: 0.5rem;
+  --cb-space-3: 0.75rem;
+  --cb-space-4: 1rem;
+  --cb-space-5: 1.25rem;
+  --cb-space-6: 1.5rem;
+  --cb-space-8: 2rem;
+  --cb-space-10: 2.5rem;
+  --cb-space-12: 3rem;
+  --cb-space-16: 4rem;
+  --cb-space-20: 5rem;
+  --cb-space-24: 6rem;
+}
+
+/* Dark Mode Overrides */
+.dark {
+  --cb-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --cb-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --cb-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --cb-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+  --cb-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+}
+
+/* ========================================
+   VitePress Theme Overrides
+   ======================================== */
+:root {
+  --vp-c-brand-1: var(--cb-brand);
+  --vp-c-brand-2: var(--cb-brand-light);
+  --vp-c-brand-3: var(--cb-brand-dark);
+  --vp-c-brand-soft: rgba(59, 130, 246, 0.14);
+  
+  --vp-c-bg: #ffffff;
+  --vp-c-bg-alt: var(--cb-gray-50);
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: var(--cb-gray-100);
+  
+  --vp-c-text-1: var(--cb-gray-900);
+  --vp-c-text-2: var(--cb-gray-600);
+  --vp-c-text-3: var(--cb-gray-400);
+  
+  --vp-c-divider: var(--cb-gray-200);
+  --vp-c-gutter: var(--cb-gray-100);
+  
+  --vp-font-family-base: var(--cb-font-sans);
+  --vp-font-family-mono: var(--cb-font-mono);
+  
+  --vp-shadow-1: var(--cb-shadow);
+  --vp-shadow-2: var(--cb-shadow-md);
+  --vp-shadow-3: var(--cb-shadow-lg);
+}
+
+.dark {
+  --vp-c-bg: var(--cb-gray-900);
+  --vp-c-bg-alt: var(--cb-gray-800);
+  --vp-c-bg-elv: var(--cb-gray-800);
+  --vp-c-bg-soft: rgba(30, 41, 59, 0.8);
+  
+  --vp-c-text-1: var(--cb-gray-100);
+  --vp-c-text-2: var(--cb-gray-300);
+  --vp-c-text-3: var(--cb-gray-500);
+  
+  --vp-c-divider: var(--cb-gray-700);
+  --vp-c-gutter: var(--cb-gray-800);
+}
+
+/* ========================================
+   Layout & Container
+   ======================================== */
+.VPDoc {
+  padding-top: 2rem !important;
+}
+
+.VPDoc .content {
+  max-width: 900px;
+}
+
+.VPHero {
+  padding: calc(var(--vp-nav-height) + 4rem) 0 5rem !important;
+}
+
+/* ========================================
+   Links & Interactive Elements
+   ======================================== */
+a {
+  transition: color var(--cb-transition-fast);
+}
+
+.VPLink:link,
+.VPLink:visited {
+  transition: color var(--cb-transition-fast);
+}
+
+/* Button Styles */
+.VPButton {
+  border-radius: var(--cb-radius) !important;
+  font-weight: 600 !important;
+  transition: all var(--cb-transition) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.VPButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%);
+  opacity: 0;
+  transition: opacity var(--cb-transition);
+}
+
+.VPButton:hover::before {
+  opacity: 1;
+}
+
+.VPButton.brand {
+  background: var(--cb-gradient-primary) !important;
+  box-shadow: var(--cb-shadow-glow-sm) !important;
+}
+
+.VPButton.brand:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cb-shadow-glow) !important;
+}
+
+/* ========================================
+   Navigation
+   ======================================== */
+.VPNav {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.VPNavBar {
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.VPImage.logo {
+  transition: transform var(--cb-transition-bounce);
+}
+
+.VPImage.logo:hover {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+/* Nav Links */
+.VPNavBarMenuLink {
+  font-weight: 500;
+  position: relative;
+}
+
+.VPNavBarMenuLink::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--cb-gradient-primary);
+  transition: width var(--cb-transition);
+  border-radius: var(--cb-radius-full);
+}
+
+.VPNavBarMenuLink:hover::after {
+  width: 100%;
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+.VPSidebar {
+  border-right: 1px solid var(--vp-c-divider);
+}
+
+.VPSidebarItem .item {
+  border-radius: var(--cb-radius);
+  transition: all var(--cb-transition-fast);
+}
+
+.VPSidebarItem .item:hover {
+  background: var(--vp-c-bg-soft);
+}
+
+.VPSidebarItem.is-active .item {
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+}
+
+.VPSidebarItem.is-active .item::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 20px;
+  background: var(--cb-gradient-primary);
+  border-radius: var(--cb-radius-full);
+}
+
+/* ========================================
+   Markdown Content
+   ======================================== */
+.vp-doc h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--vp-c-text-1) 0%, var(--cb-brand) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.vp-doc h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  border-top: none;
+  margin-top: 3rem;
+  padding-top: 0;
+  position: relative;
+}
+
+.vp-doc h2::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 60px;
+  height: 4px;
+  background: var(--cb-gradient-primary);
+  border-radius: var(--cb-radius-full);
+}
+
+.vp-doc h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+.vp-doc p {
+  line-height: 1.8;
+}
+
+.vp-doc a {
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px dashed var(--vp-c-brand-1);
+  transition: all var(--cb-transition-fast);
+}
+
+.vp-doc a:hover {
+  border-bottom-style: solid;
+  color: var(--vp-c-brand-2);
+}
+
+/* Lists */
+.vp-doc ul,
+.vp-doc ol {
+  padding-left: 1.5rem;
+}
+
+.vp-doc li {
+  margin: 0.5rem 0;
+  position: relative;
+}
+
+.vp-doc ul li::marker {
+  color: var(--cb-brand);
+}
+
+/* Blockquotes */
+.vp-doc blockquote {
+  border-radius: var(--cb-radius);
+  border-left: 4px solid var(--cb-brand);
+  background: var(--vp-c-bg-soft);
+  padding: 1rem 1.5rem;
+  margin: 1.5rem 0;
+}
+
+/* Code Blocks */
+.vp-doc div[class*='language-'] {
+  border-radius: var(--cb-radius-md) !important;
+  margin: 1.5rem 0;
+  box-shadow: var(--cb-shadow-md);
+}
+
+.vp-doc div[class*='language-'] pre {
+  padding: 1.25rem;
+}
+
+.vp-doc code {
+  font-family: var(--cb-font-mono);
+  font-size: 0.875em;
+}
+
+.vp-doc :not(pre) > code {
+  background: var(--vp-c-bg-soft);
+  padding: 0.2em 0.4em;
+  border-radius: var(--cb-radius-sm);
+  color: var(--cb-brand);
+}
+
+.dark .vp-doc :not(pre) > code {
+  color: var(--cb-brand-light);
+}
+
+/* Tables */
+.vp-doc table {
+  border-radius: var(--cb-radius);
+  overflow: hidden;
+  box-shadow: var(--cb-shadow);
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.vp-doc th {
+  background: var(--cb-gradient-primary);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+.vp-doc tr:nth-child(even) {
+  background: var(--vp-c-bg-soft);
+}
+
+/* ========================================
+   Custom Containers (Alerts)
+   ======================================== */
+.custom-block {
+  border-radius: var(--cb-radius-md) !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.custom-block::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.custom-block.tip {
+  background: rgba(16, 185, 129, 0.1) !important;
+}
+
+.custom-block.tip::before {
+  background: var(--cb-accent-green);
+}
+
+.custom-block.warning {
+  background: rgba(245, 158, 11, 0.1) !important;
+}
+
+.custom-block.warning::before {
+  background: var(--cb-accent-orange);
+}
+
+.custom-block.danger {
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.custom-block.danger::before {
+  background: var(--cb-accent-red);
+}
+
+.custom-block.info {
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+
+.custom-block.info::before {
+  background: var(--cb-brand);
+}
+
+.custom-block .custom-block-title {
+  font-weight: 600;
+}
+
+/* ========================================
+   Search
+   ======================================== */
+.VPLocalSearchBox {
+  --vp-local-search-bg: var(--vp-c-bg);
+  --vp-local-search-result-bg: var(--vp-c-bg-soft);
+  --vp-local-search-result-bg-hover: var(--vp-c-brand-soft);
+}
+
+.VPLocalSearchBox .search-input {
+  border-radius: var(--cb-radius-lg) !important;
+  border: 2px solid var(--vp-c-divider) !important;
+  transition: all var(--cb-transition);
+}
+
+.VPLocalSearchBox .search-input:focus {
+  border-color: var(--cb-brand) !important;
+  box-shadow: var(--cb-shadow-glow-sm);
+  outline: none;
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+.VPFooter {
+  border-top: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-bg-alt);
+}
+
+/* ========================================
+   Home Page Specific
+   ======================================== */
+.VPHero .name {
+  font-size: 4rem !important;
+  font-weight: 900 !important;
+  background: var(--cb-gradient-primary);
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  letter-spacing: -0.03em !important;
+}
+
+.VPHero .text {
+  font-size: 2.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.VPHero .tagline {
+  font-size: 1.25rem !important;
+  color: var(--vp-c-text-2);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.VPFeatures {
+  padding: 4rem 0 !important;
+}
+
+.VPFeatures .VPFeature {
+  border-radius: var(--cb-radius-lg);
+  background: var(--vp-c-bg);
+  border: 1px solid var(--vp-c-divider);
+  transition: all var(--cb-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.VPFeatures .VPFeature::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cb-gradient-card);
+  opacity: 0;
+  transition: opacity var(--cb-transition);
+}
+
+.VPFeatures .VPFeature:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--cb-shadow-xl);
+  border-color: var(--cb-brand);
+}
+
+.VPFeatures .VPFeature:hover::before {
+  opacity: 1;
+}
+
+.VPFeatures .VPFeature .icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ========================================
+   Scrollbar Styling
+   ======================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--vp-c-bg-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cb-gray-400);
+  border-radius: var(--cb-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cb-gray-500);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--cb-gray-600);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--cb-gray-500);
+}
+
+/* ========================================
+   Selection
+   ======================================== */
+::selection {
+  background: var(--cb-brand);
+  color: white;
+}
+
+/* ========================================
+   Focus Styles (Accessibility)
+   ======================================== */
+:focus-visible {
+  outline: 2px solid var(--cb-brand);
+  outline-offset: 2px;
+  border-radius: var(--cb-radius-sm);
+}
+
+/* ========================================
+   Print Styles
+   ======================================== */
+@media print {
+  .VPNav,
+  .VPFooter,
+  .VPSidebar,
+  .VPNavBar {
+    display: none !important;
+  }
+  
+  .VPDoc {
+    padding: 0 !important;
+  }
+}
