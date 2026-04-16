@@ -31,12 +31,6 @@ jobs:
         with:
           fetch-depth: 0 # Required for lastUpdated
 
-      - name: Setup Pages
-        id: pages
-        uses: actions/configure-pages@v6
-        with:
-          static_site_generator: vitepress
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -83,6 +77,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

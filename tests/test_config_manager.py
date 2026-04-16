@@ -10,7 +10,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from src.config_manager import ConfigManager, ConfigValidator
+from src.config_manager import EnhancedConfigManager as ConfigManager, ConfigValidator
 
 
 class TestConfigValidator:
