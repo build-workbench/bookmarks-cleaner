@@ -13,23 +13,26 @@ if TYPE_CHECKING:
     from models.feature_store import FeatureStore
     from models.bookmark_features import BookmarkFeatures
 
+
 class EmbeddingService:
     """Transformer 嵌入服务"""
-    
-    def __init__(self, config: Dict[str, Any]):
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         初始化嵌入服务
-        
+
         Args:
-            config: 配置字典
+            config: 配置字典，可包含：
+                - model_name: 模型名称，默认 'paraphrase-multilingual-MiniLM-L12-v2'
+                - embedding_dim: 嵌入维度，默认 384
         """
-        self.config = config
+        self.config = config or {}
         self.model = None
-        self.model_name = config.get('model_name', 'paraphrase-multilingual-MiniLM-L12-v2')
+        self.model_name = self.config.get('model_name', 'paraphrase-multilingual-MiniLM-L12-v2')
         self.feature_store: Optional['FeatureStore'] = None
         self._fallback_vectorizer = None
         self._fallback_fitted = False
-        self._embedding_dim = config.get('embedding_dim', 384)
+        self._embedding_dim = self.config.get('embedding_dim', 384)
         self.logger = logging.getLogger(__name__)
         self._use_transformer = True
     

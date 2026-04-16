@@ -7,6 +7,7 @@ import heapq
 import json
 import logging
 import os
+import threading
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Any
@@ -29,11 +30,11 @@ class ReviewItem:
 
 class ActiveLearningEngine:
     """主动学习引擎"""
-    
-    def __init__(self, config: Dict[str, Any] = None):
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         初始化主动学习引擎
-        
+
         Args:
             config: 配置字典
         """
@@ -41,25 +42,28 @@ class ActiveLearningEngine:
         self.confidence_threshold = self.config.get('confidence_threshold', 0.6)
         self.max_requests_per_session = self.config.get('max_requests_per_session', 10)
         self.persist_path = self.config.get('persist_path', 'data/active_learning')
-        
+
         # 优先队列（使用负的不确定性分数，因为 heapq 是最小堆）
         self.review_queue: List[ReviewItem] = []
-        
+        self._queue_lock = threading.Lock()  # 线程锁保护队列
+
         # 已标注样本
         self.labeled_samples: List[Dict] = []
-        
+        self._samples_lock = threading.Lock()  # 线程锁保护样本列表
+
         # 会话请求计数
         self.session_request_count = 0
-        
+        self._count_lock = threading.Lock()  # 线程锁保护计数器
+
         # 统计信息
         self._stats = {
             'total_processed': 0,
             'low_confidence_detected': 0,
             'feedback_collected': 0
         }
-        
+
         self.logger = logging.getLogger(__name__)
-        
+
         # 加载持久化数据
         self._load_data()
     
@@ -103,10 +107,11 @@ class ActiveLearningEngine:
             uncertainty_score=uncertainty,
             timestamp=datetime.now()
         )
-        
-        # 加入优先队列
-        heapq.heappush(self.review_queue, item)
-        
+
+        # 加入优先队列（线程安全）
+        with self._queue_lock:
+            heapq.heappush(self.review_queue, item)
+
         return item
     
     def _calculate_uncertainty(
@@ -143,33 +148,35 @@ class ActiveLearningEngine:
     def get_next_review_item(self) -> Optional[ReviewItem]:
         """
         获取下一个待审核项
-        
+
         Returns:
             待审核项，如果队列为空或达到会话限制则返回 None
         """
-        if self.session_request_count >= self.max_requests_per_session:
-            return None
-        
-        if not self.review_queue:
-            return None
-        
-        self.session_request_count += 1
-        item = heapq.heappop(self.review_queue)
-        
+        with self._count_lock:
+            if self.session_request_count >= self.max_requests_per_session:
+                return None
+            self.session_request_count += 1
+
+        with self._queue_lock:
+            if not self.review_queue:
+                return None
+            item = heapq.heappop(self.review_queue)
+
         return item
     
     def peek_review_queue(self, n: int = 5) -> List[ReviewItem]:
         """
         查看队列中的前 n 个待审核项（不移除）
-        
+
         Args:
             n: 要查看的数量
-            
+
         Returns:
             待审核项列表
         """
         # 获取最小的 n 个元素（不确定性最高的）
-        return heapq.nsmallest(n, self.review_queue)
+        with self._queue_lock:
+            return heapq.nsmallest(n, self.review_queue)
     
     def submit_feedback(
         self,
@@ -180,7 +187,7 @@ class ActiveLearningEngine:
     ):
         """
         提交用户反馈
-        
+
         Args:
             bookmark_id: 书签 ID
             correct_category: 正确的分类
@@ -194,56 +201,63 @@ class ActiveLearningEngine:
             'original_confidence': original_confidence,
             'timestamp': datetime.now().isoformat()
         }
-        
-        self.labeled_samples.append(sample)
-        self._stats['feedback_collected'] += 1
-        
+
+        with self._samples_lock:
+            self.labeled_samples.append(sample)
+            self._stats['feedback_collected'] += 1
+
         # 持久化
         self._save_data()
     
     def get_labeled_samples(self, since: datetime = None) -> List[Dict]:
         """
         获取已标注样本用于训练
-        
+
         Args:
             since: 可选的时间过滤器
-            
+
         Returns:
             已标注样本列表
         """
-        if since is None:
-            return self.labeled_samples.copy()
-        
-        return [
-            s for s in self.labeled_samples
-            if datetime.fromisoformat(s['timestamp']) >= since
-        ]
+        with self._samples_lock:
+            if since is None:
+                return self.labeled_samples.copy()
+
+            return [
+                s for s in self.labeled_samples
+                if datetime.fromisoformat(s['timestamp']) >= since
+            ]
     
     def get_queue_size(self) -> int:
         """获取队列大小"""
-        return len(self.review_queue)
-    
+        with self._queue_lock:
+            return len(self.review_queue)
+
     def get_remaining_requests(self) -> int:
         """获取本会话剩余请求数"""
-        return max(0, self.max_requests_per_session - self.session_request_count)
-    
+        with self._count_lock:
+            return max(0, self.max_requests_per_session - self.session_request_count)
+
     def reset_session(self):
         """重置会话计数"""
-        self.session_request_count = 0
-    
+        with self._count_lock:
+            self.session_request_count = 0
+
     def clear_queue(self):
         """清空审核队列"""
-        self.review_queue.clear()
+        with self._queue_lock:
+            self.review_queue.clear()
     
     def get_stats(self) -> Dict:
         """获取统计信息"""
-        return {
-            **self._stats,
-            'queue_size': len(self.review_queue),
-            'labeled_samples_count': len(self.labeled_samples),
-            'session_requests': self.session_request_count,
-            'remaining_requests': self.get_remaining_requests()
-        }
+        with self._queue_lock, self._samples_lock:
+            return {
+                **self._stats,
+                'queue_size': len(self.review_queue),
+                'labeled_samples_count': len(self.labeled_samples),
+                'session_requests': self.session_request_count,
+                'remaining_requests': self.get_remaining_requests()
+            }
     
     def _save_data(self):
         """持久化数据"""
