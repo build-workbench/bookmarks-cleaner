@@ -7,6 +7,7 @@ CLI Interface - 交互式命令行界面
 import os
 import sys
 import json
+import pickle
 import logging
 from typing import Dict, List, Optional
 from pathlib import Path
