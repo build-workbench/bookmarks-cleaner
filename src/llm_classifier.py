@@ -26,7 +26,7 @@ import json
 import hashlib
 import os
 import re
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import requests
@@ -214,14 +214,15 @@ class LLMClassifier:
             text = text.replace("json\n", "", 1)
         try:
             return json.loads(text)
-        except Exception:
+        except json.JSONDecodeError:
             # 再尝试一次：寻找首个 '{' 到最后一个 '}'
             try:
                 start = text.find('{')
                 end = text.rfind('}')
                 if start >= 0 and end > start:
                     return json.loads(text[start:end+1])
-            except Exception:
+            except json.JSONDecodeError:
+                self.logger.debug(f"JSON解析失败: {text[:100]}")
                 return None
         return None
 
@@ -239,7 +240,8 @@ class LLMClassifier:
             library.append(entry)
         return library
 
-    def _build_bookmark_payload(self, url: str, title: str, context: Dict[str, any]) -> Dict[str, any]:
+    def _build_bookmark_payload(self, url: str, title: str, context: Dict[str, Any]) -> Dict[str, Any]:
+        """构建书签载荷"""
         parsed = urlparse(url)
         domain = parsed.netloc.lower()
         path_segments = [seg for seg in parsed.path.split("/") if seg]
@@ -258,9 +260,10 @@ class LLMClassifier:
         }
         return payload
 
-    def _build_hint_profile(self, url: str, title: str, bookmark_payload: Dict[str, any]) -> Dict[str, any]:
+    def _build_hint_profile(self, url: str, title: str, bookmark_payload: Dict[str, Any]) -> Dict[str, Any]:
+        """构建提示配置文件"""
         title_lower = title.lower()
-        hints: Dict[str, any] = {
+        hints: Dict[str, Any] = {
             "contains_code": any(token in title_lower for token in ["github", "repo", "代码", "编程"]),
             "contains_doc": any(token in title_lower for token in ["doc", "文档", "documentation"]),
             "likely_video": self._is_video_url(url),

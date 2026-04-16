@@ -311,7 +311,8 @@ class LLMBookmarkOrganizer:
                 end = text.rfind("}")
                 if start >= 0 and end > start:
                     return json.loads(text[start : end + 1])
-            except Exception:
+            except json.JSONDecodeError:
+                self.logger.debug(f"JSON解析失败: {text[:100] if text else ''}")
                 return None
         return None
 
