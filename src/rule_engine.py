@@ -73,7 +73,7 @@ class RuleEngine:
                 category_weight = (category_data or {}).get('weight', 1.0)
                 try:
                     category_weight = float(category_weight)
-                except Exception:
+                except (TypeError, ValueError):
                     category_weight = 1.0
 
                 for i, rule in enumerate(rules):
@@ -86,7 +86,7 @@ class RuleEngine:
 
                     try:
                         weight = float(weight)
-                    except Exception:
+                    except (TypeError, ValueError):
                         weight = 1.0
                     weight = weight * category_weight
 
@@ -223,7 +223,7 @@ class RuleEngine:
                     resource_type_hint = 'video'
                 elif any(k in title_lower for k in ['news', '新闻', 'weekly']):
                     resource_type_hint = resource_type_hint or 'news'
-            except Exception:
+            except (AttributeError, TypeError):
                 resource_type_hint = resource_type_hint or None
 
             facets = {'resource_type_hint': resource_type_hint} if resource_type_hint else {}
@@ -289,7 +289,7 @@ class RuleEngine:
                                             if fp.search(field_text):
                                                 field_ok = True
                                                 break
-                                        except Exception:
+                                        except (TypeError, re.error):
                                             continue
                                     if not field_ok:
                                         passed = False

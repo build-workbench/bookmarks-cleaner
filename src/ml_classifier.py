@@ -15,6 +15,7 @@ import sys
 import pickle
 import json
 import warnings
+import threading
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime
@@ -286,7 +287,8 @@ class MLBookmarkClassifier:
         # 在线学习缓冲区
         self.online_buffer = {'data': [], 'labels': []}
         self.online_buffer_size = 1000
-        
+        self._buffer_lock = threading.Lock()  # 线程锁保护缓冲区
+
         self.logger = logging.getLogger(__name__)
     
     def _create_models(self):
@@ -530,24 +532,25 @@ class MLBookmarkClassifier:
         """在线学习"""
         if not ML_AVAILABLE:
             return
-        
-        # 添加到缓冲区
-        self.online_buffer['data'].append(bookmark)
-        self.online_buffer['labels'].append(correct_category)
-        
-        # 如果缓冲区满了，进行增量训练
-        if len(self.online_buffer['data']) >= self.online_buffer_size:
-            self._incremental_train()
-    
+
+        # 添加到缓冲区（线程安全）
+        with self._buffer_lock:
+            self.online_buffer['data'].append(bookmark)
+            self.online_buffer['labels'].append(correct_category)
+
+            # 如果缓冲区满了，进行增量训练
+            if len(self.online_buffer['data']) >= self.online_buffer_size:
+                self._incremental_train()
+
     def _incremental_train(self):
-        """增量训练"""
+        """增量训练（调用前必须持有 _buffer_lock）"""
         if not self.online_buffer['data'] or 'sgd' not in self.models:
             return
-        
+
         try:
             # 提取特征
             X = self.feature_extractor.transform(self.online_buffer['data'])
-            
+
             # 编码标签
             y = []
             for label in self.online_buffer['labels']:
@@ -556,15 +559,15 @@ class MLBookmarkClassifier:
                 else:
                     # 新类别，暂时跳过
                     continue
-            
+
             if len(y) > 0:
                 # 增量训练SGD模型
                 self.models['sgd'].partial_fit(X[:len(y)], y)
                 self.logger.info(f"增量训练完成，{len(y)} 个样本")
-            
+
             # 清空缓冲区
             self.online_buffer = {'data': [], 'labels': []}
-            
+
         except Exception as e:
             self.logger.error(f"增量训练失败: {e}")
     

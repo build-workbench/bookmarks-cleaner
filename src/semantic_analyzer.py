@@ -5,6 +5,7 @@ Semantic Analyzer - 语义分析器
 
 import re
 import math
+import logging
 from collections import Counter
 from typing import Dict, List, Optional, Set
 from urllib.parse import urlparse
@@ -17,11 +18,18 @@ _WORD_REGEX = re.compile(r'[a-zA-Z\u4e00-\u9fff]+')
 class SemanticAnalyzer:
     """语义分析器 - 基于词向量和语义相似度的分类"""
 
-    def __init__(self, config: Dict = None):
+    def __init__(self, config: Optional[Dict] = None):
+        """
+        初始化语义分析器
+
+        Args:
+            config: 配置字典（可选）
+        """
         self.config = config or {}
+        self.logger = logging.getLogger(__name__)
         self.category_keywords = self._load_category_keywords()
         self.stopwords = self._load_stopwords()
-        self.word_vectors = {}  # 简化的词向量存储
+        self.word_vectors: Dict[str, List[float]] = {}  # 简化的词向量存储
         self._initialize_semantic_rules()
     
     def _load_category_keywords(self) -> Dict[str, List[str]]:
@@ -78,36 +86,45 @@ class SemanticAnalyzer:
         }
     
     def classify(self, features) -> Optional[Dict]:
-        """基于语义分析的分类"""
+        """
+        基于语义分析的分类
+
+        Args:
+            features: 书签特征对象，需包含 url、title、domain 属性
+
+        Returns:
+            分类结果字典，包含 category、confidence、reasoning、method 等字段；
+            如果分类失败或置信度过低则返回 None
+        """
         try:
             url = features.url
             title = features.title
             domain = features.domain
-            
+
             # 1. 域名语义分析
             domain_score = self._analyze_domain_semantics(domain)
-            
+
             # 2. 标题语义分析
             title_score = self._analyze_title_semantics(title)
-            
+
             # 3. URL路径语义分析
             path_score = self._analyze_path_semantics(url)
-            
+
             # 4. 综合语义评分
             combined_scores = self._combine_semantic_scores(
                 domain_score, title_score, path_score
             )
-            
+
             if not combined_scores:
                 return None
-            
+
             # 选择最高分的分类
             best_category = max(combined_scores, key=combined_scores.get)
             confidence = combined_scores[best_category]
-            
+
             if confidence < 0.3:  # 置信度阈值
                 return None
-            
+
             return {
                 'category': best_category,
                 'confidence': confidence,
@@ -115,8 +132,9 @@ class SemanticAnalyzer:
                 'method': 'semantic_analyzer',
                 'semantic_scores': combined_scores
             }
-            
+
         except Exception as e:
+            self.logger.error(f"语义分析失败: {e}")
             return None
     
     def _analyze_domain_semantics(self, domain: str) -> Dict[str, float]:
@@ -158,7 +176,7 @@ class SemanticAnalyzer:
     
     def _analyze_path_semantics(self, url: str) -> Dict[str, float]:
         """分析URL路径语义"""
-        scores = {}
+        scores: Dict[str, float] = {}
 
         try:
             parsed = urlparse(url)
@@ -168,10 +186,10 @@ class SemanticAnalyzer:
                 if len(word) > 2 and word not in self.stopwords:
                     for category, keywords in self.category_keywords.items():
                         if word in [kw.lower() for kw in keywords]:
-                            scores[category] = scores.get(category, 0) + 0.2
+                            scores[category] = scores.get(category, 0.0) + 0.2
 
-        except Exception:
-            pass
+        except (ValueError, AttributeError) as e:
+            self.logger.debug(f"URL解析失败: {e}")
 
         return scores
 

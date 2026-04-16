@@ -88,7 +88,12 @@ class BookmarkFeatures:
 
 @dataclass
 class ClassificationResult:
-    """分类结果"""
+    """
+    分类结果
+
+    注意：此定义与 src.plugins.base.ClassificationResult 保持一致。
+    如需修改，请同步更新两处。
+    """
     category: str
     confidence: float
     subcategory: Optional[str] = None
@@ -97,6 +102,12 @@ class ClassificationResult:
     processing_time: float = 0.0
     method: str = "unknown"
     facets: Dict[str, str] = field(default_factory=dict)
+    score_breakdown: Dict[str, float] = field(default_factory=dict)
+
+    @property
+    def alternative_categories(self) -> List[Tuple[str, float]]:
+        """兼容旧接口的属性别名"""
+        return self.alternatives
 
 
 class AIBookmarkClassifier:
@@ -120,6 +131,7 @@ class AIBookmarkClassifier:
         # 缓存（OrderedDict 实现 LRU 淘汰）
         self.feature_cache: OrderedDict[str, BookmarkFeatures] = OrderedDict()
         self.classification_cache: OrderedDict[str, ClassificationResult] = OrderedDict()
+        # 从配置读取缓存大小，默认值作为后备
         self._max_cache_size = 5000
         self._max_feature_cache_size = 10000
 
@@ -140,6 +152,12 @@ class AIBookmarkClassifier:
     def config(self) -> Dict:
         if self._config is None:
             self._config = self._load_config()
+        # 从配置更新缓存大小
+        ai_settings = self._config.get('ai_settings', {})
+        if 'cache_size' in ai_settings:
+            self._max_cache_size = ai_settings['cache_size']
+        if 'feature_cache_size' in ai_settings:
+            self._max_feature_cache_size = ai_settings['feature_cache_size']
         return self._config
 
     @property

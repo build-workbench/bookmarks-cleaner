@@ -191,9 +191,9 @@ class IntelligentDeduplicator:
         try:
             domain1 = urlparse(url1).netloc.lower().replace('www.', '')
             domain2 = urlparse(url2).netloc.lower().replace('www.', '')
-            
+
             return 1.0 if domain1 == domain2 else 0.0
-        except Exception:
+        except (ValueError, AttributeError):
             return 0.0
     
     def _normalize_url(self, url: str) -> str:
@@ -224,8 +224,8 @@ class IntelligentDeduplicator:
                 normalized += f"?{query}"
             
             return normalized.rstrip('/')
-            
-        except Exception:
+
+        except (ValueError, AttributeError, KeyError):
             return url.lower()
     
     def _normalize_title(self, title: str) -> str:
@@ -473,7 +473,7 @@ class PersonalizedRecommendationSystem:
         """提取域名"""
         try:
             return urlparse(url).netloc.lower().replace('www.', '')
-        except Exception:
+        except (ValueError, AttributeError):
             return ''
     
     def _normalize_preferences(self):
@@ -509,13 +509,13 @@ class PersonalizedRecommendationSystem:
             try:
                 with open(self.model_path, 'rb') as f:
                     model_data = pickle.load(f)
-                
+
                 self.category_preferences = defaultdict(float, model_data.get('category_preferences', {}))
                 self.domain_preferences = defaultdict(float, model_data.get('domain_preferences', {}))
                 self.time_patterns = defaultdict(list, model_data.get('time_patterns', {}))
-                
+
                 self.logger.info("推荐模型加载成功")
-            except Exception as e:
+            except (pickle.PickleError, EOFError, json.JSONDecodeError, IOError) as e:
                 self.logger.error(f"推荐模型加载失败: {e}")
 
 class BookmarkHealthChecker:
@@ -552,7 +552,7 @@ class BookmarkHealthChecker:
                 try:
                     health_status = future.result()
                     results.append(health_status)
-                except Exception as e:
+                except (TimeoutError, ConnectionError, requests.exceptions.RequestException) as e:
                     self.logger.error(f"检查书签失败 {bookmark.get('url')}: {e}")
                     results.append(BookmarkHealth(
                         url=bookmark.get('url', ''),
@@ -666,8 +666,8 @@ class BatchImportExport:
             
             self.logger.info(f"从CSV导入了 {len(bookmarks)} 个书签")
             return bookmarks
-            
-        except Exception as e:
+
+        except (FileNotFoundError, csv.Error, UnicodeDecodeError, json.JSONDecodeError) as e:
             self.logger.error(f"CSV导入失败: {e}")
             return []
     
@@ -699,8 +699,8 @@ class BatchImportExport:
             
             self.logger.info(f"成功导出 {len(bookmarks)} 个书签到CSV")
             return True
-            
-        except Exception as e:
+
+        except (IOError, PermissionError, csv.Error) as e:
             self.logger.error(f"CSV导出失败: {e}")
             return False
     
@@ -719,8 +719,8 @@ class BatchImportExport:
             
             self.logger.info(f"从JSON导入了 {len(bookmarks)} 个书签")
             return bookmarks
-            
-        except Exception as e:
+
+        except (FileNotFoundError, json.JSONDecodeError, ValueError, KeyError) as e:
             self.logger.error(f"JSON导入失败: {e}")
             return []
     
@@ -743,7 +743,7 @@ class BatchImportExport:
             
             self.logger.info(f"成功导出 {len(bookmarks)} 个书签到JSON")
             return True
-            
-        except Exception as e:
+
+        except (IOError, PermissionError, json.JSONDecodeError) as e:
             self.logger.error(f"JSON导出失败: {e}")
             return False

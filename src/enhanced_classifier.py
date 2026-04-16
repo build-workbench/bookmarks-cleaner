@@ -13,6 +13,7 @@ import os
 import json
 import re
 import time
+import threading
 
 from .resource_loader import load_json_config, resolve_config_path
 from typing import Dict, List, Tuple, Optional, Set
@@ -31,18 +32,20 @@ _WORD_REGEX = re.compile(r'\b\w+\b')
 
 # 导入机器学习分类器
 try:
-    from .ml_classifier import MLClassifierWrapper, ML_AVAILABLE as _ML_DEPS_AVAILABLE
-except Exception:
+    from .ml_classifier import MLClassifierWrapper, ML_AVAILABLE
+except ImportError as e:
     MLClassifierWrapper = None
-    _ML_DEPS_AVAILABLE = False
-
-ML_AVAILABLE = bool(_ML_DEPS_AVAILABLE and MLClassifierWrapper is not None)
+    ML_AVAILABLE = False
+    import logging
+    logging.getLogger(__name__).debug(f"ML分类器导入失败: {e}")
 
 # 导入 LLM 分类器（可选）
 try:
     from .llm_classifier import LLMClassifier
-except Exception:
+except ImportError as e:
     LLMClassifier = None
+    import logging
+    logging.getLogger(__name__).debug(f"LLM分类器导入失败: {e}")
 
 @dataclass
 class EnhancedBookmarkFeatures:
@@ -88,7 +91,8 @@ class EnhancedClassifier:
         self.url_cache: OrderedDict = OrderedDict()
         self.classification_cache: OrderedDict = OrderedDict()
         self.feature_cache: OrderedDict = OrderedDict()
-        
+        self._cache_lock = threading.Lock()  # 线程锁保护缓存操作
+
         # 统计信息
         self.stats = {
             'total_classified': 0,
@@ -99,6 +103,7 @@ class EnhancedClassifier:
             'llm_calls': 0,
             'llm_cache_hits': 0
         }
+        self._stats_lock = threading.Lock()  # 线程锁保护统计信息
         
         # 学习系统
         self.learning_weights = defaultdict(float)
@@ -110,7 +115,7 @@ class EnhancedClassifier:
         if ML_AVAILABLE:
             try:
                 self.ml_classifier = MLClassifierWrapper()
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 self.logger.warning(f"机器学习组件初始化失败: {e}")
                 self.ml_classifier = None
         # LLM 分类器（按配置）
@@ -118,7 +123,8 @@ class EnhancedClassifier:
         if LLMClassifier is not None:
             try:
                 self.llm_classifier = LLMClassifier(self.config_path)
-            except Exception:
+            except (ImportError, ValueError, FileNotFoundError) as e:
+                self.logger.debug(f"LLM分类器初始化跳过: {e}")
                 self.llm_classifier = None
         
         # 预编译正则表达式
@@ -186,9 +192,10 @@ class EnhancedClassifier:
     def extract_features(self, url: str, title: str) -> EnhancedBookmarkFeatures:
         """增强的特征提取"""
         cache_key = f"{url}::{title}"
-        if cache_key in self.feature_cache:
-            self.feature_cache.move_to_end(cache_key)  # LRU update
-            return self.feature_cache[cache_key]
+        with self._cache_lock:
+            if cache_key in self.feature_cache:
+                self.feature_cache.move_to_end(cache_key)  # LRU update
+                return self.feature_cache[cache_key]
 
         try:
             parsed = self._parse_url_cached(url)
@@ -220,13 +227,14 @@ class EnhancedClassifier:
             )
 
             # LRU cache eviction
-            if len(self.feature_cache) >= self._max_feature_cache_size:
-                self.feature_cache.popitem(last=False)
-            self.feature_cache[cache_key] = features
+            with self._cache_lock:
+                if len(self.feature_cache) >= self._max_feature_cache_size:
+                    self.feature_cache.popitem(last=False)
+                self.feature_cache[cache_key] = features
 
             return features
 
-        except Exception as e:
+        except (ValueError, AttributeError, KeyError) as e:
             self.logger.error(f"Feature extraction failed for {url}: {e}")
             return EnhancedBookmarkFeatures(
                 url=url, title=title, domain="", path_segments=[],
@@ -307,12 +315,14 @@ class EnhancedClassifier:
 
         # 检查缓存
         cache_key = f"{url}::{title}"
-        if cache_key in self.classification_cache:
-            self.stats['cache_hits'] += 1
-            self.classification_cache.move_to_end(cache_key)  # LRU update
-            cached_result = self.classification_cache[cache_key]
-            cached_result.processing_time = time.time() - start_time
-            return cached_result
+        with self._cache_lock:
+            if cache_key in self.classification_cache:
+                with self._stats_lock:
+                    self.stats['cache_hits'] += 1
+                self.classification_cache.move_to_end(cache_key)  # LRU update
+                cached_result = self.classification_cache[cache_key]
+                cached_result.processing_time = time.time() - start_time
+                return cached_result
         
         try:
             # 特征提取
@@ -434,13 +444,14 @@ class EnhancedClassifier:
             self._update_stats(result)
 
             # LRU cache eviction
-            if len(self.classification_cache) >= self._max_cache_size:
-                self.classification_cache.popitem(last=False)
-            self.classification_cache[cache_key] = result
+            with self._cache_lock:
+                if len(self.classification_cache) >= self._max_cache_size:
+                    self.classification_cache.popitem(last=False)
+                self.classification_cache[cache_key] = result
 
             return result
 
-        except Exception as e:
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             self.logger.error(f"Classification failed for {url}: {e}")
             return ClassificationResult(
                 category="未分类",
