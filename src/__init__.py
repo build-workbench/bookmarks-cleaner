@@ -3,7 +3,7 @@
 为现有模块提供包命名空间，便于打包与 console script 导入。
 """
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 __all__ = [
     "AIBookmarkClassifier",
