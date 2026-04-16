@@ -1,99 +1,140 @@
-# 更新日志
+# Changelog
 
-所有重要的项目变更都将记录在此文件中。
+All notable changes to this project will be documented in this file.
 
-格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Calendar Versioning](https://calver.org/).
 
 ## [Unreleased]
 
 ### Added
-- 预编译正则表达式优化（ai_classifier, llm_classifier, ml_classifier, semantic_analyzer, user_profiler）
-- 统一的 ClassificationResult 数据类定义
+- Bilingual documentation support (Chinese & English)
+- Professional VitePress documentation site
+- Comprehensive API documentation for plugin development
 
 ### Changed
-- 所有缓存改用 OrderedDict 实现 LRU 淘汰机制
-- 更新系统架构文档以反映最新代码结构
+- Restructured documentation with `zh/` and `en/` directories
+- Enhanced README with badges and professional layout
 
 ---
 
-## [2026.04] - 2026-04-16
+## [2026.04.16] - 2026-04-16
 
 ### Performance
-- **缓存优化**: 将所有缓存从普通 dict 改为 OrderedDict 实现 LRU 淘汰
-  - `AIBookmarkClassifier.feature_cache`: 最大 10,000 条
-  - `AIBookmarkClassifier.classification_cache`: 最大 5,000 条
-  - `BookmarkProcessor._classification_cache`: 最大 10,000 条
-  - `EnhancedClassifier` 所有缓存: 最大 10,000 条
+- **LRU Cache Optimization**: Migrated all caches from plain dict to OrderedDict for LRU eviction
+  - `AIBookmarkClassifier.feature_cache`: Max 10,000 entries
+  - `AIBookmarkClassifier.classification_cache`: Max 5,000 entries
+  - `BookmarkProcessor._classification_cache`: Max 10,000 entries
 
 ### Code Quality
-- **预编译正则**: 在模块级别预编译常用正则表达式
+- **Pre-compiled Regex**: Module-level pre-compilation of commonly used patterns
   - `_CHINESE_REGEX`, `_ENGLISH_REGEX`, `_DIGIT_REGEX`, `_WORD_REGEX`
-- **统一数据结构**: ClassificationResult 统一定义在 `ai_classifier.py`，其他模块从此导入
-- **缓存失效修复**: `learn_from_feedback()` 现在同时清理 feature_cache 和 classification_cache
+- **Unified Data Structure**: ClassificationResult centrally defined in `ai_classifier.py`
+- **Cache Invalidation Fix**: `learn_from_feedback()` now clears both feature_cache and classification_cache
 
 ---
 
-## [2026.03] - 2026-03-13
+## [2026.03.13] - 2026-03-13
 
-### Docs
-- 文档信息架构规范化
-- README 与 docs/index.md 职责分离
-- 统一导航命名：概览、快速开始、使用指南、架构设计、开发指南
+### Documentation
+- Information architecture standardization
+- Separation of concerns between README and docs/index.md
+- Unified navigation: Overview, Quick Start, Guides, Design, Development
 
 ---
 
-## [2026.02] - 2026-02-13
+## [2026.02.13] - 2026-02-13
 
-### Refactor
-- 提取重复代码到 `src/category_utils.py`
-- 拆分 `placeholder_modules.py` (2002行 → 46行转发层)
-  - 新增: `semantic_analyzer.py`, `user_profiler.py`, `deduplicator.py`
-  - 新增: `bookmark_health_checker.py`, `data_exporter.py`
+### Refactored
+- Extracted duplicate code to `src/category_utils.py`
+- Split `placeholder_modules.py` (2002 lines → 46-line forwarding layer)
+  - Added: `semantic_analyzer.py`, `user_profiler.py`, `deduplicator.py`
+  - Added: `bookmark_health_checker.py`, `data_exporter.py`
 
 ### Fixed
-- 清理 `.gitignore` 重复项
-- 修复 `pyproject.toml` 依赖配置
-- 分离 `requirements.txt` / `requirements-dev.txt`
-- 删除空文件 `src/second_pass_classifier.py`
+- Cleaned up `.gitignore` duplicates
+- Fixed `pyproject.toml` dependency configuration
+- Separated `requirements.txt` / `requirements-dev.txt`
+- Removed empty file `src/second_pass_classifier.py`
 
 ---
 
-## [2025.12] - 2025-12-14 至 2025-12-19
+## [2025.12.19] - 2025-12-19
 
 ### Added
-- CI/CD 配置 (GitHub Actions)
-- 可选依赖支持 (watchdog, pytest)
-- CLI 分类标准化功能
-- 性能监控桥接
+- Threshold and rule engine extensions
 
 ### Fixed
-- enhanced_classifier 导入错误
-- ML 分类器警告噪音
-- Python 3.10 兼容性
+- Enhanced classifier ML availability guard
 
 ---
 
-## [2025.10] - 2025-10-20
+## [2025.12.18] - 2025-12-18
 
 ### Added
-- 文档清理与重组
-- Phase 1 & Phase 2 优化
+- CLI category normalization
+- CLI interface feature completion
+
+### Fixed
+- Performance monitor bridge and output order
 
 ---
 
-## [2025.09] - 2025-09-15
+## [2025.12.15] - 2025-12-15
+
+### Fixed
+- ML classifier warning noise reduction
+
+---
+
+## [2025.12.14] - 2025-12-14
 
 ### Added
-- LLM 分类器集成
-- Emoji 清理功能
-- 包管理与 CLI 重构
+- CI/CD configuration (GitHub Actions)
+- Optional dependency support (watchdog, pytest)
+- CLI classification standardization
+- Performance monitoring bridge
+
+### Fixed
+- Enhanced classifier import error
+- Python 3.10 compatibility
 
 ---
 
-## 版本说明
+## [2025.10.20] - 2025-10-20
 
-- **主版本号**: 重大架构变更
-- **次版本号**: 新功能添加
-- **修订号**: Bug 修复与小改进
+### Added
+- Documentation cleanup and reorganization
+- Phase 1 & Phase 2 optimizations
 
-[Unreleased]: https://github.com/LessUp/bookmarks-cleaner/compare/v2026.04...HEAD
+---
+
+## [2025.09.15] - 2025-09-15
+
+### Added
+- LLM classifier integration (OpenAI-compatible)
+- Emoji cleanup functionality
+- Package management and CLI refactoring
+- `cleanbook` and `cleanbook-wizard` entry points
+
+---
+
+## Version Format
+
+This project uses calendar versioning:
+
+- **YYYY.MM.DD** - Release date based versioning
+- **Major changes** - Significant architecture updates
+- **Feature additions** - New functionality
+- **Bug fixes** - Small improvements and fixes
+
+[Unreleased]: https://github.com/LessUp/bookmarks-cleaner/compare/v2026.04.16...HEAD
+[2026.04.16]: https://github.com/LessUp/bookmarks-cleaner/compare/v2026.03.13...v2026.04.16
+[2026.03.13]: https://github.com/LessUp/bookmarks-cleaner/compare/v2026.02.13...v2026.03.13
+[2026.02.13]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.12.19...v2026.02.13
+[2025.12.19]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.12.18...v2025.12.19
+[2025.12.18]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.12.15...v2025.12.18
+[2025.12.15]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.12.14...v2025.12.15
+[2025.12.14]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.10.20...v2025.12.14
+[2025.10.20]: https://github.com/LessUp/bookmarks-cleaner/compare/v2025.09.15...v2025.10.20
+[2025.09.15]: https://github.com/LessUp/bookmarks-cleaner/releases/tag/v2025.09.15

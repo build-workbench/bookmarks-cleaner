@@ -1,117 +1,196 @@
 import { defineConfig } from "vitepress";
 
-export default defineConfig({
+// 中文配置
+const zhConfig = {
   lang: "zh-CN",
   title: "CleanBook",
-  description: "智能书签清理与分类：默认离线可用，支持规则、ML 与可选 LLM",
+  description: "智能书签清理与分类：规则优先，ML 辅助，LLM 可选",
+  themeConfig: {
+    nav: [
+      { text: "首页", link: "/zh/" },
+      { text: "快速开始", link: "/zh/quickstart" },
+      { text: "使用指南", link: "/zh/guide/best-practices" },
+      {
+        text: "架构设计",
+        items: [
+          { text: "设计概述", link: "/zh/design/overview" },
+          { text: "系统架构", link: "/zh/design/architecture" },
+          { text: "ML 设计", link: "/zh/design/ml-design" },
+        ],
+      },
+      { text: "开发指南", link: "/zh/guide/development" },
+      { text: "参考", link: "/zh/reference/llm-templates" },
+    ],
+    sidebar: {
+      "/zh/": [
+        { text: "首页", link: "/zh/" },
+        {
+          text: "快速开始",
+          items: [{ text: "快速上手", link: "/zh/quickstart" }],
+        },
+        {
+          text: "使用指南",
+          items: [
+            { text: "书签管理最佳实践", link: "/zh/guide/best-practices" },
+            { text: "开发指南", link: "/zh/guide/development" },
+          ],
+        },
+        {
+          text: "架构设计",
+          items: [
+            { text: "设计概述", link: "/zh/design/overview" },
+            { text: "系统架构", link: "/zh/design/architecture" },
+            { text: "ML 设计", link: "/zh/design/ml-design" },
+          ],
+        },
+        {
+          text: "参考",
+          items: [{ text: "LLM 提示词模板", link: "/zh/reference/llm-templates" }],
+        },
+        {
+          text: "高级",
+          items: [{ text: "技术报告", link: "/zh/advanced/technical-report" }],
+        },
+      ],
+    },
+  },
+};
+
+// English configuration
+const enConfig = {
+  lang: "en-US",
+  title: "CleanBook",
+  description: "Smart bookmark cleaning and classification: Rules-first, ML-assisted, LLM-optional",
+  themeConfig: {
+    nav: [
+      { text: "Home", link: "/en/" },
+      { text: "Quick Start", link: "/en/quickstart" },
+      { text: "Guide", link: "/en/guide/best-practices" },
+      {
+        text: "Design",
+        items: [
+          { text: "Overview", link: "/en/design/overview" },
+          { text: "Architecture", link: "/en/design/architecture" },
+          { text: "ML Design", link: "/en/design/ml-design" },
+        ],
+      },
+      { text: "Development", link: "/en/guide/development" },
+      { text: "Reference", link: "/en/reference/llm-templates" },
+    ],
+    sidebar: {
+      "/en/": [
+        { text: "Home", link: "/en/" },
+        {
+          text: "Quick Start",
+          items: [{ text: "Quick Start", link: "/en/quickstart" }],
+        },
+        {
+          text: "Guide",
+          items: [
+            { text: "Best Practices", link: "/en/guide/best-practices" },
+            { text: "Development", link: "/en/guide/development" },
+          ],
+        },
+        {
+          text: "Design",
+          items: [
+            { text: "Overview", link: "/en/design/overview" },
+            { text: "Architecture", link: "/en/design/architecture" },
+            { text: "ML Design", link: "/en/design/ml-design" },
+          ],
+        },
+        {
+          text: "Reference",
+          items: [{ text: "LLM Templates", link: "/en/reference/llm-templates" }],
+        },
+        {
+          text: "Advanced",
+          items: [{ text: "Technical Report", link: "/en/advanced/technical-report" }],
+        },
+      ],
+    },
+  },
+};
+
+// Determine current language from URL
+const getLang = (pathname: string) => {
+  if (pathname.startsWith("/en")) return "en";
+  return "zh";
+};
+
+export default defineConfig({
   base: "/bookmarks-cleaner/",
   lastUpdated: true,
   cleanUrls: true,
+
   head: [
+    ["link", { rel: "icon", type: "image/svg+xml", href: "/logo.svg" }],
     ["link", { rel: "canonical", href: "https://lessup.github.io/bookmarks-cleaner/" }],
     ["meta", { name: "theme-color", content: "#0f172a" }],
     ["meta", { property: "og:type", content: "website" }],
     ["meta", { property: "og:title", content: "CleanBook" }],
-    ["meta", { property: "og:description", content: "智能书签清理与分类：默认离线可用，支持规则、ML 与可选 LLM" }],
+    ["meta", { property: "og:description", content: "Smart bookmark cleaning and classification" }],
     ["meta", { property: "og:url", content: "https://lessup.github.io/bookmarks-cleaner/" }],
-    ["meta", { name: "twitter:card", content: "summary" }],
-    ["meta", { name: "twitter:title", content: "CleanBook" }],
-    ["meta", { name: "twitter:description", content: "默认离线可用的书签清理与分类工具，支持规则、ML 与可选 LLM" }],
   ],
 
+  locales: {
+    root: {
+      label: "中文",
+      lang: "zh-CN",
+      ...zhConfig,
+    },
+    en: {
+      label: "English",
+      lang: "en-US",
+      ...enConfig,
+    },
+  },
+
   themeConfig: {
-    nav: [
-      { text: "概览", link: "/" },
-      { text: "快速开始", link: "/quickstart_zh" },
-      { text: "使用指南", link: "/design/bookmark_best_practices_zh" },
-      {
-        text: "架构设计",
-        items: [
-          { text: "设计说明", link: "/DESIGN" },
-          { text: "系统架构", link: "/design/system_architecture" },
-          { text: "ML 设计", link: "/design/ml_design_zh" },
-        ],
-      },
-      { text: "开发指南", link: "/guides/development_guide" },
-      { text: "参考", link: "/llm_prompt_templates" },
-      { text: "归档", link: "/technical_report" },
+    logo: "/logo.svg",
+
+    socialLinks: [
+      { icon: "github", link: "https://github.com/LessUp/bookmarks-cleaner" },
     ],
 
-    sidebar: [
-      {
-        text: "概览",
-        items: [{ text: "文档首页", link: "/" }],
-      },
-      {
-        text: "快速开始",
-        items: [{ text: "快速上手", link: "/quickstart_zh" }],
-      },
-      {
-        text: "使用指南",
-        items: [{ text: "书签管理最佳实践", link: "/design/bookmark_best_practices_zh" }],
-      },
-      {
-        text: "架构设计",
-        items: [
-          { text: "设计说明", link: "/DESIGN" },
-          { text: "系统架构", link: "/design/system_architecture" },
-          { text: "ML 设计", link: "/design/ml_design_zh" },
-        ],
-      },
-      {
-        text: "开发指南",
-        items: [{ text: "开发指南", link: "/guides/development_guide" }],
-      },
-      {
-        text: "参考",
-        items: [{ text: "LLM 提示词模板", link: "/llm_prompt_templates" }],
-      },
-      {
-        text: "归档",
-        items: [{ text: "技术报告", link: "/technical_report" }],
-      },
-    ],
+    footer: {
+      message: "Released under MIT License",
+      copyright: "Copyright © 2025-2026 LessUp",
+    },
 
     editLink: {
       pattern: "https://github.com/LessUp/bookmarks-cleaner/edit/master/docs/:path",
-      text: "在 GitHub 上编辑此页",
-    },
-
-    socialLinks: [{ icon: "github", link: "https://github.com/LessUp/bookmarks-cleaner" }],
-
-    footer: {
-      message: "基于 MIT 许可发布",
-      copyright: "Copyright © 2025-2026 LessUp",
+      text: "Edit this page on GitHub",
     },
 
     outline: {
       level: [2, 3],
-      label: "页面导航",
+      label: "On this page",
     },
 
     docFooter: {
-      prev: "上一篇",
-      next: "下一篇",
+      prev: "Previous",
+      next: "Next",
     },
 
     lastUpdated: {
-      text: "最后更新",
+      text: "Last updated",
     },
 
-    returnToTopLabel: "返回顶部",
-    sidebarMenuLabel: "菜单",
-    darkModeSwitchLabel: "主题",
+    returnToTopLabel: "Return to top",
+    sidebarMenuLabel: "Menu",
+    darkModeSwitchLabel: "Theme",
     externalLinkIcon: true,
 
     search: {
       provider: "local",
       options: {
         translations: {
-          button: { buttonText: "搜索文档", buttonAriaLabel: "搜索文档" },
+          button: { buttonText: "Search docs", buttonAriaLabel: "Search documentation" },
           modal: {
-            noResultsText: "未找到相关结果",
-            resetButtonTitle: "清除查询",
-            footer: { selectText: "选择", navigateText: "切换", closeText: "关闭" },
+            noResultsText: "No results found",
+            resetButtonTitle: "Clear query",
+            footer: { selectText: "Select", navigateText: "Navigate", closeText: "Close" },
           },
         },
       },
