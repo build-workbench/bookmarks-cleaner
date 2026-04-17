@@ -58,10 +58,15 @@ CleanBook follows **Spec-Driven Development (SDD)** methodology. This means spec
 ```
 specs/
 ├── product/          # Product requirements and user stories
+│   └── bookmark-classifier-system.md
 ├── rfc/              # Technical design documents (RFCs)
+│   └── 0001-architecture-algorithm-upgrade.md
 ├── api/              # API interface definitions
+│   └── README.md
 ├── db/               # Database schemas
+│   └── README.md
 └── testing/          # Test specifications (BDD format)
+    └── classification-tests.md
 ```
 
 ### Contribution Workflow
@@ -135,7 +140,7 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-# Install in development mode
+# Install in development mode (creates CLI commands)
 pip install -e .
 ```
 
@@ -143,8 +148,6 @@ pip install -e .
 
 ```bash
 # Run all tests
-python tests/test_suite.py
-# or
 pytest
 
 # Run with coverage
@@ -269,7 +272,7 @@ Use Hypothesis for property-based tests:
 ```python
 from hypothesis import given, strategies as st
 
-@gst.confidence_scores()
+@given(st.floats(min_value=0.0, max_value=1.0))
 def test_confidence_score_in_valid_range(confidence: float):
     """Property: Confidence scores must be between 0.0 and 1.0."""
     assert 0.0 <= confidence <= 1.0

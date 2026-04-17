@@ -1,0 +1,238 @@
+subjects:
+- preferred: 工作台
+  variants:
+  - 司内业务
+  - 内部工具
+  - Workspace
+- preferred: 人工智能
+  variants:
+  - AI
+  - 人工智慧
+  - 大模型
+  - LLM
+  - 人工智
+- preferred: 编程
+  variants:
+  - 编程开发
+  - 程序设计
+  - Coding
+  - Programming
+  - 技术栈
+- preferred: 生物
+  variants:
+  - 生物信息
+  - 生物信息学
+  - Bioinformatics
+- preferred: 学习
+  variants:
+  - 学习资料
+  - 文档资料
+  - 教育
+  - 教程
+  - 课程
+  - 书籍
+- preferred: 社区
+  variants:
+  - 技术社区
+  - 论坛
+  - 社区讨论
+- preferred: 资讯
+  variants:
+  - 新闻
+  - 新闻资讯
+  - 快讯
+  - 周刊
+  - weekly
+- preferred: 娱乐
+  variants:
+  - 娱乐休闲
+  - 影音
+  - 音乐
+  - 游戏
+  - 漫画
+- preferred: 其他
+  variants:
+  - 未分类
+  - 其他分类
+  - 杂项
+- preferred: '0'
+  variants:
+  - 源变体1
+  - TPO据
+  description: ''
+- preferred: 全c能
+  variants: []
+  description: ''
+- preferred: fi
+  variants: []
+  description: ''
+- preferred: '0_'
+  variants: []
+  description: ''
+- preferred: 开
+  variants: []
+  description: ''
+- preferred: b
+  variants: []
+  description: ''
+- preferred: C开A端
+  variants: []
+  description: ''
+- preferred: Fm_-n
+  variants: []
+  description: ''
+- preferred: 4gh算Rc度G据01o
+  variants: []
+  description: ''
+- preferred: 学
+  variants: []
+  description: ''
+- preferred: 计能络aP端TJ数a机G_KJIq机U
+  variants: []
+  description: ''
+- preferred: 工Fz端O据H
+  variants: []
+  description: ''
+- preferred: 据
+  variants: []
+  description: ''
+- preferred: H云
+  variants: []
+  description: ''
+- preferred: 算度度开
+  variants: []
+  description: ''
+- preferred: 1L习C2全程
+  variants: []
+  description: ''
+- preferred: A习能后
+  variants: []
+  description: ''
+- preferred: G
+  variants: []
+  description: ''
+- preferred: 97开发aJ云开习智
+  variants: []
+  description: ''
+- preferred: 7HiX8g
+  variants: []
+  description: ''
+- preferred: 22GE3tgNAD
+  variants: []
+  description: ''
+- preferred: 6前etGeO
+  variants: []
+  description: ''
+- preferred: zP数数络XD全
+  variants: []
+  description: ''
+- preferred: T络安9eq算
+  variants: []
+  description: ''
+- preferred: JjIZ1iJ
+  variants: []
+  description: ''
+- preferred: r
+  variants: []
+  description: ''
+- preferred: J人CdNqc安s
+  variants: []
+  description: ''
+- preferred: cq2发w7BX50g
+  variants: []
+  description: ''
+- preferred: dv7全
+  variants: []
+  description: ''
+  children:
+  - preferred: f
+    variants: []
+    description: ''
+- preferred: 5算
+  variants: []
+  description: ''
+  children:
+  - preferred: sxR6S
+    variants: []
+    description: ''
+- preferred: HAxq数
+  variants: []
+  description: ''
+- preferred: FFJt
+  variants: []
+  description: ''
+- preferred: 机Ngs
+  variants: []
+  description: ''
+- preferred: 1aKYvK络iqgWwU程El
+  variants: []
+  description: ''
+- preferred: 网Tr
+  variants: []
+  description: ''
+- preferred: 深O程1
+  variants: []
+  description: ''
+- preferred: 智xm度gv6LE9
+  variants: []
+  description: ''
+- preferred: 'gt发Qf '
+  variants: []
+  description: ''
+- preferred: i络Ol端开oE47X机
+  variants:
+  - 60U
+  description: ''
+- preferred: thi5
+  variants:
+  - 8m
+  description: ''
+- preferred: '程算人机WOX网计 '
+  variants:
+  - 前全unN端Lj74
+  description: ''
+- preferred: 新名称
+  variants:
+  - 变体1
+  - 变体2
+  - 原始名称
+  description: ''
+- preferred: rK端vf5科智mjrtI度后习f络人算V
+  variants:
+  - 源变体1
+  - 目标变体1
+  - TPO据
+  description: ''
+- preferred: 器前工ouqE程sfo73全B程_sJmLI前yfp
+  variants:
+  - Y
+  - 目标变体1
+  description: ''
+- preferred: X S
+  variants:
+  - a
+  - 目标变体1
+  - 源变体1
+  description: ''
+- preferred: ON编
+  variants:
+  - 目标变体1
+  - 源变体1
+  - J
+  description: ''
+- preferred: 目标分类
+  variants:
+  - 源分类
+  description: ''
+  children:
+  - preferred: 子分类1
+    variants: []
+    description: ''
+  - preferred: 子分类2
+    variants: []
+    description: ''
+- preferred: 分类A新
+  variants:
+  - 分类A
+  - 分类B
+  description: ''

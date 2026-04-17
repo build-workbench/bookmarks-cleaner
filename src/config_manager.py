@@ -34,8 +34,8 @@ import jsonschema
 from jsonschema import validate
 import copy
 
-from .resource_loader import load_json_config, resolve_config_path
-from .category_utils import normalize_category_config
+from src.utils.resource_loader import load_json_config, resolve_config_path
+from src.utils.category import normalize_category_config
 
 @dataclass
 class ConfigChange:

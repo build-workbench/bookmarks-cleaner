@@ -192,13 +192,9 @@ pytest --cov=src --cov-report=html
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+This project follows **Spec-Driven Development (SDD)**. Before writing any code, please review the specification documents in the `/specs` directory. See [AGENTS.md](AGENTS.md) for the complete SDD workflow.
 
 ## 📝 License
 

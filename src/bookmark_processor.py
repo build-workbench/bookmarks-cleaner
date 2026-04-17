@@ -11,7 +11,7 @@ import time
 import re
 import threading
 from collections import OrderedDict
-from .emoji_cleaner import clean_title as clean_emoji_title
+from src.utils.emoji_cleaner import clean_title as clean_emoji_title
 
 from typing import List, Dict, Optional, Tuple
 from pathlib import Path
@@ -22,20 +22,20 @@ try:
     from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
-from .ai_classifier import AIBookmarkClassifier
-from .taxonomy_standardizer import TaxonomyStandardizer
-from .category_utils import strip_category_prefix, normalize_category_string, normalize_category_config
-from .resource_loader import load_json_config, resolve_config_path
+from src.classifiers.ai import AIBookmarkClassifier
+from src.utils.standardizer import TaxonomyStandardizer
+from src.utils.category import strip_category_prefix, normalize_category_string, normalize_category_config
+from src.utils.resource_loader import load_json_config, resolve_config_path
 
 try:
-    from .llm_organizer import LLMBookmarkOrganizer
+    from src.llm.organizer import LLMBookmarkOrganizer
 except ImportError:
     LLMBookmarkOrganizer = None
 
 # 导入核心组件
-from .data_exporter import DataExporter
-from .deduplicator import BookmarkDeduplicator
-from .bookmark_health_checker import HealthChecker
+from src.data.exporter import DataExporter
+from src.data.deduplicator import BookmarkDeduplicator
+from src.health.bookmark_checker import HealthChecker
 
 class BookmarkProcessor:
     """书签处理器主类"""

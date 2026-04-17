@@ -4,7 +4,7 @@
 
 This project strictly follows the **Spec-Driven Development (SDD)** paradigm. All code implementations must use the specification documents in the `/specs` directory as the single source of truth.
 
-## Directory Context
+## Directory Context (目录说明)
 
 ### Specifications (`/specs`)
 - `/specs/product/`: Product feature definitions and acceptance criteria
@@ -20,18 +20,18 @@ This project strictly follows the **Spec-Driven Development (SDD)** paradigm. Al
 - `/docs/assets/`: Static assets (images, diagrams, etc.)
 
 ### Project Root
-- `README.md`: Project entry point (English)
-- `README.zh-CN.md`: Chinese translation of README
+- `README.md`: Project entry point (English, with link to Chinese version)
 - `CONTRIBUTING.md`: Contribution guidelines
 - `CHANGELOG.md`: Change log
-- `CLAUDE.md`: AI assistant context for Claude Code
-- `QWEN.md`: AI assistant context for Qwen Code
+- `CLAUDE.md`: Claude Code specific guidance
+- `QWEN.md`: Qwen Code specific guidance
 
-## AI Agent Workflow Instructions
+## AI Agent Workflow Instructions (AI 工作流指令)
 
 When you (the AI) are asked to develop a new feature, modify an existing feature, or fix a bug, **you MUST strictly follow this workflow. Do NOT skip any steps**:
 
-### Step 1: Review Specifications (Review Specs)
+### Step 1: Review Specifications (审查与分析)
+
 - **First**, read the relevant specification documents in the `/specs` directory:
   - Product requirements in `/specs/product/`
   - Technical designs in `/specs/rfc/`
@@ -39,12 +39,14 @@ When you (the AI) are asked to develop a new feature, modify an existing feature
   - Test specifications in `/specs/testing/`
 - If the user's instruction conflicts with existing specs, **immediately stop coding** and point out the conflict. Ask the user whether to update the spec first.
 
-### Step 2: Spec-First Update
+### Step 2: Spec-First Update (规范优先)
+
 - If this is a **new feature** or requires **changes to existing interfaces/database structures**, **you MUST first propose modifying or creating spec documents** (e.g., `openapi.yaml` or RFC documents).
 - **Wait for user confirmation** on the spec modifications before proceeding to code implementation.
 - This ensures **document-code synchronization** and prevents documentation drift.
 
-### Step 3: Code Implementation (Implementation)
+### Step 3: Code Implementation (代码实现)
+
 - When writing code, **100% comply** with the definitions in the specs (including variable names, API paths, data types, status codes, etc.).
 - **Do NOT add features not defined in the specs** (No Gold-Plating).
 - Follow the project's coding standards:
@@ -53,13 +55,14 @@ When you (the AI) are asked to develop a new feature, modify an existing feature
   - Complete docstrings for functions and classes
   - High-value comments explaining **why**, not **what**
 
-### Step 4: Test Verification (Test against Spec)
+### Step 4: Test Verification (测试验证)
+
 - Write unit tests and integration tests based on the **acceptance criteria** in `/specs/`.
 - Ensure test cases cover **all boundary conditions** described in the specs.
-- Run the test suite to verify: `python tests/test_suite.py`
+- Run the test suite to verify: `pytest`
 - **All tests must pass** before considering the task complete.
 
-## Code Generation Rules
+## Code Generation Rules (代码生成规则)
 
 1. **API Changes**: Any externally exposed API changes **MUST** be synchronized with `/specs/api/openapi.yaml` (or equivalent spec files).
 2. **Database Changes**: Any database schema changes **MUST** be synchronized with `/specs/db/`.
@@ -67,12 +70,15 @@ When you (the AI) are asked to develop a new feature, modify an existing feature
 4. **No Spec, No Code**: **Do NOT write code without corresponding spec documentation**. If a spec doesn't exist, propose creating one first.
 5. **Spec Traceability**: All code implementations should be traceable back to specific requirements in the specs.
 
-## Development Commands
+## Development Commands (开发命令)
 
 ### Quick Start
 ```bash
 # Install dependencies
 pip install -r requirements.txt
+
+# Install in development mode (creates CLI commands: cleanbook, cleanbook-wizard)
+pip install -e .
 
 # Run health check
 python main.py --health-check
@@ -84,15 +90,14 @@ python main.py -i examples/demo_bookmarks.html
 python main.py --interactive
 
 # Run tests
-python tests/test_suite.py
+pytest
 ```
 
 ### Key Components
-- `src/rule_engine.py` - Keyword-based fast classification
-- `src/ml_classifier.py` - Machine learning classification using scikit-learn
-- `src/ai_classifier.py` - AI main classifier coordinating multiple methods
-- `src/bookmark_processor.py` - Batch bookmark processing
-- `src/cli_interface.py` - CLI user interface
+- `src/ai_classifier.py` - Central orchestrator coordinating multiple classification strategies
+- `src/bookmark_processor.py` - Batch bookmark processing coordinator
+- `src/plugins/` - Modular classifier plugins (rule, ML, embedding, LLM)
+- `src/services/` - Cross-cutting services (embedding, taxonomy, performance monitoring)
 - `config.json` - Configuration file with category rules, AI settings, etc.
 
 ### Output Formats
@@ -116,7 +121,7 @@ Processing completes generates three output formats:
 4. System supports both Chinese and English content processing
 5. System has learning capability and can optimize classification based on user feedback
 
-## Preventing AI Hallucinations
+## Preventing AI Hallucinations (防止 AI 幻觉)
 
 This declaration prevents AI from "freestyling" without context:
 - **Mandatory spec review first**: Anchors your thinking to existing documentation

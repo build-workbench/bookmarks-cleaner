@@ -192,13 +192,9 @@ pytest --cov=src --cov-report=html
 
 ## 🤝 贡献
 
-欢迎贡献！请随时提交 Pull Request。对于重大变更，请先开 Issue 讨论您想要改变的内容。
+欢迎贡献！请阅读我们的[贡献指南](CONTRIBUTING.md)了解代码规范和提交流程。
 
-1. Fork 本仓库
-2. 创建功能分支：`git checkout -b feature/新功能`
-3. 提交变更：`git commit -m 'feat: 添加新功能'`
-4. 推送到分支：`git push origin feature/新功能`
-5. 打开 Pull Request
+本项目遵循**规范驱动开发（SDD）**。在编写代码之前，请先查看 `/specs` 目录下的规范文档。完整的工作流程请参见 [AGENTS.md](AGENTS.md)。
 
 ## 📝 许可
 

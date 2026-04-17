@@ -95,11 +95,28 @@ cleanbook-wizard = "src.enhanced_cli:main"
 [tool.setuptools]
 # 包含包和独立模块
 py-modules = ["main"]
-packages = ["src", "src.cleanbook", "src.plugins", "src.plugins.classifiers", "src.services", "src.resources"]
+packages = [
+    "src",
+    "src.cleanbook",
+    "src.core",
+    "src.utils",
+    "src.cli",
+    "src.classifiers",
+    "src.engines",
+    "src.llm",
+    "src.health",
+    "src.data",
+    "src.plugins",
+    "src.plugins.classifiers",
+    "src.services",
+    "src.resources",
+    "config",
+]
 
 [tool.setuptools.package-data]
 # 打包模型与配置（如需）
 "src" = ["**/*.pkl", "**/*.json", "resources/taxonomy/*.yaml"]
+"src.config" = ["taxonomy/*.yaml", "agent/**/*"]
 
 
 # ====================
@@ -156,7 +173,7 @@ show_column_numbers = true
 exclude = [
     "tests/",
     "docs/",
-    "\.venv/",
+    ".venv/",
     "venv/",
 ]
 
