@@ -1,0 +1,56 @@
+name: Stale Issues and PRs
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close Stale Issues and PRs
+        uses: actions/stale@v9
+        with:
+          # General settings
+          days-before-stale: 60
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          
+          # Issue messages
+          stale-issue-message: |
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            
+            It will be closed in 7 days if no further activity occurs. 
+            
+            If this issue is still relevant, please comment or add the `pinned` label to keep it open.
+          close-issue-message: |
+            This issue has been automatically closed due to inactivity. 
+            
+            If you believe this is still a problem, please feel free to reopen it or create a new issue with updated information.
+          
+          # PR messages
+          stale-pr-message: |
+            This pull request has been automatically marked as stale because it has not had recent activity.
+            
+            It will be closed in 7 days if no further activity occurs.
+            
+            If you're still working on this, please comment or push new commits to keep it open.
+          close-pr-message: |
+            This pull request has been automatically closed due to inactivity.
+            
+            If you're still interested in contributing these changes, please feel free to reopen or create a new PR.
+          
+          # Exemptions
+          exempt-issue-labels: 'pinned,security,bug'
+          exempt-pr-labels: 'pinned,work-in-progress'
+          exempt-draft-pr: true
+          
+          # Operations
+          operations-per-run: 30
+          remove-stale-when-updated: true
