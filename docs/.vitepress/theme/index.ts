@@ -14,6 +14,7 @@ import PipelineDiagram from './components/PipelineDiagram.vue'
 import StatsCounter from './components/StatsCounter.vue'
 import CodeGroup from './components/CodeGroup.vue'
 import HomeHero from './components/HomeHero.vue'
+import ProjectStructure from './components/ProjectStructure.vue'
 
 // Register Service Worker for PWA
 const registerSW = () => {
@@ -22,7 +23,7 @@ const registerSW = () => {
       navigator.serviceWorker.register('/bookmarks-cleaner/sw.js')
         .then((registration) => {
           console.log('[SW] Registered:', registration.scope)
-          
+
           // Check for updates
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing
@@ -59,7 +60,8 @@ export default {
     app.component('StatsCounter', StatsCounter)
     app.component('CodeGroup', CodeGroup)
     app.component('HomeHero', HomeHero)
-    
+    app.component('ProjectStructure', ProjectStructure)
+
     // Register service worker after app mount
     if (typeof window !== 'undefined') {
       registerSW()

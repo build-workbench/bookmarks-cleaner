@@ -7,8 +7,8 @@ health - 健康检查模块
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .checker import HealthChecker, run_health_check
     from .bookmark_checker import BookmarkHealthChecker
+    from .checker import HealthChecker, run_health_check
 
 __all__ = ["HealthChecker", "run_health_check", "BookmarkHealthChecker"]
 
@@ -23,6 +23,7 @@ def __getattr__(name: str):
     if name in _mapping:
         module_path, attr_name = _mapping[name]
         import importlib
+
         module = importlib.import_module(module_path, __name__)
         return getattr(module, attr_name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -4,6 +4,7 @@ LLM Second Pass Prompt Generator
 为第二轮大模型分类生成优化的提示词。
 用于将第一轮（规则+ML模型）分类结果导出后，在外部平台进行精细化整理。
 """
+
 from __future__ import annotations
 
 import json
@@ -45,7 +46,7 @@ class SecondPassPromptGenerator:
     ) -> str:
         """
         生成批量分类的提示词
-        
+
         Args:
             bookmarks: 书签列表，每个书签包含 title, url, category, confidence 等
             focus_on_uncategorized: 是否重点处理未分类项
@@ -58,22 +59,22 @@ class SecondPassPromptGenerator:
         for bm in bookmarks:
             cat = bm.get("category", "未分类")
             conf = bm.get("confidence", 0)
-            
+
             if focus_on_uncategorized and "未分类" in cat:
                 to_process.append(bm)
             elif include_low_confidence and conf < confidence_threshold:
                 to_process.append(bm)
-        
+
         # 限制批次大小
         to_process = to_process[:batch_size]
-        
+
         return self._build_batch_prompt(to_process)
 
     def _build_batch_prompt(self, bookmarks: List[Dict[str, Any]]) -> str:
         """构建批量处理提示词"""
         category_tree = self._format_category_tree()
         bookmark_list = self._format_bookmark_list(bookmarks)
-        
+
         prompt = f"""# 书签智能分类任务
 
 ## 任务说明
@@ -113,7 +114,7 @@ class SecondPassPromptGenerator:
 - 生物信息相关 → 生物/生物信息
 
 请开始分类："""
-        
+
         return prompt
 
     def generate_review_prompt(
@@ -125,14 +126,14 @@ class SecondPassPromptGenerator:
     ) -> str:
         """
         生成分类审查提示词，用于检查分类一致性和建议合并
-        
+
         Args:
             categorized_bookmarks: 按分类组织的书签字典
             check_consistency: 是否检查一致性
             suggest_merges: 是否建议合并相似分类
         """
         summary = self._format_category_summary(categorized_bookmarks)
-        
+
         prompt = f"""# 书签分类审查任务
 
 ## 当前分类统计
@@ -147,7 +148,7 @@ class SecondPassPromptGenerator:
 2. 识别可能分类错误的书签
 3. 标注需要人工复核的项目
 """
-        
+
         if suggest_merges:
             prompt += """
 ### 合并建议
@@ -155,7 +156,7 @@ class SecondPassPromptGenerator:
 2. 建议更合理的分类层级
 3. 提出分类体系优化建议
 """
-        
+
         prompt += """
 ## 输出格式
 ```json
@@ -171,7 +172,7 @@ class SecondPassPromptGenerator:
 ```
 
 请开始审查："""
-        
+
         return prompt
 
     def generate_reorganize_prompt(
@@ -183,7 +184,7 @@ class SecondPassPromptGenerator:
     ) -> str:
         """
         生成重新组织提示词，用于按新结构重新整理书签
-        
+
         Args:
             bookmarks: 所有书签列表
             target_structure: 目标分类结构，None 则使用默认
@@ -192,7 +193,7 @@ class SecondPassPromptGenerator:
         structure = target_structure or self.categories
         structure_text = self._format_target_structure(structure)
         bookmark_text = self._format_all_bookmarks(bookmarks)
-        
+
         prompt = f"""# 书签重新组织任务
 
 ## 目标分类结构
@@ -218,7 +219,7 @@ class SecondPassPromptGenerator:
 ```
 
 请开始重新组织："""
-        
+
         return prompt
 
     def _format_category_tree(self) -> str:
@@ -238,10 +239,10 @@ class SecondPassPromptGenerator:
             url = bm.get("url", "")
             current_cat = bm.get("category", "未分类")
             conf = bm.get("confidence", 0)
-            
+
             lines.append(f"{i}. [{title}]({url})")
             lines.append(f"   当前分类: {current_cat} (置信度: {conf:.2f})")
-        
+
         return "\n".join(lines)
 
     def _format_category_summary(
@@ -286,20 +287,20 @@ def generate_prompt_for_export(
 ) -> str:
     """
     从报告文件生成提示词并可选保存
-    
+
     Args:
         report_path: 分类报告路径
         output_path: 输出提示词文件路径，None 则只返回不保存
         mode: 模式 - batch(批量分类), review(审查), reorganize(重组)
         **kwargs: 传递给对应方法的参数
-    
+
     Returns:
         生成的提示词
     """
     # 这里需要解析报告文件，提取书签信息
     # 简化实现，实际使用时需要完善解析逻辑
     generator = SecondPassPromptGenerator()
-    
+
     # 根据模式生成不同提示词
     if mode == "batch":
         prompt = generator.generate_batch_prompt([], **kwargs)
@@ -309,11 +310,11 @@ def generate_prompt_for_export(
         prompt = generator.generate_reorganize_prompt([], **kwargs)
     else:
         raise ValueError(f"Unknown mode: {mode}")
-    
+
     if output_path:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(prompt)
-    
+
     return prompt
 
 
@@ -334,7 +335,6 @@ def get_quick_prompt_templates() -> Dict[str, str]:
 - 其他
 
 请以 JSON 格式输出：[{"title": "标题", "category": "分类", "reason": "理由"}]""",
-
         "review": """请审查以下分类结果，指出可能的错误：
 
 {categorized_bookmarks}
@@ -345,7 +345,6 @@ def get_quick_prompt_templates() -> Dict[str, str]:
 3. 是否有重复或相似的书签
 
 输出格式：[{"title": "标题", "current": "当前分类", "suggested": "建议分类", "reason": "理由"}]""",
-
         "merge": """以下分类可能需要合并或调整：
 
 {categories}

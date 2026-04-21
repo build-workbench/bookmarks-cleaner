@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .rules import RuleEngine
     from .semantic import SemanticAnalyzer
-    from .url import URLAnalyzer
     from .smart_loader import SmartRuleLoader
+    from .url import URLAnalyzer
 
 __all__ = ["RuleEngine", "SemanticAnalyzer", "URLAnalyzer", "SmartRuleLoader"]
 
@@ -26,6 +26,7 @@ def __getattr__(name: str):
     if name in _mapping:
         module_path, cls_name = _mapping[name]
         import importlib
+
         module = importlib.import_module(module_path, __name__)
         return getattr(module, cls_name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

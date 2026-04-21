@@ -7,6 +7,7 @@ config - 项目配置目录
 import os
 from pathlib import Path
 
+
 def get_config_dir() -> Path:
     """返回配置目录路径"""
     return Path(__file__).parent

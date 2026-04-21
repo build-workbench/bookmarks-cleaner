@@ -43,6 +43,46 @@ import TerminalDemo from '../.vitepress/theme/components/TerminalDemo.vue'
 import StatsCounter from '../.vitepress/theme/components/StatsCounter.vue'
 import PipelineDiagram from '../.vitepress/theme/components/PipelineDiagram.vue'
 import ConfigGenerator from '../.vitepress/theme/components/ConfigGenerator.vue'
+import ProjectStructure from '../.vitepress/theme/components/ProjectStructure.vue'
+
+const structure = [
+  {
+    name: 'src/',
+    type: 'folder',
+    desc: '源代码目录',
+    children: [
+      { name: 'classifiers/', type: 'folder', desc: 'AI/ML/LLM 分类器' },
+      { name: 'engines/', type: 'folder', desc: '规则/语义/URL 引擎' },
+      { name: 'core/', type: 'folder', desc: '处理器/导出器/去重器' },
+      { name: 'llm/', type: 'folder', desc: 'LLM 工具和提示词' },
+      { name: 'health/', type: 'folder', desc: '健康检查模块' },
+      { name: 'data/', type: 'folder', desc: '数据处理模块' },
+      { name: 'utils/', type: 'folder', desc: '配置/工具函数' },
+      { name: 'cli/', type: 'folder', desc: '命令行接口' },
+      { name: 'plugins/', type: 'folder', desc: '插件系统' },
+      { name: 'services/', type: 'folder', desc: '服务层' },
+    ]
+  },
+  {
+    name: 'config/',
+    type: 'folder',
+    desc: '配置文件目录',
+    children: [
+      { name: 'taxonomy/', type: 'folder', desc: '分类法词表' },
+      { name: 'agent/', type: 'folder', desc: 'Agent 配置' },
+    ]
+  },
+  {
+    name: 'docs/',
+    type: 'folder',
+    desc: '文档 (VitePress)'
+  },
+  {
+    name: 'tests/',
+    type: 'folder',
+    desc: '测试代码'
+  },
+]
 
 const terminalLines = [
   { type: 'input', content: 'cleanbook -i bookmarks.html -o output/', delay: 500 },
@@ -55,26 +95,26 @@ const terminalLines = [
 ]
 
 const pipelineSteps = [
-  { 
-    title: '数据解析', 
+  {
+    title: '数据解析',
     description: '解析 HTML/JSON 格式的书签文件，提取 URL、标题、文件夹结构',
     icon: '📄',
     meta: ['Netscape HTML', 'JSON', 'Chrome/Firefox']
   },
-  { 
-    title: '智能去重', 
+  {
+    title: '智能去重',
     description: 'URL 规范化与多维度相似度检测，识别重复和低质量链接',
     icon: '🔍',
     meta: ['URL Norm', 'SimHash', 'Levenshtein']
   },
-  { 
-    title: '多层级分类', 
+  {
+    title: '多层级分类',
     description: '规则引擎 + ML + 语义分析 + LLM 融合分类',
     icon: '🤖',
     meta: ['91.4% Acc', 'Fusion Voting', 'Auto-Fallback']
   },
-  { 
-    title: '输出生成', 
+  {
+    title: '输出生成',
     description: '生成整理后的书签文件和统计报告',
     icon: '📦',
     meta: ['HTML', 'Markdown', 'JSON']
@@ -205,6 +245,24 @@ CleanBook 面向"长期维护浏览器书签"的场景：
 - **个人用户**: 想先离线整理书签，再视需要引入 ML / LLM 的浏览器重度使用者
 - **团队维护者**: 需要统一团队书签分类规则、词表和输出格式的技术负责人
 - **开发者**: 想了解书签处理流水线、分类融合与配置驱动设计的开源贡献者
+
+## 项目结构
+
+<ProjectStructure title="模块化项目结构" :structure="structure" />
+
+CleanBook 采用清晰的模块化目录结构，便于维护和扩展：
+
+- **`src/classifiers/`** - 分层分类器：规则引擎 → ML → LLM
+- **`src/engines/`** - 核心引擎：规则匹配、语义分析、URL 解析
+- **`src/core/`** - 核心处理：BookmarkProcessor、导出器、去重器
+- **`src/llm/`** - LLM 相关：organizer、prompt builder、exporter
+- **`src/health/`** - 系统健康检查
+- **`src/data/`** - 数据处理层
+- **`src/utils/`** - 工具函数和配置管理
+- **`src/cli/`** - 统一命令行入口
+- **`config/`** - 集中配置管理
+
+---
 
 ## 推荐学习路径
 

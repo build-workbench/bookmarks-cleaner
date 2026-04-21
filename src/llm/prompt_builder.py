@@ -3,6 +3,7 @@ LLM Prompt Builder
 
 负责构建高质量的提示词，以便 LLM 更准确地完成书签分类。
 """
+
 from __future__ import annotations
 
 import json
@@ -23,9 +24,7 @@ class LLMPromptBuilder:
         "confidence": "0~1 的浮点数，代表置信度；若不确定应降低分值。",
         "reasons": ["1~3 条简短中文理由，解释分类依据。"],
         "subcategory": "可选，若主分类下还可细分则给出。",
-        "facets": {
-            "resource_type_hint": "可选，指出内容形态，如教程、文档、视频。"
-        },
+        "facets": {"resource_type_hint": "可选，指出内容形态，如教程、文档、视频。"},
         "priority_tags": ["可选，推荐使用的重点标签，如 '需要跟进'。"],
     }
 
@@ -110,22 +109,18 @@ class LLMPromptBuilder:
     # ------------------------------------------------------------------ #
     # 内部辅助
     # ------------------------------------------------------------------ #
-    def _build_system_prompt(
-        self, category_library: List[Dict[str, Any]]
-    ) -> str:
+    def _build_system_prompt(self, category_library: List[Dict[str, Any]]) -> str:
         """构建 system prompt。"""
         primary_categories = [
-            entry["name"]
-            for entry in category_library
-            if "/" not in entry["name"]
+            entry["name"] for entry in category_library if "/" not in entry["name"]
         ]
         primary_hint = ", ".join(primary_categories[:12])
 
-        steps_text = "\n".join(f"{idx+1}. {step}" for idx, step in enumerate(self._steps))
-
-        schema_preview = json.dumps(
-            self._expected_schema, ensure_ascii=False, indent=2
+        steps_text = "\n".join(
+            f"{idx+1}. {step}" for idx, step in enumerate(self._steps)
         )
+
+        schema_preview = json.dumps(self._expected_schema, ensure_ascii=False, indent=2)
 
         return (
             "你是 CleanBook-Agent，一名资深浏览器书签信息架构师。\n"

@@ -9,6 +9,7 @@
     from src.data_exporter import DataExporter
     from src.performance_optimizer import PerformanceMonitor
 """
+
 import warnings as _warnings
 
 _warnings.warn(
@@ -17,11 +18,11 @@ _warnings.warn(
     stacklevel=2,
 )
 
-from src.engines.semantic import SemanticAnalyzer  # noqa: F401
-from src.utils.profiler import UserProfiler  # noqa: F401
 from src.data.deduplicator import BookmarkDeduplicator  # noqa: F401
-from src.health.bookmark_checker import HealthChecker, HealthStatus  # noqa: F401
 from src.data.exporter import DataExporter  # noqa: F401
+from src.engines.semantic import SemanticAnalyzer  # noqa: F401
+from src.health.bookmark_checker import HealthChecker, HealthStatus  # noqa: F401
+from src.utils.profiler import UserProfiler  # noqa: F401
 
 try:
     from src.utils.optimizer import PerformanceMonitor  # noqa: F401

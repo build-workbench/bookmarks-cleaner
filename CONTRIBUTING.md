@@ -210,7 +210,7 @@ from dataclasses import dataclass
 @dataclass
 class ClassificationResult:
     """Represents the result of classifying a bookmark.
-    
+
     Attributes:
         category: The assigned category name
         confidence: Confidence score (0.0-1.0)
@@ -221,13 +221,13 @@ class ClassificationResult:
     confidence: float
     method: str
     alternatives: List[tuple[str, float]] = None
-    
+
     def is_confident(self, threshold: float = 0.7) -> bool:
         """Check if classification meets confidence threshold.
-        
+
         Args:
             threshold: Minimum confidence required
-            
+
         Returns:
             True if confidence >= threshold, False otherwise
         """

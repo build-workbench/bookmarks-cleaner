@@ -8,12 +8,13 @@ LLM Bookmark Organizer
 - 输出稳定的 JSON，便于落地到既有导出流水线；
 - 失败时自动回退到传统分类结构，不影响主流程。
 """
+
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
-import hashlib
 from collections import Counter
 from dataclasses import dataclass
 from statistics import mean
@@ -46,7 +47,9 @@ class LLMOrganizerStats:
 class LLMBookmarkOrganizer:
     """通过 LLM 生成更高层次的书签组织结构。"""
 
-    def __init__(self, config_path: str | None = None, config: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, config_path: str | None = None, config: Optional[Dict[str, Any]] = None
+    ):
         resolved_path, _ = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
         self.config = config or self._load_config()
@@ -62,11 +65,25 @@ class LLMBookmarkOrganizer:
             failures=0,
         )
 
-        self._model = self.organizer_conf.get("model") or self.llm_conf.get("model", "gpt-4o-mini")
-        self._temperature = float(self.organizer_conf.get("temperature", self.llm_conf.get("temperature", 0.0)))
-        self._top_p = float(self.organizer_conf.get("top_p", self.llm_conf.get("top_p", 1.0)))
-        self._timeout = int(self.organizer_conf.get("timeout_seconds", self.llm_conf.get("timeout_seconds", 40)))
-        self._max_retries = int(self.organizer_conf.get("max_retries", self.llm_conf.get("max_retries", 1)))
+        self._model = self.organizer_conf.get("model") or self.llm_conf.get(
+            "model", "gpt-4o-mini"
+        )
+        self._temperature = float(
+            self.organizer_conf.get(
+                "temperature", self.llm_conf.get("temperature", 0.0)
+            )
+        )
+        self._top_p = float(
+            self.organizer_conf.get("top_p", self.llm_conf.get("top_p", 1.0))
+        )
+        self._timeout = int(
+            self.organizer_conf.get(
+                "timeout_seconds", self.llm_conf.get("timeout_seconds", 40)
+            )
+        )
+        self._max_retries = int(
+            self.organizer_conf.get("max_retries", self.llm_conf.get("max_retries", 1))
+        )
         self._max_tokens = int(self.organizer_conf.get("max_tokens", 1800))
         self._force_json = bool(self.organizer_conf.get("force_json", True))
 
@@ -142,7 +159,9 @@ class LLMBookmarkOrganizer:
                 "summary_input": dataset_summary,
             }
         except Exception as exc:
-            self.logger.warning(f"LLM organizer mapping failed, fallback to baseline: {exc}")
+            self.logger.warning(
+                f"LLM organizer mapping failed, fallback to baseline: {exc}"
+            )
             return {"organized": baseline or {}, "meta": {"error": str(exc)}}
 
     def get_stats(self) -> Dict[str, Any]:
@@ -180,7 +199,9 @@ class LLMBookmarkOrganizer:
             if title and len(bucket["titles"]) < max_examples:
                 bucket["titles"].append(title[:160])
 
-            domain = urlparse(bookmark.get("url", "")).netloc.lower().replace("www.", "")
+            domain = (
+                urlparse(bookmark.get("url", "")).netloc.lower().replace("www.", "")
+            )
             if domain:
                 bucket["domains"][domain] += 1
 
@@ -192,7 +213,9 @@ class LLMBookmarkOrganizer:
                     "count": payload["total"],
                     "avg_confidence": round(mean(confidences), 3),
                     "confidence_bins": self._confidence_bins(confidences),
-                    "top_domains": [d for d, _ in payload["domains"].most_common(max_domains)],
+                    "top_domains": [
+                        d for d, _ in payload["domains"].most_common(max_domains)
+                    ],
                     "sample_titles": payload["titles"],
                 }
             )
@@ -248,13 +271,19 @@ class LLMBookmarkOrganizer:
     # ------------------------------------------------------------------ #
     # LLM 调用
     # ------------------------------------------------------------------ #
-    def _call_llm(self, api_key: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        cache_key = hashlib.md5(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
+    def _call_llm(
+        self, api_key: str, payload: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        cache_key = hashlib.md5(
+            json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
+        ).hexdigest()
         if cache_key in self._cache:
             self._stats.cache_hits += 1
             return self._cache[cache_key]
 
-        base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip("/")
+        base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip(
+            "/"
+        )
         url = f"{base_url}/v1/chat/completions"
 
         headers = {
@@ -266,7 +295,9 @@ class LLMBookmarkOrganizer:
         for _ in range(self._max_retries + 1):
             try:
                 self._stats.calls += 1
-                response = requests.post(url, headers=headers, json=payload, timeout=self._timeout)
+                response = requests.post(
+                    url, headers=headers, json=payload, timeout=self._timeout
+                )
                 if response.status_code >= 400:
                     last_error = f"HTTP {response.status_code}: {response.text[:200]}"
                     continue
@@ -328,10 +359,16 @@ class LLMBookmarkOrganizer:
         organized: Dict[str, Dict[str, Any]] = {}
 
         for bookmark in bookmarks:
-            original_category = (bookmark.get("category") or "未分类").strip() or "未分类"
+            original_category = (
+                bookmark.get("category") or "未分类"
+            ).strip() or "未分类"
             map_entry = mapping.get(original_category, {})
 
-            primary = (map_entry.get("primary") or fallback_primary or original_category.split("/", 1)[0]).strip()
+            primary = (
+                map_entry.get("primary")
+                or fallback_primary
+                or original_category.split("/", 1)[0]
+            ).strip()
             if not primary:
                 primary = fallback_primary or "未分类"
 
@@ -342,20 +379,26 @@ class LLMBookmarkOrganizer:
             node = organized.setdefault(primary, {"_items": [], "_subcategories": {}})
 
             if secondary:
-                node["_subcategories"].setdefault(secondary, {"_items": []})["_items"].append(bookmark)
+                node["_subcategories"].setdefault(secondary, {"_items": []})[
+                    "_items"
+                ].append(bookmark)
             else:
                 node["_items"].append(bookmark)
 
         # 将不在 mapping 中但仍需保留的分类加入 fallback
         for bookmark in bookmarks:
-            original_category = (bookmark.get("category") or "未分类").strip() or "未分类"
+            original_category = (
+                bookmark.get("category") or "未分类"
+            ).strip() or "未分类"
             if original_category in mapping:
                 continue
             # 如果已经分配则跳过；否则放入 fallback
             primary = fallback_primary or "未分类"
             node = organized.setdefault(primary, {"_items": [], "_subcategories": {}})
             if fallback_secondary:
-                node["_subcategories"].setdefault(fallback_secondary, {"_items": []})["_items"].append(bookmark)
+                node["_subcategories"].setdefault(fallback_secondary, {"_items": []})[
+                    "_items"
+                ].append(bookmark)
             else:
                 node["_items"].append(bookmark)
 
@@ -396,7 +439,9 @@ class LLMBookmarkOrganizer:
                 for name, value in rest:
                     new_subdict[name] = value
             for value in new_subdict.values():
-                value["_items"].sort(key=lambda x: x.get("confidence", 0.0), reverse=True)
+                value["_items"].sort(
+                    key=lambda x: x.get("confidence", 0.0), reverse=True
+                )
             node["_subcategories"] = new_subdict
 
         return ordered

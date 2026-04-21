@@ -1,6 +1,7 @@
 import re
-import yaml
 from typing import Dict, Optional, Tuple
+
+import yaml
 
 from src.utils.resource_loader import resolve_taxonomy_path
 
@@ -74,7 +75,9 @@ class TaxonomyStandardizer:
         low = t.lower()
         return self._resource_types_map.get(low)
 
-    def derive_from_category(self, category: str, content_type: Optional[str] = None) -> Tuple[Optional[str], Optional[str]]:
+    def derive_from_category(
+        self, category: str, content_type: Optional[str] = None
+    ) -> Tuple[Optional[str], Optional[str]]:
         if not category:
             return None, None
         cat = str(category).strip()

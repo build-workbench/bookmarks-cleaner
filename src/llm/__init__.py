@@ -10,15 +10,13 @@ if TYPE_CHECKING:
     from .classifier import LLMClassifier
     from .organizer import LLMBookmarkOrganizer
     from .prompt_builder import LLMPromptBuilder
-    from .second_pass import SecondPassPrompt
-    from .exporter import PromptExporter
+    from .second_pass import SecondPassPromptGenerator
 
 __all__ = [
     "LLMClassifier",
     "LLMBookmarkOrganizer",
     "LLMPromptBuilder",
-    "SecondPassPrompt",
-    "PromptExporter",
+    "SecondPassPromptGenerator",
 ]
 
 
@@ -29,11 +27,11 @@ def __getattr__(name: str):
         "LLMBookmarkOrganizer": (".organizer", "LLMBookmarkOrganizer"),
         "LLMPromptBuilder": (".prompt_builder", "LLMPromptBuilder"),
         "SecondPassPromptGenerator": (".second_pass", "SecondPassPromptGenerator"),
-        "PromptExporter": (".exporter", "export_llm_prompt"),
     }
     if name in _mapping:
         module_path, cls_name = _mapping[name]
         import importlib
+
         module = importlib.import_module(module_path, __name__)
         return getattr(module, cls_name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

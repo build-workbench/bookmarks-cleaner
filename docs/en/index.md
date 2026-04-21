@@ -41,6 +41,46 @@ import HomeHero from '../.vitepress/theme/components/HomeHero.vue'
 import TerminalDemo from '../.vitepress/theme/components/TerminalDemo.vue'
 import StatsCounter from '../.vitepress/theme/components/StatsCounter.vue'
 import PipelineDiagram from '../.vitepress/theme/components/PipelineDiagram.vue'
+import ProjectStructure from '../.vitepress/theme/components/ProjectStructure.vue'
+
+const structure = [
+  {
+    name: 'src/',
+    type: 'folder',
+    desc: 'Source code directory',
+    children: [
+      { name: 'classifiers/', type: 'folder', desc: 'AI/ML/LLM classifiers' },
+      { name: 'engines/', type: 'folder', desc: 'Rule/Semantic/URL engines' },
+      { name: 'core/', type: 'folder', desc: 'Processor/Exporter/Deduplicator' },
+      { name: 'llm/', type: 'folder', desc: 'LLM tools and prompts' },
+      { name: 'health/', type: 'folder', desc: 'Health check modules' },
+      { name: 'data/', type: 'folder', desc: 'Data processing modules' },
+      { name: 'utils/', type: 'folder', desc: 'Config & utilities' },
+      { name: 'cli/', type: 'folder', desc: 'Command-line interfaces' },
+      { name: 'plugins/', type: 'folder', desc: 'Plugin system' },
+      { name: 'services/', type: 'folder', desc: 'Service layer' },
+    ]
+  },
+  {
+    name: 'config/',
+    type: 'folder',
+    desc: 'Configuration directory',
+    children: [
+      { name: 'taxonomy/', type: 'folder', desc: 'Taxonomy vocabularies' },
+      { name: 'agent/', type: 'folder', desc: 'Agent configurations' },
+    ]
+  },
+  {
+    name: 'docs/',
+    type: 'folder',
+    desc: 'Documentation (VitePress)'
+  },
+  {
+    name: 'tests/',
+    type: 'folder',
+    desc: 'Test code'
+  },
+]
 
 const terminalLines = [
   { type: 'input', content: 'cleanbook -i bookmarks.html -o output/', delay: 500 },
@@ -53,26 +93,26 @@ const terminalLines = [
 ]
 
 const pipelineSteps = [
-  { 
-    title: 'Data Parsing', 
+  {
+    title: 'Data Parsing',
     description: 'Parse HTML/JSON bookmark files, extract URLs, titles, and folder structures',
     icon: '📄',
     meta: ['Netscape HTML', 'JSON', 'Chrome/Firefox']
   },
-  { 
-    title: 'Smart Deduplication', 
+  {
+    title: 'Smart Deduplication',
     description: 'URL normalization and multi-dimensional similarity detection for duplicate links',
     icon: '🔍',
     meta: ['URL Norm', 'SimHash', 'Levenshtein']
   },
-  { 
-    title: 'Multi-Level Classification', 
+  {
+    title: 'Multi-Level Classification',
     description: 'Rules engine + ML + Semantic analysis + LLM fusion classification',
     icon: '🤖',
     meta: ['91.4% Acc', 'Fusion Voting', 'Auto-Fallback']
   },
-  { 
-    title: 'Output Generation', 
+  {
+    title: 'Output Generation',
     description: 'Generate organized bookmark files and statistical reports',
     icon: '📦',
     meta: ['HTML', 'Markdown', 'JSON']
@@ -203,6 +243,24 @@ CleanBook targets the scenario of "long-term browser bookmark maintenance":
 - **Individual Users**: Heavy browser users who want to organize bookmarks offline first, then optionally introduce ML/LLM
 - **Team Maintainers**: Technical leads who need unified team bookmark classification rules, vocabularies and output formats
 - **Developers**: Open source contributors who want to understand bookmark processing pipelines and configuration-driven design
+
+## Project Structure
+
+<ProjectStructure title="Modular Project Structure" :structure="structure" />
+
+CleanBook adopts a clear modular directory structure for easy maintenance and extension:
+
+- **`src/classifiers/`** - Layered classifiers: Rules → ML → LLM
+- **`src/engines/`** - Core engines: rule matching, semantic analysis, URL parsing
+- **`src/core/`** - Core processing: BookmarkProcessor, exporter, deduplicator
+- **`src/llm/`** - LLM related: organizer, prompt builder, exporter
+- **`src/health/`** - System health checks
+- **`src/data/`** - Data processing layer
+- **`src/utils/`** - Utilities and config management
+- **`src/cli/`** - Unified CLI entry point
+- **`config/`** - Centralized configuration management
+
+---
 
 ## Learning Paths
 

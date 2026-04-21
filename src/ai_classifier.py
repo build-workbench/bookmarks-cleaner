@@ -9,20 +9,20 @@ AI书签分类器核心模块
 - 用户行为学习
 """
 
-import os
+import hashlib
 import json
 import logging
-from typing import Dict, List, Tuple, Optional
+import os
+import re
+from collections import OrderedDict, defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from collections import defaultdict, OrderedDict
-import hashlib
-import re
+from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 # Pre-compiled regex patterns for performance
-_CHINESE_REGEX = re.compile(r'[\u4e00-\u9fff]')
-_ENGLISH_REGEX = re.compile(r'[a-zA-Z]')
+_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
+_ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
 
 # 导入子模块
 try:
@@ -37,7 +37,11 @@ except ImportError:
     LLMClassifier = None
 
 from src.engines.rules import RuleEngine
-from src.utils.category import strip_category_prefix, normalize_category_string, normalize_category_config
+from src.utils.category import (
+    normalize_category_config,
+    normalize_category_string,
+    strip_category_prefix,
+)
 from src.utils.resource_loader import load_json_config, resolve_config_path
 
 # 导入智能规则加载器
@@ -60,6 +64,7 @@ except ImportError:
 @dataclass
 class BookmarkFeatures:
     """书签特征"""
+
     url: str
     title: str
     domain: str
@@ -79,7 +84,7 @@ class BookmarkFeatures:
 
     @property
     def is_secure(self) -> bool:
-        return self.url.startswith('https://')
+        return self.url.startswith("https://")
 
     @property
     def has_chinese(self) -> bool:
@@ -94,6 +99,7 @@ class ClassificationResult:
     注意：此定义与 src.plugins.base.ClassificationResult 保持一致。
     如需修改，请同步更新两处。
     """
+
     category: str
     confidence: float
     subcategory: Optional[str] = None
@@ -113,14 +119,23 @@ class ClassificationResult:
 class AIBookmarkClassifier:
     """AI智能书签分类器"""
 
-    def __init__(self, config_path: str | None = None, enable_ml: bool = True, config: Optional[Dict] = None):
+    def __init__(
+        self,
+        config_path: str | None = None,
+        enable_ml: bool = True,
+        config: Optional[Dict] = None,
+    ):
         resolved_path, self._explicit_config = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
         self.enable_ml = enable_ml
         self.logger = logging.getLogger(__name__)
 
         # 延迟初始化组件
-        self._config: Optional[Dict] = self._normalize_category_config(config) if isinstance(config, dict) else None
+        self._config: Optional[Dict] = (
+            self._normalize_category_config(config)
+            if isinstance(config, dict)
+            else None
+        )
         self._rule_engine: Optional[RuleEngine] = None
         self._semantic_analyzer: Optional[SemanticAnalyzer] = None
         self._user_profiler: Optional[UserProfiler] = None
@@ -130,22 +145,24 @@ class AIBookmarkClassifier:
 
         # 缓存（OrderedDict 实现 LRU 淘汰）
         self.feature_cache: OrderedDict[str, BookmarkFeatures] = OrderedDict()
-        self.classification_cache: OrderedDict[str, ClassificationResult] = OrderedDict()
+        self.classification_cache: OrderedDict[str, ClassificationResult] = (
+            OrderedDict()
+        )
         # 从配置读取缓存大小，默认值作为后备
         self._max_cache_size = 5000
         self._max_feature_cache_size = 10000
 
         # 统计
         self.stats = {
-            'total_classified': 0,
-            'rule_engine': 0,
-            'ml_classifier': 0,
-            'semantic_analyzer': 0,
-            'user_profiler': 0,
-            'fallback': 0,
-            'cache_hits': 0,
-            'average_confidence': 0.0,
-            'llm': 0,
+            "total_classified": 0,
+            "rule_engine": 0,
+            "ml_classifier": 0,
+            "semantic_analyzer": 0,
+            "user_profiler": 0,
+            "fallback": 0,
+            "cache_hits": 0,
+            "average_confidence": 0.0,
+            "llm": 0,
         }
 
     @property
@@ -153,11 +170,11 @@ class AIBookmarkClassifier:
         if self._config is None:
             self._config = self._load_config()
         # 从配置更新缓存大小
-        ai_settings = self._config.get('ai_settings', {})
-        if 'cache_size' in ai_settings:
-            self._max_cache_size = ai_settings['cache_size']
-        if 'feature_cache_size' in ai_settings:
-            self._max_feature_cache_size = ai_settings['feature_cache_size']
+        ai_settings = self._config.get("ai_settings", {})
+        if "cache_size" in ai_settings:
+            self._max_cache_size = ai_settings["cache_size"]
+        if "feature_cache_size" in ai_settings:
+            self._max_feature_cache_size = ai_settings["feature_cache_size"]
         return self._config
 
     @property
@@ -179,7 +196,7 @@ class AIBookmarkClassifier:
         return self._user_profiler
 
     @property
-    def performance_monitor(self) -> Optional['PerformanceMonitor']:
+    def performance_monitor(self) -> Optional["PerformanceMonitor"]:
         if self._performance_monitor is None and PerformanceMonitor is not None:
             try:
                 self._performance_monitor = PerformanceMonitor()
@@ -219,7 +236,9 @@ class AIBookmarkClassifier:
                 self.logger.warning(f"智能规则加载失败，保留主配置: {e}")
 
         normalized = self._normalize_category_config(config)
-        if not isinstance(normalized.get("category_rules"), dict) or not normalized.get("category_rules"):
+        if not isinstance(normalized.get("category_rules"), dict) or not normalized.get(
+            "category_rules"
+        ):
             source = "显式配置" if explicit else "默认配置"
             raise ValueError(f"{source}缺少有效的 category_rules: {self.config_path}")
         return normalized
@@ -246,15 +265,15 @@ class AIBookmarkClassifier:
 
         try:
             parsed = urlparse(url)
-            domain = parsed.netloc.lower().replace('www.', '')
-            path_segments = [seg for seg in parsed.path.split('/') if seg]
+            domain = parsed.netloc.lower().replace("www.", "")
+            path_segments = [seg for seg in parsed.path.split("/") if seg]
 
             # 解析查询参数
             query_params: Dict[str, str] = {}
             if parsed.query:
-                for param in parsed.query.split('&'):
-                    if '=' in param:
-                        key, value = param.split('=', 1)
+                for param in parsed.query.split("&"):
+                    if "=" in param:
+                        key, value = param.split("=", 1)
                         query_params[key] = value
 
             content_type = self._detect_content_type(url, title)
@@ -279,7 +298,13 @@ class AIBookmarkClassifier:
         except Exception as e:
             self.logger.error(f"特征提取失败 {url}: {e}")
             return BookmarkFeatures(
-                url=url, title=title, domain="", path_segments=[], query_params={}, content_type="unknown", language="unknown"
+                url=url,
+                title=title,
+                domain="",
+                path_segments=[],
+                query_params={},
+                content_type="unknown",
+                language="unknown",
             )
 
     def classify(self, url: str, title: str) -> ClassificationResult:
@@ -288,7 +313,7 @@ class AIBookmarkClassifier:
         # 缓存命中
         cache_key = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
         if cache_key in self.classification_cache:
-            self.stats['cache_hits'] += 1
+            self.stats["cache_hits"] += 1
             self.classification_cache.move_to_end(cache_key)  # LRU 更新
             cached = self.classification_cache[cache_key]
             cached.processing_time = (datetime.now() - start_time).total_seconds()
@@ -314,24 +339,27 @@ class AIBookmarkClassifier:
             _collect(self.ml_classifier.classify(features))
 
         # 3) 语义分析
-        if self.config.get('ai_settings', {}).get('use_semantic_analysis', True):
+        if self.config.get("ai_settings", {}).get("use_semantic_analysis", True):
             _collect(self.semantic_analyzer.classify(features))
 
         # 4) 用户画像
-        if self.config.get('ai_settings', {}).get('use_user_profiling', True):
+        if self.config.get("ai_settings", {}).get("use_user_profiling", True):
             _collect(self.user_profiler.classify(features))
 
         # 5) LLM（可选）
         if self.llm_classifier and self.llm_classifier.enabled():
             try:
-                _collect(self.llm_classifier.classify(
-                    url, title,
-                    context={
-                        'domain': features.domain,
-                        'content_type': features.content_type,
-                        'language': features.language,
-                    },
-                ))
+                _collect(
+                    self.llm_classifier.classify(
+                        url,
+                        title,
+                        context={
+                            "domain": features.domain,
+                            "content_type": features.content_type,
+                            "language": features.language,
+                        },
+                    )
+                )
             except Exception as e:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
@@ -340,18 +368,18 @@ class AIBookmarkClassifier:
 
         # 方法统计
         final_method = final_result.method
-        if 'rule_engine' in final_method:
-            self.stats['rule_engine'] += 1
-        if 'machine_learning' in final_method:
-            self.stats['ml_classifier'] += 1
-        if 'semantic_analyzer' in final_method:
-            self.stats['semantic_analyzer'] += 1
-        if 'user_profiler' in final_method:
-            self.stats['user_profiler'] += 1
-        if 'llm' in final_method:
-            self.stats['llm'] += 1
-        if final_method == 'fallback':
-            self.stats['fallback'] += 1
+        if "rule_engine" in final_method:
+            self.stats["rule_engine"] += 1
+        if "machine_learning" in final_method:
+            self.stats["ml_classifier"] += 1
+        if "semantic_analyzer" in final_method:
+            self.stats["semantic_analyzer"] += 1
+        if "user_profiler" in final_method:
+            self.stats["user_profiler"] += 1
+        if "llm" in final_method:
+            self.stats["llm"] += 1
+        if final_method == "fallback":
+            self.stats["fallback"] += 1
 
         # 时间统计
         final_result.processing_time = (datetime.now() - start_time).total_seconds()
@@ -368,14 +396,14 @@ class AIBookmarkClassifier:
             return raw
         if isinstance(raw, dict):
             return ClassificationResult(
-                category=raw.get('category', '未分类'),
-                confidence=float(raw.get('confidence', 0.0)),
-                subcategory=raw.get('subcategory'),
-                reasoning=raw.get('reasoning', []),
-                alternatives=raw.get('alternatives', []),
-                processing_time=float(raw.get('processing_time', 0.0)),
-                method=raw.get('method', 'unknown'),
-                facets=raw.get('facets', {}),
+                category=raw.get("category", "未分类"),
+                confidence=float(raw.get("confidence", 0.0)),
+                subcategory=raw.get("subcategory"),
+                reasoning=raw.get("reasoning", []),
+                alternatives=raw.get("alternatives", []),
+                processing_time=float(raw.get("processing_time", 0.0)),
+                method=raw.get("method", "unknown"),
+                facets=raw.get("facets", {}),
             )
         raise TypeError(f"Unexpected classification result type: {type(raw)}")
 
@@ -387,7 +415,9 @@ class AIBookmarkClassifier:
                 self.classification_cache.popitem(last=False)  # 淘汰最久未使用
             self.classification_cache[cache_key] = result
 
-    def _ensemble_classification(self, results: List[ClassificationResult], features: BookmarkFeatures) -> ClassificationResult:
+    def _ensemble_classification(
+        self, results: List[ClassificationResult], features: BookmarkFeatures
+    ) -> ClassificationResult:
         if not results:
             return ClassificationResult(
                 category="未分类",
@@ -403,16 +433,16 @@ class AIBookmarkClassifier:
         merged_facets: Dict[str, str] = {}
 
         method_weights = {
-            'rule_engine': 0.50,  # 提高规则引擎权重
-            'machine_learning': 0.15,  # 降低 ML 权重（因为模型可能过时）
-            'semantic_analyzer': 0.10,
-            'user_profiler': 0.10,
-            'llm': 0.50,
+            "rule_engine": 0.50,  # 提高规则引擎权重
+            "machine_learning": 0.15,  # 降低 ML 权重（因为模型可能过时）
+            "semantic_analyzer": 0.10,
+            "user_profiler": 0.10,
+            "llm": 0.50,
         }
 
         for res in results:
             method = res.method
-            category = self._normalize_category_string(res.category) or '未分类'
+            category = self._normalize_category_string(res.category) or "未分类"
             confidence = res.confidence
             reasoning = res.reasoning
             facets = res.facets or {}
@@ -440,18 +470,20 @@ class AIBookmarkClassifier:
         confidence = top_score / total_score if total_score > 0 else 0.0
 
         alternatives = [
-            (cat, score / total_score) for cat, score in category_scores.items() if cat != best_category and total_score > 0
+            (cat, score / total_score)
+            for cat, score in category_scores.items()
+            if cat != best_category and total_score > 0
         ]
         alternatives.sort(key=lambda x: x[1], reverse=True)
 
         subcategory = self._determine_subcategory(best_category, features)
 
-        final_method = '+'.join(set(methods_used)) if methods_used else 'unknown'
+        final_method = "+".join(set(methods_used)) if methods_used else "unknown"
 
-        threshold = self.config.get('ai_settings', {}).get('confidence_threshold', 0.7)
+        threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
         try:
             threshold = float(threshold)
-        except Exception:
+        except (TypeError, ValueError):
             threshold = 0.7
         if threshold < 0:
             threshold = 0.0
@@ -489,8 +521,10 @@ class AIBookmarkClassifier:
             facets=merged_facets,
         )
 
-    def _determine_subcategory(self, category: str, features: BookmarkFeatures) -> Optional[str]:
-        hierarchy = self.config.get('category_hierarchy', {})
+    def _determine_subcategory(
+        self, category: str, features: BookmarkFeatures
+    ) -> Optional[str]:
+        hierarchy = self.config.get("category_hierarchy", {})
         if isinstance(hierarchy, dict) and category in hierarchy:
             subs = hierarchy[category]
             title_lower = features.title.lower()
@@ -503,35 +537,45 @@ class AIBookmarkClassifier:
         url_lower = url.lower()
         title_lower = title.lower()
 
-        if any(domain in url_lower for domain in ['youtube.com', 'bilibili.com', 'vimeo.com']):
-            return 'video'
-        if any(domain in url_lower for domain in ['github.com', 'gitlab.com']):
-            return 'code_repository'
-        if any(pattern in url_lower for pattern in ['docs.', 'documentation', 'wiki']):
-            return 'documentation'
-        if any(domain in url_lower for domain in ['arxiv.org', 'acm.org', 'ieee.org']):
-            return 'academic_paper'
-        if any(keyword in title_lower for keyword in ['news', '新闻', 'breaking']):
-            return 'news'
-        if any(keyword in title_lower for keyword in ['tool', '工具', 'online', 'generator']):
-            return 'online_tool'
-        return 'webpage'
+        if any(
+            domain in url_lower
+            for domain in ["youtube.com", "bilibili.com", "vimeo.com"]
+        ):
+            return "video"
+        if any(domain in url_lower for domain in ["github.com", "gitlab.com"]):
+            return "code_repository"
+        if any(pattern in url_lower for pattern in ["docs.", "documentation", "wiki"]):
+            return "documentation"
+        if any(domain in url_lower for domain in ["arxiv.org", "acm.org", "ieee.org"]):
+            return "academic_paper"
+        if any(keyword in title_lower for keyword in ["news", "新闻", "breaking"]):
+            return "news"
+        if any(
+            keyword in title_lower
+            for keyword in ["tool", "工具", "online", "generator"]
+        ):
+            return "online_tool"
+        return "webpage"
 
     def _detect_language(self, title: str) -> str:
         if _CHINESE_REGEX.search(title):
-            return 'zh'
+            return "zh"
         elif _ENGLISH_REGEX.search(title):
-            return 'en'
+            return "en"
         else:
-            return 'unknown'
+            return "unknown"
 
     def _update_stats(self, result: ClassificationResult):
-        self.stats['total_classified'] += 1
-        total = self.stats['total_classified']
-        old_avg = self.stats['average_confidence']
-        self.stats['average_confidence'] = (old_avg * (total - 1) + result.confidence) / total
+        self.stats["total_classified"] += 1
+        total = self.stats["total_classified"]
+        old_avg = self.stats["average_confidence"]
+        self.stats["average_confidence"] = (
+            old_avg * (total - 1) + result.confidence
+        ) / total
 
-    def learn_from_feedback(self, url: str, title: str, correct_category: str, predicted_category: str):
+    def learn_from_feedback(
+        self, url: str, title: str, correct_category: str, predicted_category: str
+    ):
         features = self.extract_features(url, title)
         self.user_profiler.update_preferences(features, correct_category)
         if self.ml_classifier:
@@ -546,36 +590,42 @@ class AIBookmarkClassifier:
         self.logger.debug(f"学习反馈: {predicted_category} -> {correct_category}")
 
     def get_statistics(self) -> Dict:
-        total_predictions = self.stats['rule_engine'] + self.stats['ml_classifier'] + \
-                            self.stats['semantic_analyzer'] + self.stats['user_profiler'] + \
-                            self.stats['llm'] + self.stats['fallback']
+        total_predictions = (
+            self.stats["rule_engine"]
+            + self.stats["ml_classifier"]
+            + self.stats["semantic_analyzer"]
+            + self.stats["user_profiler"]
+            + self.stats["llm"]
+            + self.stats["fallback"]
+        )
         return {
-            'total_classified': self.stats['total_classified'],
-            'cache_hits': self.stats['cache_hits'],
-            'cache_hit_rate': self.stats['cache_hits'] / max(self.stats['total_classified'], 1),
-            'average_confidence': self.stats['average_confidence'],
-            'classification_methods': {
-                'rule_engine': self.stats['rule_engine'],
-                'ml_classifier': self.stats['ml_classifier'],
-                'semantic_analyzer': self.stats['semantic_analyzer'],
-                'user_profiler': self.stats['user_profiler'],
-                'llm': self.stats['llm'],
-                'unclassified (fallback)': self.stats['fallback'],
-                'total': total_predictions,
+            "total_classified": self.stats["total_classified"],
+            "cache_hits": self.stats["cache_hits"],
+            "cache_hit_rate": self.stats["cache_hits"]
+            / max(self.stats["total_classified"], 1),
+            "average_confidence": self.stats["average_confidence"],
+            "classification_methods": {
+                "rule_engine": self.stats["rule_engine"],
+                "ml_classifier": self.stats["ml_classifier"],
+                "semantic_analyzer": self.stats["semantic_analyzer"],
+                "user_profiler": self.stats["user_profiler"],
+                "llm": self.stats["llm"],
+                "unclassified (fallback)": self.stats["fallback"],
+                "total": total_predictions,
             },
-            'ml_enabled': self.ml_classifier is not None,
+            "ml_enabled": self.ml_classifier is not None,
         }
 
     def save_model(self, path: str = "models/ai_classifier.json"):
         os.makedirs(os.path.dirname(path), exist_ok=True)
         model_data = {
-            'version': '2.0',
-            'timestamp': datetime.now().isoformat(),
-            'stats': self.stats,
-            'user_profile': self.user_profiler.export_profile(),
-            'config': self.config,
+            "version": "2.0",
+            "timestamp": datetime.now().isoformat(),
+            "stats": self.stats,
+            "user_profile": self.user_profiler.export_profile(),
+            "config": self.config,
         }
-        with open(path, 'w', encoding='utf-8') as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(model_data, f, ensure_ascii=False, indent=2)
         if self.ml_classifier:
             self.ml_classifier.save_model()
@@ -586,10 +636,10 @@ class AIBookmarkClassifier:
             self.logger.warning(f"模型文件不存在: {path}")
             return
         try:
-            with open(path, 'r', encoding='utf-8') as f:
+            with open(path, "r", encoding="utf-8") as f:
                 model_data = json.load(f)
-            self.stats = model_data.get('stats', self.stats)
-            self.user_profiler.import_profile(model_data.get('user_profile', {}))
+            self.stats = model_data.get("stats", self.stats)
+            self.user_profiler.import_profile(model_data.get("user_profile", {}))
             if self.ml_classifier:
                 self.ml_classifier.load_model()
             self.logger.info(f"模型已从 {path} 加载")

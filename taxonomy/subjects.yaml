@@ -55,11 +55,6 @@ subjects:
   - 未分类
   - 其他分类
   - 杂项
-- preferred: '0'
-  variants:
-  - 源变体1
-  - TPO据
-  description: ''
 - preferred: 全c能
   variants: []
   description: ''
@@ -130,9 +125,6 @@ subjects:
   variants: []
   description: ''
 - preferred: JjIZ1iJ
-  variants: []
-  description: ''
-- preferred: r
   variants: []
   description: ''
 - preferred: J人CdNqc安s
@@ -225,14 +217,433 @@ subjects:
   - 源分类
   description: ''
   children:
-  - preferred: 子分类1
+  - &id001
+    preferred: 子分类1
     variants: []
     description: ''
-  - preferred: 子分类2
+  - &id002
+    preferred: 子分类2
     variants: []
     description: ''
+  - *id001
+  - *id002
 - preferred: 分类A新
   variants:
-  - 分类A
   - 分类B
+  - 分类A
+  description: ''
+- preferred: ds
+  variants: []
+  description: ''
+- preferred: Tu
+  variants: []
+  description: ''
+- preferred: 后
+  variants: []
+  description: ''
+- preferred: 数V络Z
+  variants: []
+  description: ''
+- preferred: q计O算L9w据算
+  variants: []
+  description: ''
+- preferred: GP
+  variants: []
+  description: ''
+- preferred: 前云ei
+  variants: []
+  description: ''
+- preferred: 1gIIv数程P
+  variants: []
+  description: ''
+- preferred: 云编机m
+  variants: []
+  description: ''
+- preferred: QK发t学A-科智-据
+  variants: []
+  description: ''
+- preferred: X6云5V4A科86器科
+  variants: []
+  description: ''
+- preferred: TF
+  variants: []
+  description: ''
+- preferred: 4dJ端y安-
+  variants: []
+  description: ''
+- preferred: 6y7ZG数Q算uWN
+  variants: []
+  description: ''
+- preferred: 人云
+  variants: []
+  description: ''
+- preferred: 7loe
+  variants: []
+  description: ''
+- preferred: rB
+  variants: []
+  description: ''
+- preferred: 机wQ7o端4
+  variants: []
+  description: ''
+- preferred: X器50II
+  variants: []
+  description: ''
+- preferred: kL学后jcB据
+  variants: []
+  description: ''
+- preferred: 算yq1B
+  variants: []
+  description: ''
+- preferred: y
+  variants: []
+  description: ''
+- preferred: kj-
+  variants: []
+  description: ''
+- preferred: 习FmluT-x据智前UVA3U端C5G3Av4发
+  variants: []
+  description: ''
+- preferred: 'NULL'
+  variants: []
+  description: ''
+- preferred: fM
+  variants: []
+  description: ''
+- preferred: f工LY3-pKehLd
+  variants: []
+  description: ''
+- preferred: 编B
+  variants: []
+  description: ''
+- preferred: 后R
+  variants: []
+  description: ''
+- preferred: 计nDQ前s
+  variants: []
+  description: ''
+- preferred: I人z6
+  variants: []
+  description: ''
+  children:
+  - preferred: 能Ai
+    variants: []
+    description: ''
+- preferred: 0ZM后Y络m据SvD
+  variants: []
+  description: ''
+  children:
+  - preferred: Q
+    variants: []
+    description: ''
+  - preferred: 程rF
+    variants: []
+    description: ''
+  - preferred: 开Z
+    variants: []
+    description: ''
+  - preferred: C器N
+    variants: []
+    description: ''
+  - preferred: Xc习bKg51
+    variants: []
+    description: ''
+- preferred: 数
+  variants: []
+  description: ''
+- preferred: 深
+  variants: []
+  description: ''
+- preferred: 开0t络Isf1T智tq网CJP开网
+  variants: []
+  description: ''
+- preferred: 学lB
+  variants: []
+  description: ''
+- preferred: 人开5b后编科Cp编j人K
+  variants: []
+  description: ''
+- preferred: j深
+  variants: []
+  description: ''
+- preferred: INF
+  variants: []
+  description: ''
+- preferred: 9k
+  variants: []
+  description: ''
+- preferred: '4'
+  variants: []
+  description: ''
+- preferred: c
+  variants:
+  - i
+  description: ''
+- preferred: Sk后w后全8E人
+  variants:
+  - 5器
+  description: ''
+- preferred: 安4G
+  variants:
+  - s0计
+  description: ''
+- preferred: FUh智fC
+  variants:
+  - gSBJ智编
+  - TPO据
+  - 目标变体1
+  - X
+  - 源变体1
+  description: ''
+- preferred: 开DlQig
+  variants:
+  - eA深-能Z
+  - TPO据
+  - 目标变体1
+  - X
+  - 源变体1
+  description: ''
+- preferred: a网器Tvqt人i工e程人算安5Q
+  variants:
+  - eA深-能Z
+  - P计8
+  - TPO据
+  - 目标变体1
+  - X
+  - 源变体1
+  description: ''
+- preferred: 智
+  variants:
+  - 源变体1
+  - 开bTD开V-D7b后
+  - 目标变体1
+  description: ''
+- preferred: 开机jp4
+  variants:
+  - uj
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: T据7F机能编P能qH
+  variants:
+  - 云X
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: SM学m_L5W安
+  variants:
+  - jOW习y学
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: y8
+  variants:
+  - eA深-能Z
+  - P计8
+  - TPO据
+  - '0'
+  - 目标变体1
+  - X
+  - 源变体1
+  description: ''
+- preferred: OHF网安M8lnB络
+  variants:
+  - 4P3
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 学安科DXgwHov发机
+  variants:
+  - 源变体1
+  - tE智学学68VCjPn
+  - 目标变体1
+  description: ''
+- preferred: 智73N编
+  variants:
+  - 学11N云G
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 开g智jP
+  variants:
+  - eOTJn安
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: r算iU网Royk
+  variants:
+  - h0
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: XN器智A发9X智JQPI3全tySoDWdZS
+  variants:
+  - TwU端uzidP
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: P程前M程G工E安Z
+  variants:
+  - 源变体1
+  - 算e
+  - 目标变体1
+  description: ''
+- preferred: Vj计学习qwe
+  variants:
+  - Y人程
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: YQ发工DaGBm0科b网wT
+  variants:
+  - 源变体1
+  - Le 数ozj网LM程X2据
+  - 目标变体1
+  description: ''
+- preferred: 云tH
+  variants:
+  - 源变体1
+  - tx科F安
+  - 目标变体1
+  description: ''
+- preferred: s1QbhxHGyZF后编Q机r
+  variants:
+  - 源变体1
+  - fZ
+  - 目标变体1
+  description: ''
+- preferred: 人A开
+  variants:
+  - 机
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 能N开
+  variants:
+  - r
+  - 目标变体1
+  description: ''
+- preferred: 科rf
+  variants:
+  - 源变体1
+  - 全r_数
+  - 目标变体1
+  description: ''
+- preferred: 63yX网w前PSz
+  variants:
+  - 编T8-安机 79络程W智fd发习开0LFY_1Rq0机c0
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 8网e科
+  variants:
+  - 算前K
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: v
+  variants:
+  - bqQ
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: oN2计工学Em端1_46人
+  variants:
+  - h人O
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 工机kL网J1d开
+  variants:
+  - c-pd
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: post
+  variants:
+  - ei开0据9
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: uT络度0ax机B深机Qw
+  variants:
+  - r
+  - 目标变体1
+  description: ''
+- preferred: P后u程x云
+  variants:
+  - 3智T后
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 9Q
+  variants:
+  - dGH智a网P2能b
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: G2H
+  variants:
+  - ImV
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: 能
+  variants:
+  - 源变体1
+  - 3XP络O度
+  - 目标变体1
+  description: ''
+- preferred: 全G-T
+  variants:
+  - 据算
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: n端
+  variants:
+  - I前bR习y9V
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: '2y开开习_后 '
+  variants:
+  - 2trf
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: RXH
+  variants:
+  - '2'
+  - 源变体1
+  - 目标变体1
+  description: ''
+- preferred: jNwc9云Tijbn
+  variants:
+  - 源变体1
+  - z
+  - 目标变体1
+  description: ''
+- preferred: 8网v据
+  variants:
+  - 源变体1
+  - 后器深
+  - 目标变体1
+  description: ''
+- preferred: w
+  variants:
+  - 源变体1
+  - 编
+  - 目标变体1
+  description: ''
+- preferred: E器AcNk习OH安9习xy2
+  variants:
+  - Y
+  - 目标变体1
+  description: ''
+- preferred: T编D工
+  variants:
+  - C工p
+  - 源变体1
+  - 目标变体1
   description: ''

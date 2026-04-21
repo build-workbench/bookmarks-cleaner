@@ -13,38 +13,39 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 
-def parse_markdown_report(report_path: str) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+def parse_markdown_report(
+    report_path: str,
+) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
     """
     解析 Markdown 格式的分类报告
-    
+
     Returns:
         (stats, bookmarks) - 统计信息和书签列表
     """
     with open(report_path, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     stats = {}
     bookmarks = []
-    
+
     # 解析统计信息
     total_match = re.search(r"\*\*总书签数\*\*:\s*(\d+)", content)
     if total_match:
         stats["total"] = int(total_match.group(1))
-    
+
     uncategorized_match = re.search(r"未分类:\s*(\d+)\s*个", content)
     if uncategorized_match:
         stats["uncategorized"] = int(uncategorized_match.group(1))
-    
+
     # 解析书签
     # 格式: - [标题](URL) (置信度)
     bookmark_pattern = re.compile(
-        r"^-\s+\[([^\]]+)\]\(([^)]+)\)\s*\(?([\d.]+)?\)?",
-        re.MULTILINE
+        r"^-\s+\[([^\]]+)\]\(([^)]+)\)\s*\(?([\d.]+)?\)?", re.MULTILINE
     )
-    
+
     current_category = "未分类"
     current_subcategory = ""
-    
+
     lines = content.split("\n")
     for i, line in enumerate(lines):
         # 检测主分类标题 (## 开头)
@@ -52,29 +53,31 @@ def parse_markdown_report(report_path: str) -> Tuple[Dict[str, Any], List[Dict[s
             current_category = line[3:].strip()
             current_subcategory = ""
             continue
-        
+
         # 检测子分类标题 (### 开头)
         if line.startswith("### "):
             current_subcategory = line[4:].strip()
             continue
-        
+
         # 解析书签行
         match = bookmark_pattern.match(line.strip())
         if match:
             title, url, confidence = match.groups()
             conf = float(confidence) if confidence else 0.5
-            
+
             category = current_category
             if current_subcategory:
                 category = f"{current_category}/{current_subcategory}"
-            
-            bookmarks.append({
-                "title": title,
-                "url": url,
-                "category": category,
-                "confidence": conf,
-            })
-    
+
+            bookmarks.append(
+                {
+                    "title": title,
+                    "url": url,
+                    "category": category,
+                    "confidence": conf,
+                }
+            )
+
     stats["parsed"] = len(bookmarks)
     return stats, bookmarks
 
@@ -88,28 +91,28 @@ def generate_batch_classification_prompt(
     max_items: int = 100,
 ) -> str:
     """生成批量分类提示词"""
-    
+
     # 筛选需要处理的书签
     to_process = []
     for bm in bookmarks:
         cat = bm.get("category", "")
         conf = bm.get("confidence", 0)
-        
+
         needs_review = False
         if filter_uncategorized and "未分类" in cat:
             needs_review = True
         if filter_low_confidence and conf < confidence_threshold:
             needs_review = True
-        
+
         if needs_review:
             to_process.append(bm)
-    
+
     # 限制数量
     to_process = to_process[:max_items]
-    
+
     if not to_process:
         return "# 没有需要处理的书签\n所有书签已分类且置信度足够。"
-    
+
     # 构建提示词
     prompt = f"""# 书签智能分类任务
 
@@ -142,19 +145,19 @@ def generate_batch_classification_prompt(
 ## 待分类书签（共 {len(to_process)} 个）
 
 """
-    
+
     for i, bm in enumerate(to_process, 1):
         title = bm["title"][:80]
         url = bm["url"]
         current = bm["category"]
         conf = bm["confidence"]
-        
+
         prompt += f"""{i}. **{title}**
    - URL: {url}
    - 当前: {current} (置信度: {conf:.2f})
 
 """
-    
+
     prompt += """## 输出要求
 
 请以 JSON 数组格式输出分类结果：
@@ -173,7 +176,7 @@ def generate_batch_classification_prompt(
 
 ## 分类技巧
 
-1. **看域名**: 
+1. **看域名**:
    - github.com → 编程/代码仓库
    - huggingface.co → 人工智能/模型平台
    - *.zego.*/bgi.* → 工作台/司内业务
@@ -189,7 +192,7 @@ def generate_batch_classification_prompt(
    - 工具/在线服务 → 工具
 
 请开始分类："""
-    
+
     return prompt
 
 
@@ -199,7 +202,7 @@ def generate_review_prompt(
     sample_per_category: int = 5,
 ) -> str:
     """生成分类审查提示词"""
-    
+
     # 按分类分组
     by_category: Dict[str, List[Dict[str, Any]]] = {}
     for bm in bookmarks:
@@ -207,7 +210,7 @@ def generate_review_prompt(
         if cat not in by_category:
             by_category[cat] = []
         by_category[cat].append(bm)
-    
+
     prompt = """# 书签分类审查任务
 
 ## 任务说明
@@ -219,7 +222,7 @@ def generate_review_prompt(
 ## 当前分类统计
 
 """
-    
+
     for cat, items in sorted(by_category.items(), key=lambda x: -len(x[1])):
         prompt += f"### {cat} ({len(items)} 个)\n"
         for item in items[:sample_per_category]:
@@ -228,7 +231,7 @@ def generate_review_prompt(
         if len(items) > sample_per_category:
             prompt += f"- ... 还有 {len(items) - sample_per_category} 个\n"
         prompt += "\n"
-    
+
     prompt += """## 输出要求
 
 ```json
@@ -247,7 +250,7 @@ def generate_review_prompt(
 ```
 
 请开始审查："""
-    
+
     return prompt
 
 
@@ -255,7 +258,7 @@ def generate_html_export_prompt(
     bookmarks: List[Dict[str, Any]],
 ) -> str:
     """生成用于导出为浏览器书签 HTML 的提示词"""
-    
+
     # 按分类分组
     by_category: Dict[str, List[Dict[str, Any]]] = {}
     for bm in bookmarks:
@@ -263,7 +266,7 @@ def generate_html_export_prompt(
         if cat not in by_category:
             by_category[cat] = []
         by_category[cat].append(bm)
-    
+
     prompt = """# 书签整理与导出任务
 
 ## 任务说明
@@ -272,13 +275,13 @@ def generate_html_export_prompt(
 ## 当前书签
 
 """
-    
+
     for cat, items in sorted(by_category.items()):
         prompt += f"### {cat}\n"
         for item in items:
             prompt += f"- [{item['title']}]({item['url']})\n"
         prompt += "\n"
-    
+
     prompt += """## 输出要求
 
 1. 按分类整理书签
@@ -301,7 +304,7 @@ HTML 格式示例：
 ```
 
 请生成整理后的书签 HTML："""
-    
+
     return prompt
 
 
@@ -315,50 +318,40 @@ def main():
   python export_llm_prompt.py output/report.md -m review
   python export_llm_prompt.py output/report.md -m batch --max 50
   python export_llm_prompt.py output/report.md -o prompt.txt
-        """
+        """,
     )
-    
+
     parser.add_argument("report", help="分类报告文件路径")
     parser.add_argument(
-        "-m", "--mode",
+        "-m",
+        "--mode",
         choices=["batch", "review", "export"],
         default="batch",
-        help="提示词模式: batch(批量分类), review(审查), export(导出HTML)"
+        help="提示词模式: batch(批量分类), review(审查), export(导出HTML)",
+    )
+    parser.add_argument("-o", "--output", help="输出文件路径，不指定则输出到控制台")
+    parser.add_argument(
+        "--max", type=int, default=100, help="最大处理书签数量 (默认: 100)"
     )
     parser.add_argument(
-        "-o", "--output",
-        help="输出文件路径，不指定则输出到控制台"
+        "--threshold", type=float, default=0.7, help="置信度阈值 (默认: 0.7)"
     )
     parser.add_argument(
-        "--max",
-        type=int,
-        default=100,
-        help="最大处理书签数量 (默认: 100)"
+        "--all", action="store_true", help="处理所有书签，不仅是未分类/低置信度的"
     )
-    parser.add_argument(
-        "--threshold",
-        type=float,
-        default=0.7,
-        help="置信度阈值 (默认: 0.7)"
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="处理所有书签，不仅是未分类/低置信度的"
-    )
-    
+
     args = parser.parse_args()
-    
+
     # 检查文件存在
     if not Path(args.report).exists():
         print(f"错误: 文件不存在 - {args.report}", file=sys.stderr)
         sys.exit(1)
-    
+
     # 解析报告
     print(f"正在解析报告: {args.report}", file=sys.stderr)
     stats, bookmarks = parse_markdown_report(args.report)
     print(f"解析完成: 共 {stats.get('parsed', 0)} 个书签", file=sys.stderr)
-    
+
     # 生成提示词
     if args.mode == "batch":
         prompt = generate_batch_classification_prompt(
@@ -375,7 +368,7 @@ def main():
     else:
         print(f"未知模式: {args.mode}", file=sys.stderr)
         sys.exit(1)
-    
+
     # 输出
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:

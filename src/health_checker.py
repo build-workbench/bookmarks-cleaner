@@ -9,7 +9,11 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from src.utils.resource_loader import load_json_config, resolve_taxonomy_path, ResourceResolutionError
+from src.utils.resource_loader import (
+    ResourceResolutionError,
+    load_json_config,
+    resolve_taxonomy_path,
+)
 
 
 def run_health_check(config_path: Optional[str] = None):
@@ -23,9 +27,13 @@ def run_health_check(config_path: Optional[str] = None):
 
     python_version = sys.version_info
     if python_version < (3, 10):
-        issues.append(f"[ERROR] Python版本过低: {python_version.major}.{python_version.minor}, 需要 >= 3.10")
+        issues.append(
+            f"[ERROR] Python版本过低: {python_version.major}.{python_version.minor}, 需要 >= 3.10"
+        )
     else:
-        print(f"[OK] Python版本: {python_version.major}.{python_version.minor}.{python_version.micro}")
+        print(
+            f"[OK] Python版本: {python_version.major}.{python_version.minor}.{python_version.micro}"
+        )
 
     required_packages = [
         ("beautifulsoup4", "bs4"),
@@ -60,8 +68,12 @@ def run_health_check(config_path: Optional[str] = None):
                 issues.append(f"[ERROR] 配置文件缺少节: {section}")
 
         try:
-            subjects_path = resolve_taxonomy_path(config, "subjects_file", "taxonomy/subjects.yaml")
-            resource_types_path = resolve_taxonomy_path(config, "resource_types_file", "taxonomy/resource_types.yaml")
+            subjects_path = resolve_taxonomy_path(
+                config, "subjects_file", "taxonomy/subjects.yaml"
+            )
+            resource_types_path = resolve_taxonomy_path(
+                config, "resource_types_file", "taxonomy/resource_types.yaml"
+            )
             print(f"[OK] taxonomy subjects: {subjects_path}")
             print(f"[OK] taxonomy resource_types: {resource_types_path}")
         except FileNotFoundError as exc:
@@ -87,7 +99,9 @@ def run_health_check(config_path: Optional[str] = None):
 
     examples_dir = Path("examples")
     if examples_dir.exists():
-        html_files = [p for p in examples_dir.iterdir() if p.suffix.lower() in {".html", ".htm"}]
+        html_files = [
+            p for p in examples_dir.iterdir() if p.suffix.lower() in {".html", ".htm"}
+        ]
         if html_files:
             print(f"[OK] 示例数据: 找到 {len(html_files)} 个HTML文件")
         else:

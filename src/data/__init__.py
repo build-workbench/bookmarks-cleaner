@@ -7,8 +7,9 @@ data - 数据处理模块
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .exporter import DataExporter
     from src.data.deduplicator import BookmarkDeduplicator
+
+    from .exporter import DataExporter
 
 __all__ = ["DataExporter", "BookmarkDeduplicator"]
 
@@ -22,6 +23,7 @@ def __getattr__(name: str):
     if name in _mapping:
         module_path, cls_name = _mapping[name]
         import importlib
+
         module = importlib.import_module(module_path, __name__)
         return getattr(module, cls_name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

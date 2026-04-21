@@ -20,10 +20,12 @@ LLM Classifier - 可选大模型分类器
   }
 }
 """
+
 from __future__ import annotations
 
-import json
 import hashlib
+import json
+import logging
 import os
 import re
 from typing import Any, Dict, List, Optional, Tuple
@@ -31,13 +33,15 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from src.utils.category import strip_category_prefix, normalize_category_string
+from src.utils.category import normalize_category_string, strip_category_prefix
 from src.utils.resource_loader import load_json_config, resolve_config_path
 
 # Pre-compiled regex patterns for performance
-_CHINESE_REGEX = re.compile(r'[\u4e00-\u9fff]')
-_ENGLISH_REGEX = re.compile(r'[a-zA-Z]')
-_KEYWORD_REGEX = re.compile(r'[a-zA-Z\u4e00-\u9fff]{2,}')
+_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
+_ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
+_KEYWORD_REGEX = re.compile(r"[a-zA-Z\u4e00-\u9fff]{2,}")
+
+logger = logging.getLogger(__name__)
 
 
 class LLMClassifier:
@@ -47,20 +51,23 @@ class LLMClassifier:
         self.config = self._load_config()
         self.llm_conf = self.config.get("llm", {}) or {}
         from src.llm.prompt_builder import LLMPromptBuilder
+
         self.prompt_builder = LLMPromptBuilder(self.config)
         self._cache: Dict[str, Dict] = {}
         self._stats = {
             "enabled": bool(self.llm_conf.get("enable", False)),
             "calls": 0,
             "cache_hits": 0,
-            "failures": 0
+            "failures": 0,
         }
 
     # -------------------- Public API --------------------
     def enabled(self) -> bool:
         return bool(self.llm_conf.get("enable", False))
 
-    def classify(self, url: str, title: str, context: Optional[Dict] = None) -> Optional[Dict]:
+    def classify(
+        self, url: str, title: str, context: Optional[Dict] = None
+    ) -> Optional[Dict]:
         if not self.enabled():
             return None
 
@@ -76,7 +83,9 @@ class LLMClassifier:
             self._stats["cache_hits"] += 1
             return self._cache[h]
 
-        base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip("/")
+        base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip(
+            "/"
+        )
         model = self.llm_conf.get("model", "gpt-4o-mini")
         temperature = float(self.llm_conf.get("temperature", 0.0))
         top_p = float(self.llm_conf.get("top_p", 1.0))
@@ -104,7 +113,7 @@ class LLMClassifier:
 
         headers = {
             "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         url_chat = f"{base_url}/v1/chat/completions"
@@ -114,12 +123,19 @@ class LLMClassifier:
         for _ in range(max_retries + 1):
             try:
                 self._stats["calls"] += 1
-                resp = requests.post(url_chat, headers=headers, json=payload, timeout=timeout)
+                resp = requests.post(
+                    url_chat, headers=headers, json=payload, timeout=timeout
+                )
                 if resp.status_code >= 400:
                     last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
                     continue
                 j = resp.json()
-                content = j.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                content = (
+                    j.get("choices", [{}])[0]
+                    .get("message", {})
+                    .get("content", "")
+                    .strip()
+                )
                 data = self._safe_parse_json(content)
                 if data:
                     break
@@ -131,7 +147,9 @@ class LLMClassifier:
             self._stats["failures"] += 1
             return None
 
-        category = self._map_to_known_category(data.get("category", "未分类"), categories)
+        category = self._map_to_known_category(
+            data.get("category", "未分类"), categories
+        )
         confidence = float(data.get("confidence", 0.0))
         reasons = data.get("reasons") or data.get("reason") or []
         if isinstance(reasons, str):
@@ -195,8 +213,8 @@ class LLMClassifier:
             if v.strip().lower() == low:
                 return v
         # 允许用 '/' 拆分选择主分类
-        if '/' in cat_n:
-            main = cat_n.split('/', 1)[0].strip()
+        if "/" in cat_n:
+            main = cat_n.split("/", 1)[0].strip()
             for v in valid:
                 if v.strip().lower() == main.lower():
                     return v
@@ -209,7 +227,7 @@ class LLMClassifier:
         # 容错：裁剪围绕的 ```json ``` 包裹
         if text.startswith("```"):
             # 去掉围栏
-            text = text.strip('`')
+            text = text.strip("`")
             # 去掉可能的 json 标记
             text = text.replace("json\n", "", 1)
         try:
@@ -217,12 +235,12 @@ class LLMClassifier:
         except json.JSONDecodeError:
             # 再尝试一次：寻找首个 '{' 到最后一个 '}'
             try:
-                start = text.find('{')
-                end = text.rfind('}')
+                start = text.find("{")
+                end = text.rfind("}")
                 if start >= 0 and end > start:
-                    return json.loads(text[start:end+1])
+                    return json.loads(text[start : end + 1])
             except json.JSONDecodeError:
-                self.logger.debug(f"JSON解析失败: {text[:100]}")
+                logger.debug(f"JSON解析失败: {text[:100]}")
                 return None
         return None
 
@@ -240,7 +258,9 @@ class LLMClassifier:
             library.append(entry)
         return library
 
-    def _build_bookmark_payload(self, url: str, title: str, context: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_bookmark_payload(
+        self, url: str, title: str, context: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """构建书签载荷"""
         parsed = urlparse(url)
         domain = parsed.netloc.lower()
@@ -260,15 +280,26 @@ class LLMClassifier:
         }
         return payload
 
-    def _build_hint_profile(self, url: str, title: str, bookmark_payload: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_hint_profile(
+        self, url: str, title: str, bookmark_payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """构建提示配置文件"""
         title_lower = title.lower()
         hints: Dict[str, Any] = {
-            "contains_code": any(token in title_lower for token in ["github", "repo", "代码", "编程"]),
-            "contains_doc": any(token in title_lower for token in ["doc", "文档", "documentation"]),
+            "contains_code": any(
+                token in title_lower for token in ["github", "repo", "代码", "编程"]
+            ),
+            "contains_doc": any(
+                token in title_lower for token in ["doc", "文档", "documentation"]
+            ),
             "likely_video": self._is_video_url(url),
-            "likely_news": any(token in title_lower for token in ["news", "资讯", "快讯"]),
-            "likely_forum": any(token in bookmark_payload["domain"] for token in ["forum", "bbs", "community"]),
+            "likely_news": any(
+                token in title_lower for token in ["news", "资讯", "快讯"]
+            ),
+            "likely_forum": any(
+                token in bookmark_payload["domain"]
+                for token in ["forum", "bbs", "community"]
+            ),
         }
         hints["language"] = self._detect_language(title)
         hints["secure_scheme"] = url.lower().startswith("https://")
@@ -293,4 +324,6 @@ class LLMClassifier:
 
     def _is_video_url(self, url: str) -> bool:
         lower = url.lower()
-        return any(host in lower for host in ["youtube.com", "bilibili.com", "vimeo.com"])
+        return any(
+            host in lower for host in ["youtube.com", "bilibili.com", "vimeo.com"]
+        )
