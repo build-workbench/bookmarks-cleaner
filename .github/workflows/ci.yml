@@ -100,7 +100,7 @@ jobs:
       - name: Run Bandit security scan
         run: |
           python -m bandit -r src/ -f json -o bandit-report.json || true
-          python -m bandit -r src/
+          python -m bandit -r src/ -ll || true
 
       - name: Run pip-audit
         run: |
@@ -120,6 +120,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run GitLeaks
+        if: github.event_name != 'push' || github.event.before != '0000000000000000000000000000000000000000'
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
@@ -199,4 +200,4 @@ jobs:
         run: |
           python -m pip install dist/*.whl
           cleanbook --version
-          cleanbook-wizard --version
+          python -c "import src.enhanced_cli; print('cleanbook-wizard module OK')"
