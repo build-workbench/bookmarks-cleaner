@@ -93,3 +93,7 @@ tests/output/*
 # Runtime artifacts
 unclassified_log.txt
 config_temp.json
+
+# BMad Method V6
+_bmad/
+_bmad-output/
