@@ -6,22 +6,24 @@ Classifier Plugins
 """
 
 __all__ = [
-    'EmbeddingClassifier',
-    'RuleClassifierPlugin',
-    'MLClassifierPlugin',
-    'LLMClassifierPlugin'
+    "EmbeddingClassifier",
+    "RuleClassifierPlugin",
+    "MLClassifierPlugin",
+    "LLMClassifierPlugin",
 ]
+
 
 def __getattr__(name: str):
     """按需延迟导入插件。"""
     _mapping = {
-        'EmbeddingClassifier': '.embedding_classifier',
-        'RuleClassifierPlugin': '.rule_classifier',
-        'MLClassifierPlugin': '.ml_classifier',
-        'LLMClassifierPlugin': '.llm_classifier',
+        "EmbeddingClassifier": ".embedding_classifier",
+        "RuleClassifierPlugin": ".rule_classifier",
+        "MLClassifierPlugin": ".ml_classifier",
+        "LLMClassifierPlugin": ".llm_classifier",
     }
     if name in _mapping:
         import importlib
+
         module = importlib.import_module(_mapping[name], __name__)
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

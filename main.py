@@ -5,17 +5,17 @@ AI智能书签分类器 - 主入口
 这是新一代基于AI的智能书签分类系统的主入口文件。
 """
 
+import argparse
+import glob
+import logging
 import os
 import sys
-import argparse
-import logging
-import glob
 from pathlib import Path
 
 from src import __version__
 from src.bookmark_processor import BookmarkProcessor
 from src.cli_interface import CLIInterface
-from src.resource_loader import resolve_config_path, ResourceResolutionError
+from src.resource_loader import ResourceResolutionError, resolve_config_path
 
 
 def setup_logging(log_level: str = "INFO", use_file: bool = False):
@@ -23,7 +23,9 @@ def setup_logging(log_level: str = "INFO", use_file: bool = False):
     handlers = [logging.StreamHandler()]
     if use_file:
         os.makedirs("logs", exist_ok=True)
-        handlers.insert(0, logging.FileHandler("logs/ai_classifier.log", encoding="utf-8"))
+        handlers.insert(
+            0, logging.FileHandler("logs/ai_classifier.log", encoding="utf-8")
+        )
 
     logging.basicConfig(
         level=getattr(logging, log_level.upper()),
@@ -47,10 +49,14 @@ def main():
         """,
     )
 
-    parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument(
+        "-V", "--version", action="version", version=f"%(prog)s {__version__}"
+    )
     parser.add_argument("-i", "--input", nargs="+", help="输入的HTML书签文件")
     parser.add_argument("-o", "--output", default="output", help="输出目录")
-    parser.add_argument("-c", "--config", default=None, help="配置文件路径；默认使用内置配置")
+    parser.add_argument(
+        "-c", "--config", default=None, help="配置文件路径；默认使用内置配置"
+    )
 
     parser.add_argument("--interactive", action="store_true", help="启动交互模式")
     parser.add_argument("--train", action="store_true", help="训练机器学习模型")
@@ -58,9 +64,13 @@ def main():
 
     parser.add_argument("--workers", type=int, default=4, help="并行处理线程数")
     parser.add_argument("--threshold", type=float, default=0.7, help="分类置信度阈值")
-    parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
+    parser.add_argument(
+        "--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"]
+    )
     parser.add_argument("--no-ml", action="store_true", help="禁用机器学习功能")
-    parser.add_argument("--limit", type=int, default=0, help="限制处理的书签数量（调试用）")
+    parser.add_argument(
+        "--limit", type=int, default=0, help="限制处理的书签数量（调试用）"
+    )
 
     args = parser.parse_args()
     logger = logging.getLogger(__name__)
@@ -87,10 +97,12 @@ def main():
         if args.input:
             input_files = []
             for pattern in args.input:
-                if ('*' in pattern or '?' in pattern) and (pattern.startswith('"') and pattern.endswith('"')):
+                if ("*" in pattern or "?" in pattern) and (
+                    pattern.startswith('"') and pattern.endswith('"')
+                ):
                     pattern = pattern.strip('"')
 
-                if '*' in pattern or '?' in pattern:
+                if "*" in pattern or "?" in pattern:
                     p = Path(pattern)
                     directory = p.parent
                     glob_pattern = p.name
@@ -100,7 +112,9 @@ def main():
                         if expanded:
                             input_files.extend(expanded)
                         else:
-                            logger.warning(f"在目录 '{directory}' 中没有找到匹配 '{glob_pattern}' 的文件")
+                            logger.warning(
+                                f"在目录 '{directory}' 中没有找到匹配 '{glob_pattern}' 的文件"
+                            )
                     else:
                         expanded_fallback = glob.glob(pattern)
                         if expanded_fallback:

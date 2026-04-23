@@ -13,11 +13,11 @@ from ..bookmark_processor import BookmarkProcessor
 from ..rule_engine import RuleEngine
 
 __all__ = [
-    'AIBookmarkClassifier',
-    'BookmarkFeatures',
-    'ClassificationResult',
-    'BookmarkProcessor',
-    'RuleEngine',
+    "AIBookmarkClassifier",
+    "BookmarkFeatures",
+    "ClassificationResult",
+    "BookmarkProcessor",
+    "RuleEngine",
 ]
 
-__version__ = '2.0.0'
+__version__ = "2.0.0"

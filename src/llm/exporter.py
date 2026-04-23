@@ -4,6 +4,7 @@ Export LLM Prompt Tool
 
 从分类报告中提取书签，生成用于第二轮大模型分类的提示词。
 """
+
 from __future__ import annotations
 
 import argparse

@@ -60,7 +60,9 @@ def resolve_config_path(config_path: Optional[str] = None) -> Tuple[Path, bool]:
     return default_config_path(), False
 
 
-def load_json_config(config_path: Optional[str] = None) -> Tuple[Dict[str, Any], Path, bool]:
+def load_json_config(
+    config_path: Optional[str] = None,
+) -> Tuple[Dict[str, Any], Path, bool]:
     path, explicit = resolve_config_path(config_path)
     try:
         with open(path, "r", encoding="utf-8") as f:
@@ -74,7 +76,9 @@ def load_json_config(config_path: Optional[str] = None) -> Tuple[Dict[str, Any],
     return data, path, explicit
 
 
-def resolve_taxonomy_path(config: Optional[Dict[str, Any]], key: str, default_relative_path: str) -> Path:
+def resolve_taxonomy_path(
+    config: Optional[Dict[str, Any]], key: str, default_relative_path: str
+) -> Path:
     taxonomy_cfg = (config or {}).get("taxonomy", {}) or {}
     raw_value = taxonomy_cfg.get(key) or default_relative_path
     candidate = Path(str(raw_value)).expanduser()

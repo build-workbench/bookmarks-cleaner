@@ -23,19 +23,19 @@ Example:
 """
 
 from .base import (
-    ClassifierPlugin,
-    PluginMetadata,
     BookmarkFeatures,
     ClassificationResult,
+    ClassifierPlugin,
+    PluginMetadata,
 )
-from .registry import PluginRegistry
 from .pipeline import ClassifierPipeline
+from .registry import PluginRegistry
 
 __all__ = [
-    'ClassifierPlugin',
-    'PluginMetadata',
-    'BookmarkFeatures',
-    'ClassificationResult',
-    'PluginRegistry',
-    'ClassifierPipeline',
+    "ClassifierPlugin",
+    "PluginMetadata",
+    "BookmarkFeatures",
+    "ClassificationResult",
+    "PluginRegistry",
+    "ClassifierPipeline",
 ]

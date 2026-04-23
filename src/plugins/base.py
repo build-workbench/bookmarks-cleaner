@@ -6,8 +6,8 @@ Plugin Base Classes and Interfaces
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Any, Tuple, TYPE_CHECKING
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
 # Forward declaration for type hints - actual import in TYPE_CHECKING block
@@ -18,6 +18,7 @@ if TYPE_CHECKING:
 @dataclass
 class BookmarkFeatures:
     """书签特征数据类"""
+
     url: str
     title: str
     domain: str
@@ -39,7 +40,7 @@ class BookmarkFeatures:
     @property
     def is_secure(self) -> bool:
         """是否为HTTPS安全链接"""
-        return self.url.startswith('https://')
+        return self.url.startswith("https://")
 
 
 @dataclass
@@ -60,6 +61,7 @@ class ClassificationResult:
         facets: 额外的分面信息字典
         score_breakdown: 各维度得分明细（兼容旧接口）
     """
+
     category: str
     confidence: float
     subcategory: Optional[str] = None
@@ -75,9 +77,11 @@ class ClassificationResult:
         """兼容旧接口的属性别名"""
         return self.alternatives
 
+
 @dataclass
 class PluginMetadata:
     """插件元数据"""
+
     name: str
     version: str
     capabilities: List[str]
@@ -170,7 +174,9 @@ class ClassifierPlugin(ABC):
         """
         return False
 
-    def classify_batch(self, features_list: List[BookmarkFeatures]) -> List[Optional[ClassificationResult]]:
+    def classify_batch(
+        self, features_list: List[BookmarkFeatures]
+    ) -> List[Optional[ClassificationResult]]:
         """
         批量分类（默认实现）
 

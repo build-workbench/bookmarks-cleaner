@@ -26,8 +26,8 @@ def normalize_category_string(category: str) -> str:
     cat = str(category).strip()
     if not cat:
         return ""
-    if '/' in cat:
-        main, sub = cat.split('/', 1)
+    if "/" in cat:
+        main, sub = cat.split("/", 1)
         main_n = strip_category_prefix(main)
         sub_n = strip_category_prefix(sub)
         return f"{main_n}/{sub_n}" if sub_n else main_n
@@ -41,11 +41,13 @@ def normalize_category_config(config: Dict) -> Dict:
 
     normalized = dict(config)
 
-    order = normalized.get('category_order')
+    order = normalized.get("category_order")
     if isinstance(order, list):
-        normalized['category_order'] = [strip_category_prefix(x) for x in order if str(x).strip()]
+        normalized["category_order"] = [
+            strip_category_prefix(x) for x in order if str(x).strip()
+        ]
 
-    dgr = normalized.get('domain_grouping_rules')
+    dgr = normalized.get("domain_grouping_rules")
     if isinstance(dgr, dict):
         new_dgr: Dict = {}
         for k, v in dgr.items():
@@ -56,9 +58,9 @@ def normalize_category_config(config: Dict) -> Dict:
                 new_dgr[nk].extend(v)
             else:
                 new_dgr[nk] = v
-        normalized['domain_grouping_rules'] = new_dgr
+        normalized["domain_grouping_rules"] = new_dgr
 
-    pr = normalized.get('priority_rules')
+    pr = normalized.get("priority_rules")
     if isinstance(pr, dict):
         new_pr = {}
         for k, v in pr.items():
@@ -66,9 +68,9 @@ def normalize_category_config(config: Dict) -> Dict:
             if not nk:
                 continue
             new_pr[nk] = v
-        normalized['priority_rules'] = new_pr
+        normalized["priority_rules"] = new_pr
 
-    cr = normalized.get('category_rules')
+    cr = normalized.get("category_rules")
     if isinstance(cr, dict):
         new_cr = {}
         for k, v in cr.items():
@@ -76,6 +78,6 @@ def normalize_category_config(config: Dict) -> Dict:
             if not nk:
                 continue
             new_cr[nk] = v
-        normalized['category_rules'] = new_cr
+        normalized["category_rules"] = new_cr
 
     return normalized

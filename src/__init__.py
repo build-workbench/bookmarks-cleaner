@@ -25,6 +25,7 @@ def __getattr__(name: str):
     }
     if name in _mapping:
         import importlib
+
         module = importlib.import_module(_mapping[name], __name__)
         return getattr(module, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
