@@ -1,0 +1,7 @@
+change:
+  name: architecture-upgrade
+  status: archived
+  archived_at: '2026-04-23'
+  created_at: '2025'
+  schema: spec-driven
+  description: Architecture upgrade from monolithic to plugin-based system with advanced classification algorithms

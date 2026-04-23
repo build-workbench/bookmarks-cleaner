@@ -1,0 +1,42 @@
+schema: spec-driven
+
+# Project context - shown to AI when creating artifacts
+context: |
+  Tech stack: Python 3.10+, scikit-learn, numpy, pandas, jieba (Chinese NLP)
+  CLI: click, rich (terminal UI), tqdm
+  Web/Parsing: beautifulsoup4, requests, lxml
+  Testing: pytest, hypothesis (property-based testing)
+
+  Architecture: Plugin-based classification system with:
+  - Plugin Registry for hot-pluggable classifiers
+  - Classifier Pipeline with weighted voting fusion
+  - Services layer (embedding, active learning, incremental training)
+
+  Conventions:
+  - Mixed Chinese/English codebase (accept both)
+  - Type hints throughout
+  - PEP8 style with black/isort formatting
+  - Docstrings required for public APIs
+  - Logger via logging.getLogger(__name__), not print
+
+  Domain: Browser bookmark classification and organization
+
+# Per-artifact rules
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a "Non-goals" section
+    - Reference existing specs in openspec/specs/ when building on prior work
+  design:
+    - Use mermaid diagrams for architecture
+    - List correctness properties to maintain
+    - Identify affected components from archived RFC 0001
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - Each task must have clear acceptance criteria
+    - Reference test files for verification
+    - Mark completed with [x], pending with [ ]
+  specs:
+    - Use ADDED/MODIFIED/REMOVED sections for delta specs
+    - Each requirement must have scenarios with GIVEN/WHEN/THEN format
+    - Include correctness properties for verification
