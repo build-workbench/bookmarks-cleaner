@@ -2,19 +2,34 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## ⚠️ IMPORTANT: Spec-Driven Development
+## ⚠️ IMPORTANT: OpenSpec Workflow (Spec-Driven Development)
 
-This project follows **Spec-Driven Development (SDD)** methodology. **Before writing any code**, always review the specification documents in the `/specs` directory:
+This project uses **OpenSpec** for spec-driven development. **Before writing any code**, use the OpenSpec slash commands:
 
-- `/specs/product/`: Product requirements and acceptance criteria
-- `/specs/rfc/`: Technical design documents and architecture proposals (See RFC 0001 for architecture upgrade)
-- `/specs/testing/`: BDD test specifications and acceptance tests
+### Workflow Commands
 
-**AI Agent Workflow**:
-1. **Review Specs First**: Read relevant specs before coding
-2. **Spec-First Update**: For new features or interface changes, update specs first and wait for confirmation
-3. **Implement to Spec**: Code must 100% comply with specs (no gold-plating)
-4. **Test against Spec**: Write tests based on spec acceptance criteria
+| Command | Purpose |
+|---------|---------|
+| `/opsx:explore "<topic>"` | Explore ideas, investigate, clarify requirements |
+| `/opsx:propose "<idea>"` | Create a new change proposal with all artifacts |
+| `/opsx:apply` | Implement tasks from the current change |
+| `/opsx:archive` | Archive completed changes |
+
+### AI Agent Workflow
+
+1. **Explore First**: Use `/opsx:explore` to understand requirements and codebase
+2. **Propose**: Use `/opsx:propose` to create structured proposal, design, and tasks
+3. **Implement**: Use `/opsx:apply` to work through tasks systematically
+4. **Archive**: Use `/opsx:archive` when change is complete
+
+### Spec Locations
+
+| Location | Purpose |
+|----------|---------|
+| `openspec/specs/` | Persistent capability specifications |
+| `openspec/changes/` | Active change proposals |
+| `openspec/changes/archive/` | Completed changes (historical reference) |
+| `specs/` | Historical specs (migrated to OpenSpec) |
 
 For complete AI agent workflow instructions, see `AGENTS.md`.
 
