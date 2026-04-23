@@ -40,7 +40,14 @@ class TestLLMBookmarkOrganizer(unittest.TestCase):
         organizer = LLMBookmarkOrganizer(config=self.base_config)
         self.assertIsNone(
             organizer.organize(
-                bookmarks=[{"url": "https://example.com", "title": "Example", "category": "测试", "confidence": 0.7}],
+                bookmarks=[
+                    {
+                        "url": "https://example.com",
+                        "title": "Example",
+                        "category": "测试",
+                        "confidence": 0.7,
+                    }
+                ],
                 baseline={},
             )
         )
@@ -73,7 +80,10 @@ class TestLLMBookmarkOrganizer(unittest.TestCase):
 
         baseline = {
             "🤖 AI": {"_items": bookmarks[:1], "_subcategories": {}},
-            "💻 编程": {"_items": [], "_subcategories": {"文档": {"_items": [bookmarks[1]]}}},
+            "💻 编程": {
+                "_items": [],
+                "_subcategories": {"文档": {"_items": [bookmarks[1]]}},
+            },
         }
 
         llm_output = {
@@ -86,14 +96,22 @@ class TestLLMBookmarkOrganizer(unittest.TestCase):
             "secondary_order": {"💻 编程": ["文档", "教程"], "🤖 AI": ["工具"]},
             "fallback_primary": "📂 其他",
             "fallback_secondary_label": "待整理",
-            "category_insights": [{"primary": "💻 编程", "summary": "聚焦编程学习资源", "recommendations": []}],
+            "category_insights": [
+                {
+                    "primary": "💻 编程",
+                    "summary": "聚焦编程学习资源",
+                    "recommendations": [],
+                }
+            ],
             "notes": ["按媒体类型细分效果最佳"],
         }
 
         response = MagicMock()
         response.status_code = 200
         response.json.return_value = {
-            "choices": [{"message": {"content": json.dumps(llm_output, ensure_ascii=False)}}]
+            "choices": [
+                {"message": {"content": json.dumps(llm_output, ensure_ascii=False)}}
+            ]
         }
         mock_post.return_value = response
 

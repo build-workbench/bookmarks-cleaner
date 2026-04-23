@@ -10,8 +10,11 @@ import pytest
 from src.cli_interface import CLIInterface
 from src.enhanced_cli import main as enhanced_main
 from src.health_checker import run_health_check
-from src.resource_loader import load_json_config, resolve_taxonomy_path, resolve_config_path
-
+from src.resource_loader import (
+    load_json_config,
+    resolve_config_path,
+    resolve_taxonomy_path,
+)
 
 ROOT = Path(__file__).resolve().parent.parent
 MAIN = ROOT / "main.py"
@@ -26,7 +29,9 @@ def test_default_config_and_taxonomy_resolve_without_repo_cwd(tmp_path, monkeypa
     assert "category_rules" in config
 
     subjects = resolve_taxonomy_path(config, "subjects_file", "taxonomy/subjects.yaml")
-    resource_types = resolve_taxonomy_path(config, "resource_types_file", "taxonomy/resource_types.yaml")
+    resource_types = resolve_taxonomy_path(
+        config, "resource_types_file", "taxonomy/resource_types.yaml"
+    )
     assert subjects.is_file()
     assert resource_types.is_file()
 
@@ -65,7 +70,13 @@ def test_main_help_does_not_create_logs(tmp_path):
 
 def test_main_rejects_missing_explicit_config(tmp_path):
     result = subprocess.run(
-        [sys.executable, str(MAIN), "--health-check", "-c", str(tmp_path / "missing.json")],
+        [
+            sys.executable,
+            str(MAIN),
+            "--health-check",
+            "-c",
+            str(tmp_path / "missing.json"),
+        ],
         cwd=tmp_path,
         capture_output=True,
         text=True,

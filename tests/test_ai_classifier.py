@@ -3,10 +3,12 @@ Tests for AI Classifier Core Module
 AI 分类器核心模块测试
 """
 
-import pytest
-from hypothesis import given, strategies as st
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from src.ai_classifier import (
     AIBookmarkClassifier,
@@ -178,9 +180,7 @@ class TestAIBookmarkClassifier:
 
     def test_extract_features_chinese(self, classifier):
         """测试中文URL特征提取"""
-        features = classifier.extract_features(
-            "https://example.com", "中文标题测试"
-        )
+        features = classifier.extract_features("https://example.com", "中文标题测试")
 
         assert features.has_chinese is True
         assert features.language == "zh"
@@ -195,13 +195,13 @@ class TestAIBookmarkClassifier:
 
         # 应该是同一个对象（从缓存返回）
         assert features1 is features2
-        assert classifier.stats["cache_hits"] == 0  # classification_cache, not feature_cache
+        assert (
+            classifier.stats["cache_hits"] == 0
+        )  # classification_cache, not feature_cache
 
     def test_classify_basic(self, classifier):
         """测试基本分类"""
-        result = classifier.classify(
-            "https://github.com/user/repo", "Python Project"
-        )
+        result = classifier.classify("https://github.com/user/repo", "Python Project")
 
         assert result is not None
         assert result.category != ""
@@ -270,8 +270,7 @@ class TestAIBookmarkClassifier:
 
         # 特殊字符
         result = classifier.classify(
-            "https://example.com/<script>alert(1)</script>",
-            "Test <>&\"'"
+            "https://example.com/<script>alert(1)</script>", "Test <>&\"'"
         )
         assert result is not None
 
@@ -292,7 +291,7 @@ class TestEnsembleClassification:
         # 这个测试验证多个分类器结果的融合逻辑
         result = classifier_with_multiple_methods.classify(
             "https://github.com/tensorflow/tensorflow",
-            "TensorFlow: An Open Source Machine Learning Framework"
+            "TensorFlow: An Open Source Machine Learning Framework",
         )
 
         assert result is not None
@@ -360,9 +359,7 @@ def mock_config():
         },
         "category_rules": {
             "💻 编程": {
-                "rules": [
-                    {"match": "domain", "keywords": ["github.com"], "weight": 20}
-                ]
+                "rules": [{"match": "domain", "keywords": ["github.com"], "weight": 20}]
             }
         },
         "category_order": ["💻 编程", "未分类"],

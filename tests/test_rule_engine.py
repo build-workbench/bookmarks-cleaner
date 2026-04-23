@@ -3,9 +3,11 @@ Tests for Rule Engine Module
 规则引擎模块测试
 """
 
-import pytest
-from hypothesis import given, strategies as st
 from unittest.mock import Mock, patch
+
+import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
 from src.rule_engine import RuleEngine, RuleMatch
 
@@ -41,12 +43,20 @@ class TestRuleEngine:
                 "💻 编程": {
                     "rules": [
                         {"match": "domain", "keywords": ["github.com"], "weight": 20},
-                        {"match": "domain", "keywords": ["stackoverflow.com"], "weight": 15},
+                        {
+                            "match": "domain",
+                            "keywords": ["stackoverflow.com"],
+                            "weight": 15,
+                        },
                     ]
                 },
                 "🤖 AI": {
                     "rules": [
-                        {"match": "title", "keywords": ["machine learning", "AI"], "weight": 10},
+                        {
+                            "match": "title",
+                            "keywords": ["machine learning", "AI"],
+                            "weight": 10,
+                        },
                     ]
                 },
                 "📰 资讯": {
@@ -319,7 +329,11 @@ class TestRuleEngineEdgeCases:
             "category_rules": {
                 "测试": {
                     "rules": [
-                        {"match": "title", "keywords": ["[test]", "(group)", "a*b"], "weight": 10},
+                        {
+                            "match": "title",
+                            "keywords": ["[test]", "(group)", "a*b"],
+                            "weight": 10,
+                        },
                     ]
                 },
             },

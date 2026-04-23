@@ -3,12 +3,14 @@ Tests for Bookmark Processor Module
 书签处理器模块测试
 """
 
-import pytest
-from hypothesis import given, strategies as st, settings, HealthCheck
-from unittest.mock import Mock, patch, MagicMock
-from pathlib import Path
-import tempfile
 import json
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
 
 from src.bookmark_processor import BookmarkProcessor
 
@@ -119,7 +121,9 @@ class TestBookmarkProcessorEdgeCases:
         """测试标题中的特殊字符"""
         pass  # Skip - method doesn't exist in current API
 
-    @pytest.mark.skip(reason="Hypothesis health check issue with function-scoped fixture")
+    @pytest.mark.skip(
+        reason="Hypothesis health check issue with function-scoped fixture"
+    )
     @given(
         url=st.text(min_size=1, max_size=500),
         title=st.text(min_size=0, max_size=500),

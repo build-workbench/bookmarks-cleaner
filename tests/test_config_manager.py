@@ -3,14 +3,16 @@ Tests for Config Manager Module
 配置管理模块测试
 """
 
-import pytest
-from hypothesis import given, strategies as st, settings, HealthCheck
-from unittest.mock import Mock, patch
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import Mock, patch
 
-from src.config_manager import EnhancedConfigManager, ConfigValidator
+import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
+
+from src.config_manager import ConfigValidator, EnhancedConfigManager
 
 
 class TestConfigValidator:
@@ -171,7 +173,7 @@ class TestEnhancedConfigManager:
         errors = manager.validate_current_config()
 
         assert isinstance(errors, list)
-        
+
     def test_get_stats(self, manager):
         """测试获取统计信息"""
         stats = manager.get_stats()
@@ -215,7 +217,9 @@ class TestEnhancedConfigManagerEdgeCases:
         config = manager.get_config()
         assert isinstance(config, dict)
 
-    @pytest.mark.skip(reason="Hypothesis health check issue with function-scoped fixture")
+    @pytest.mark.skip(
+        reason="Hypothesis health check issue with function-scoped fixture"
+    )
     @given(
         key=st.text(min_size=1, max_size=50),
         value=st.one_of(
