@@ -1,194 +1,203 @@
-# 快速上手
+# 快速开始
 
-CleanBook 是一个用于清理与分类浏览器书签的命令行工具，支持规则 + 机器学习 + 可选 LLM 分类，默认离线可用。
+<CbBadge text="5 分钟上手" type="tip" />
+
+本指南将在 5 分钟内带你完成 CleanBook 的安装和首次使用。
 
 ## 安装
 
-### 推荐方式：pipx（隔离环境）
+::: tip 推荐安装方式
+使用 [pipx](https://pipx.pypa.io/) 安装可以确保 CleanBook 在一个独立的虚拟环境中运行，不会与其他 Python 包冲突。
+:::
 
-```bash
-# 安装 pipx（如未安装）
-python -m pip install --user pipx
-python -m pipx ensurepath
+::: code-group
+
+```bash [pipx 推荐]
+# 安装 pipx（如果尚未安装）
+pip install pipx
+pipx ensurepath
 
 # 安装 CleanBook
 pipx install cleanbook
 ```
 
-### 替代方式：pip
-
-```bash
+```bash [pip]
 pip install cleanbook
 ```
 
-### 从源码运行
-
-```bash
-# 克隆仓库后直接运行
-git clone https://github.com/LessUp/bookmarks-cleaner.git
-cd bookmarks-cleaner
-python main.py --help
+```bash [uv]
+uv tool install cleanbook
 ```
 
-## 命令入口
+:::
 
-| 命令 | 说明 |
-|------|------|
-| `cleanbook` | 命令式处理（等价于 `python main.py`） |
-| `cleanbook-wizard` | 向导式体验（基于 Rich 的交互式菜单） |
-
-## 最小示例
+验证安装：
 
 ```bash
-# 处理单个书签 HTML 文件
-cleanbook -i examples/demo_bookmarks.html -o output
+cleanbook --version
+# cleanbook, version 2.0.0
+```
 
-# 处理并训练 ML 模型
-cleanbook -i examples/demo_bookmarks.html --train
+## 获取书签文件
 
-# 交互向导模式
+### Chrome / Edge
+1. 打开书签管理器：`chrome://bookmarks` 或 `edge://favorites`
+2. 点击右上角菜单 → "导出书签"
+3. 保存为 `bookmarks.html`
+
+### Firefox
+1. 打开书签管理器：`Ctrl+Shift+O`
+2. 点击 "导入和备份" → "导出书签到 HTML"
+3. 保存为 `bookmarks.html`
+
+### Safari
+1. 文件 → 导出 → 书签
+2. 保存为 `bookmarks.html`
+
+## 运行清理
+
+最简单的用法：
+
+```bash
+cleanbook -i bookmarks.html -o output/
+```
+
+输出文件：
+
+```
+output/
+├── bookmarks_clean.html    # 清理后的书签（可直接导入浏览器）
+├── bookmarks_data.json     # 结构化数据（便于分析）
+├── bookmarks_summary.md    # 分类报告
+└── taxonomy_summary.yaml   # 词表汇总
+```
+
+## 查看结果
+
+### 导入浏览器
+
+打开 `output/bookmarks_clean.html`，使用浏览器的 "导入书签" 功能：
+
+**Chrome**: 书签 → 导入书签和设置 → 以前导出的书签 (HTML 文件)
+
+**Firefox**: 书签 → 管理书签 → 导入和备份 → 从 HTML 导入书签
+
+### 查看报告
+
+```bash
+cat output/bookmarks_summary.md
+```
+
+示例输出：
+
+```markdown
+# CleanBook 处理报告
+
+## 统计概况
+- 原始书签: 1,247
+- 重复移除: 23
+- 成功分类: 1,224 (91.4%)
+- 未分类: 0
+
+## 分类分布
+| 分类 | 数量 | 占比 |
+|------|------|------|
+| 💻 编程 | 456 | 37.3% |
+| 🤖 AI/ML | 189 | 15.4% |
+| 📚 文档 | 234 | 19.1% |
+| 🛠️ 工具 | 167 | 13.7% |
+| 📰 新闻 | 178 | 14.5% |
+```
+
+## 进阶用法
+
+### 启用机器学习
+
+首次使用 `--train` 会下载并训练 ML 模型，后续处理会自动使用：
+
+```bash
+cleanbook -i bookmarks.html --train
+```
+
+### 交互式向导
+
+```bash
 cleanbook-wizard
-
-# 健康检查
-cleanbook --health-check
 ```
 
-## 常用参数
+向导会引导你：
+1. 选择输入文件
+2. 选择输出格式
+3. 调整分类阈值
+4. 预览处理结果
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `-i, --input` | 输入文件或通配符 | 必需 |
-| `-o, --output` | 输出目录 | `output` |
-| `--workers` | 并行线程数 | 4 |
-| `--threshold` | 分类置信度阈值 | 0.7 |
-| `--train` | 启用 ML 训练 | 关闭 |
-| `--no-ml` | 关闭 ML 分类 | 关闭 |
-| `--limit N` | 限制处理数量（调试用） | 无限制 |
-| `--health-check` | 系统健康检查 | - |
-| `--log-level` | 日志级别 | INFO |
-
-## 输出格式
-
-| 格式 | 文件名 | 用途 |
-|------|--------|------|
-| HTML | `bookmarks_*.html` | 导入浏览器（Netscape 格式） |
-| JSON | `bookmarks_*.json` | 二次处理、数据分析 |
-| Markdown | `report_*.md` | 知识库归档、文档 |
-
-## LLM 分类（可选）
-
-默认关闭，遵循"可用即用、不可用自动降级"原则。
-
-### 配置步骤
-
-1. 编辑 `config.json`：
-
-```json
-{
-  "llm": {
-    "enable": true,
-    "provider": "openai",
-    "base_url": "https://api.openai.com",
-    "model": "gpt-4o-mini",
-    "api_key_env": "OPENAI_API_KEY",
-    "temperature": 0.0,
-    "timeout_seconds": 25
-  }
-}
-```
-
-2. 设置环境变量：
+### 批量处理
 
 ```bash
-# Linux/macOS
-export OPENAI_API_KEY="your-api-key"
+# 处理多个文件
+cleanbook -i file1.html file2.html -o output/
 
-# Windows PowerShell
-$env:OPENAI_API_KEY = "your-api-key"
-
-# Windows CMD
-set OPENAI_API_KEY=your-api-key
+# 指定工作进程数
+cleanbook -i bookmarks.html --workers 8
 ```
 
-> **注意**: 未设置 Key 或调用失败时，系统自动回退到离线分类路径，不会中断处理。
+## 配置简介
 
-## 分类策略
+CleanBook 的核心配置文件是 `config.json`：
 
-CleanBook 采用多层次分类策略：
+```bash
+# 生成默认配置
+cleanbook --init-config
 
-```
-┌─────────────────────────────────────────┐
-│  1. 规则引擎 (优先级最高，亚毫秒响应)       │
-│     - 域名匹配、关键词匹配、路径模式        │
-├─────────────────────────────────────────┤
-│  2. 机器学习 (中等优先级)                  │
-│     - Random Forest、SVM、Naive Bayes   │
-├─────────────────────────────────────────┤
-│  3. 语义分析 (辅助)                       │
-│     - 词向量相似度、TF-IDF               │
-├─────────────────────────────────────────┤
-│  4. LLM 分类 (可选，最低优先级)            │
-│     - OpenAI 兼容接口                    │
-└─────────────────────────────────────────┘
+# 编辑配置
+nano config.json
 ```
 
-### 分类融合机制
-
-系统使用加权投票机制融合多种分类方法的结果：
-
-```
-规则引擎 × 0.3 + ML分类器 × 0.25 + 语义分析 × 0.2 + 用户画像 × 0.1 + LLM × 0.15
-```
-
-各方法的置信度会经过历史准确率校准，最终输出综合分类结果。
-
-## 配置说明
-
-### config.json 核心结构
+关键配置项：
 
 ```json
 {
+  "ai_settings": {
+    "confidence_threshold": 0.7,    // 分类置信度阈值
+    "use_semantic_analysis": true,  // 启用语义分析
+    "max_workers": 4                // 并行处理数
+  },
   "category_rules": {
-    "技术/编程": {
+    "技术/Python": {
       "rules": [
-        {
-          "match": "domain",
-          "keywords": ["github.com", "stackoverflow.com"],
-          "weight": 15
-        }
+        { "match": "domain", "keywords": ["python.org", "pypi.org"], "weight": 15 },
+        { "match": "title", "keywords": ["django", "flask", "fastapi"], "weight": 10 }
       ]
     }
-  },
-  "ai_settings": {
-    "confidence_threshold": 0.7,
-    "cache_size": 10000,
-    "max_workers": 4
-  },
-  "llm": {
-    "enable": false
   }
 }
 ```
 
-### 自定义词表
+更多配置选项参见 [配置详解](./guide/configuration)。
 
-在 `taxonomy/` 目录下维护 YAML 格式的受控词表：
+## 常见问题
 
-- `subjects.yaml` - 主题词表（如 AI、Python、Productivity）
-- `resource_types.yaml` - 资源类型词表（如 documentation、video）
+**Q: 处理大量书签时内存不足？**
 
-## 故障排查
+```bash
+# 限制并行处理数量
+cleanbook -i bookmarks.html --workers 1 --no-ml
+```
 
-| 问题 | 解决方案 |
-|------|----------|
-| 输出标题 emoji 叠加 | 使用最新版，确认 `show_confidence_indicator` 配置 |
-| LLM 调用无效 | 检查 `llm.enable` 与环境变量，失败会自动回退 |
-| 打包安装异常 | 使用 `pipx install .` 或 `python -m pip install .` |
-| 内存不足 | 使用 `--no-ml` 禁用 ML，或减少 `--workers` |
-| 分类结果不理想 | 调高/调低 `--threshold` 参数，或自定义规则 |
+**Q: 如何提高分类准确率？**
+
+1. 根据你的书签领域自定义 `category_rules`
+2. 启用 ML（`--train`）
+3. 调整 `confidence_threshold`（默认 0.7，降低可获得更多分类）
+
+**Q: 支持哪些输出格式？**
+
+```bash
+cleanbook -i bookmarks.html -o output/ --format html,json,markdown
+```
 
 ## 下一步
 
-- [书签管理最佳实践](/zh/guide/best-practices) - 学习如何建立高效的书签分类体系
-- [系统架构](/zh/design/architecture) - 理解 CleanBook 的内部工作原理
-- [开发指南](/zh/guide/development) - 了解如何扩展和贡献代码
+- [安装指南](/zh/guide/installation) — 详细了解安装选项
+- [配置详解](/zh/reference/config) — 深度定制分类规则
+- [最佳实践](./guide/best-practices) — 书签管理方法论

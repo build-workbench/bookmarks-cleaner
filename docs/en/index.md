@@ -2,8 +2,8 @@
 layout: home
 hero:
   name: CleanBook
-  text: Smart Bookmark Cleaner & Classifier
-  tagline: Rules-first, ML-assisted, LLM-optional. Offline-ready browser bookmark organization tool.
+  text: Smart Bookmark Tool for Developers
+  tagline: Rules-first · ML-assisted · LLM-optional · Offline-ready<br>Transform chaotic browser bookmarks into structured knowledge
   image:
     src: /logo.svg
     alt: CleanBook Logo
@@ -12,203 +12,161 @@ hero:
       text: Quick Start
       link: /en/quickstart
     - theme: alt
-      text: View on GitHub
+      text: GitHub
       link: https://github.com/LessUp/bookmarks-cleaner
 
 features:
   - icon: 🚀
-    title: Offline-First
-    details: Complete cleaning, deduplication, classification and export without cloud services. Perfect for local batch processing and long-term maintenance. Rule engine responds in sub-milliseconds.
+    title: Offline by Default
+    details: No cloud services required. All processing happens locally. Your bookmark data never leaves your device, perfect for privacy-sensitive scenarios.
   - icon: ⚙️
     title: Config-Driven
-    details: Adjust rules, thresholds and directory organization via config.json and vocabulary files. No code changes needed. YAML vocabularies support controlled vocabulary and faceted classification.
+    details: Customize categories, rules, and output formats via config.json and YAML taxonomies. Adapt to your workflow without touching code.
   - icon: 🤖
-    title: Progressive Enhancement
-    details: Layer ML, semantic analysis and optional OpenAI-compatible LLM on top of rules. Automatic fallback when services are unavailable. No worries about service availability.
+    title: Smart Classification
+    details: Multi-layer fusion of Rule Engine + ML + Semantic Analysis achieves 91.4% accuracy with automatic fallback for reliability.
   - icon: 📦
     title: Multi-Format Export
-    details: Export to HTML, Markdown, JSON and more. Supports browser re-import, knowledge base archiving, and further processing needs.
-  - icon: 🔧
+    details: Support HTML (browser import), JSON (data analysis), Markdown (knowledge base), and more formats for different use cases.
+  - icon: 💻
     title: CLI-First
-    details: Provides cleanbook CLI tool and cleanbook-wizard interactive interface. Supports batch processing and automation integration.
-  - icon: 📊
-    title: Smart Classification
-    details: Multi-level feature extraction based on domain, title, and URL. Fusion of rule engine and machine learning achieves 91.4% classification accuracy.
+    details: Provides cleanbook CLI and cleanbook-wizard interactive mode. Perfect for batch processing and automation integration.
+  - icon: 🔧
+    title: Open Source
+    details: MIT licensed and completely free. Extensible plugin architecture with customizable taxonomies, rules, and export templates.
 ---
 
 <script setup>
-import HomeHero from '../.vitepress/theme/components/HomeHero.vue'
-import TerminalDemo from '../.vitepress/theme/components/TerminalDemo.vue'
-import StatsCounter from '../.vitepress/theme/components/StatsCounter.vue'
-import PipelineDiagram from '../.vitepress/theme/components/PipelineDiagram.vue'
-import ProjectStructure from '../.vitepress/theme/components/ProjectStructure.vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
-const structure = [
-  {
-    name: 'src/',
-    type: 'folder',
-    desc: 'Source code directory',
-    children: [
-      { name: 'classifiers/', type: 'folder', desc: 'AI/ML/LLM classifiers' },
-      { name: 'engines/', type: 'folder', desc: 'Rule/Semantic/URL engines' },
-      { name: 'core/', type: 'folder', desc: 'Processor/Exporter/Deduplicator' },
-      { name: 'llm/', type: 'folder', desc: 'LLM tools and prompts' },
-      { name: 'health/', type: 'folder', desc: 'Health check modules' },
-      { name: 'data/', type: 'folder', desc: 'Data processing modules' },
-      { name: 'utils/', type: 'folder', desc: 'Config & utilities' },
-      { name: 'cli/', type: 'folder', desc: 'Command-line interfaces' },
-      { name: 'plugins/', type: 'folder', desc: 'Plugin system' },
-      { name: 'services/', type: 'folder', desc: 'Service layer' },
-    ]
-  },
-  {
-    name: 'config/',
-    type: 'folder',
-    desc: 'Configuration directory',
-    children: [
-      { name: 'taxonomy/', type: 'folder', desc: 'Taxonomy vocabularies' },
-      { name: 'agent/', type: 'folder', desc: 'Agent configurations' },
-    ]
-  },
-  {
-    name: 'docs/',
-    type: 'folder',
-    desc: 'Documentation (VitePress)'
-  },
-  {
-    name: 'tests/',
-    type: 'folder',
-    desc: 'Test code'
-  },
+// Terminal typing effect
+const terminalLines = ref([])
+const fullOutput = [
+  { text: '$ cleanbook -i bookmarks.html -o output/', type: 'input', delay: 50 },
+  { text: '✓ Loaded 1,247 bookmarks', type: 'output', delay: 30 },
+  { text: '✓ Removed 23 duplicates (1.8%)', type: 'output', delay: 30 },
+  { text: '✓ Classified 1,224 bookmarks with 91.4% accuracy', type: 'output', delay: 30 },
+  { text: '✓ Generated bookmarks_clean.html', type: 'success', delay: 30 },
+  { text: '✓ Done in 2.34s', type: 'success', delay: 100 },
 ]
 
-const terminalLines = [
-  { type: 'input', content: 'cleanbook -i bookmarks.html -o output/', delay: 500 },
-  { type: 'output', content: '✓ Loaded 1,247 bookmarks from bookmarks.html', delay: 300 },
-  { type: 'output', content: '✓ Removed 23 duplicates', delay: 200 },
-  { type: 'output', content: '✓ Classified 1,224 bookmarks (91.4% accuracy)', delay: 400 },
-  { type: 'output', content: '✓ Generated output/bookmarks_clean.html', delay: 200 },
-  { type: 'output', content: '✓ Done in 2.34s', delay: 100 },
-  { type: 'input', content: 'cleanbook-wizard', delay: 800 },
-]
+let currentLine = 0
+let currentChar = 0
+let timeout = null
 
-const pipelineSteps = [
-  {
-    title: 'Data Parsing',
-    description: 'Parse HTML/JSON bookmark files, extract URLs, titles, and folder structures',
-    icon: '📄',
-    meta: ['Netscape HTML', 'JSON', 'Chrome/Firefox']
-  },
-  {
-    title: 'Smart Deduplication',
-    description: 'URL normalization and multi-dimensional similarity detection for duplicate links',
-    icon: '🔍',
-    meta: ['URL Norm', 'SimHash', 'Levenshtein']
-  },
-  {
-    title: 'Multi-Level Classification',
-    description: 'Rules engine + ML + Semantic analysis + LLM fusion classification',
-    icon: '🤖',
-    meta: ['91.4% Acc', 'Fusion Voting', 'Auto-Fallback']
-  },
-  {
-    title: 'Output Generation',
-    description: 'Generate organized bookmark files and statistical reports',
-    icon: '📦',
-    meta: ['HTML', 'Markdown', 'JSON']
-  },
-]
-</script>
-
-<HomeHero
-  :version="'2.0.0'"
-  :statusText="'Stable'"
-  :subtitle="'Smart Bookmark Cleaner & Classifier'"
-  :description="'Rules-first, ML-assisted, LLM-optional. Offline-ready browser bookmark organization tool.'"
-  :actions="[
-    { text: 'Quick Start →', link: '/en/quickstart', theme: 'brand' },
-    { text: 'GitHub', link: 'https://github.com/LessUp/bookmarks-cleaner', theme: 'alt' }
-  ]"
-/>
-
-## Why CleanBook?
-
-<StatsCounter
-  :stats="[
-    { value: 91.4, suffix: '%', label: 'Classification Accuracy', description: 'Tested on 10000+ bookmarks' },
-    { value: 50, suffix: '+', label: 'Bookmarks/sec', description: 'Single-core processing' },
-    { value: 0, suffix: '', label: 'Network Required', description: 'Runs offline by default' },
-    { value: 3, suffix: '', label: 'Output Formats', description: 'HTML / JSON / Markdown' },
-  ]"
-/>
-
-## Try It Now
-
-<TerminalDemo
-  :lines="terminalLines"
-  :title="'cleanbook — bash'"
-  :prompt="'$'"
-/>
-
-## Processing Pipeline
-
-<PipelineDiagram
-  :steps="pipelineSteps"
-/>
-
-## Core Features
-
-### 🚀 Offline-First Design
-
-CleanBook's core philosophy is "offline-first". **No cloud services required** to clean, deduplicate, classify and export your bookmarks. Your data never leaves your device.
-
-### ⚙️ Configuration-Driven
-
-All features can be configured via JSON — no code changes needed:
-
-```json
-{
-  "category_rules": {
-    "Technology/AI": {
-      "rules": [
-        { "match": "domain", "keywords": ["openai.com", "huggingface.co"], "weight": 15 }
-      ]
-    }
-  },
-  "ai_settings": {
-    "confidence_threshold": 0.7,
-    "cache_size": 10000
+function typeNext() {
+  if (currentLine >= fullOutput.length) {
+    setTimeout(() => {
+      terminalLines.value = []
+      currentLine = 0
+      currentChar = 0
+      typeNext()
+    }, 5000)
+    return
+  }
+  
+  const line = fullOutput[currentLine]
+  
+  if (currentChar === 0) {
+    terminalLines.value.push({ text: '', type: line.type })
+  }
+  
+  if (currentChar < line.text.length) {
+    terminalLines.value[currentLine].text += line.text[currentChar]
+    currentChar++
+    timeout = setTimeout(typeNext, line.delay)
+  } else {
+    currentLine++
+    currentChar = 0
+    timeout = setTimeout(typeNext, line.type === 'input' ? 300 : 100)
   }
 }
-```
 
-### 🤖 Progressive Intelligence
+onMounted(() => {
+  setTimeout(typeNext, 500)
+})
 
-Multi-layer classification with automatic fallback:
+onUnmounted(() => {
+  if (timeout) clearTimeout(timeout)
+})
+</script>
 
-```
-Rules Engine (30%) + ML Classifier (25%) + Semantic Analysis (20%) + LLM (15%) + User Profile (10%)
-```
+## Try It
 
-When any layer is unavailable, the system automatically redistributes weights to other layers, ensuring classification quality.
+<div class="cb-terminal">
+  <div class="cb-terminal-header">
+    <span class="cb-terminal-dot red"></span>
+    <span class="cb-terminal-dot yellow"></span>
+    <span class="cb-terminal-dot green"></span>
+    <span style="margin-left: auto; color: #64748b; font-size: 0.75rem;">bash</span>
+  </div>
+  <div class="cb-terminal-body">
+    <div v-for="(line, i) in terminalLines" :key="i" :class="line.type">
+      <template v-if="line.type === 'input'">
+        <span class="prompt">$ </span><span class="command">{{ line.text.slice(2) }}</span>
+      </template>
+      <template v-else-if="line.type === 'success'">
+        <span class="success">{{ line.text }}</span>
+      </template>
+      <template v-else>
+        <span class="output">{{ line.text }}</span>
+      </template>
+    </div>
+  </div>
+</div>
 
-### 📦 Multi-Format Export
+## At a Glance
 
-Support for multiple output formats to meet different needs:
+<div class="cb-stats">
+  <div class="cb-stat">
+    <span class="cb-stat-value">91.4%</span>
+    <span class="cb-stat-label">Classification Accuracy</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">50+</span>
+    <span class="cb-stat-label">Bookmarks/sec</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">0</span>
+    <span class="cb-stat-label">Network Required</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">3</span>
+    <span class="cb-stat-label">Output Formats</span>
+  </div>
+</div>
 
-| Format | Use Case | Features |
-|--------|----------|----------|
-| HTML | Browser Import | Standard Netscape format, all browsers supported |
-| JSON | Data Analysis | Structured data for further processing |
-| Markdown | Knowledge Base | Perfect for Notion/Obsidian |
+## Who Is It For?
 
-## Get Started
+<div class="cb-personas">
+  <div class="cb-persona">
+    <div class="cb-persona-icon">👤</div>
+    <div class="cb-persona-title">Individual Users</div>
+    <div class="cb-persona-desc">
+      Technical users with thousands of accumulated bookmarks who want offline cleaning before deciding on ML/LLM enhancements.
+    </div>
+  </div>
+  <div class="cb-persona">
+    <div class="cb-persona-icon">👥</div>
+    <div class="cb-persona-title">Team Maintainers</div>
+    <div class="cb-persona-desc">
+      Technical leads who need unified team bookmark standards through shared config.json and taxonomy files.
+    </div>
+  </div>
+  <div class="cb-persona">
+    <div class="cb-persona-icon">🔧</div>
+    <div class="cb-persona-title">Developers</div>
+    <div class="cb-persona-desc">
+      Open source enthusiasts studying bookmark processing pipelines, classification fusion, or contributing plugins.
+    </div>
+  </div>
+</div>
 
-### Installation
+## Installation
 
 ::: code-group
 
-```bash [pipx - Recommended]
+```bash [pipx (recommended)]
 pipx install cleanbook
 ```
 
@@ -216,17 +174,16 @@ pipx install cleanbook
 pip install cleanbook
 ```
 
-```bash [From Source]
-git clone https://github.com/LessUp/bookmarks-cleaner.git
-cd bookmarks-cleaner && pip install .
+```bash [uv]
+uv tool install cleanbook
 ```
 
 :::
 
-### First Run
+## Quick Start
 
 ```bash
-# Basic cleaning
+# Clean a single file
 cleanbook -i bookmarks.html -o output/
 
 # With ML training
@@ -236,57 +193,23 @@ cleanbook -i bookmarks.html --train
 cleanbook-wizard
 ```
 
-## Target Users
+## Next Steps
 
-CleanBook targets the scenario of "long-term browser bookmark maintenance":
+<div style="margin-top: 2rem;">
 
-- **Individual Users**: Heavy browser users who want to organize bookmarks offline first, then optionally introduce ML/LLM
-- **Team Maintainers**: Technical leads who need unified team bookmark classification rules, vocabularies and output formats
-- **Developers**: Open source contributors who want to understand bookmark processing pipelines and configuration-driven design
+- [Quick Start](/en/quickstart) — Get started in 10 minutes
+- [Installation](/en/guide/installation) — Detailed setup instructions
+- [Configuration](/en/reference/config) — Customize classification rules
+- [Design](/en/design/overview) — Understand system architecture
 
-## Project Structure
-
-<ProjectStructure title="Modular Project Structure" :structure="structure" />
-
-CleanBook adopts a clear modular directory structure for easy maintenance and extension:
-
-- **`src/classifiers/`** - Layered classifiers: Rules → ML → LLM
-- **`src/engines/`** - Core engines: rule matching, semantic analysis, URL parsing
-- **`src/core/`** - Core processing: BookmarkProcessor, exporter, deduplicator
-- **`src/llm/`** - LLM related: organizer, prompt builder, exporter
-- **`src/health/`** - System health checks
-- **`src/data/`** - Data processing layer
-- **`src/utils/`** - Utilities and config management
-- **`src/cli/`** - Unified CLI entry point
-- **`config/`** - Centralized configuration management
+</div>
 
 ---
 
-## Learning Paths
+<div style="text-align: center; padding: 2rem 0; color: var(--vp-c-text-2);">
 
-### I just want to organize my bookmarks
-1. [Quick Start](/en/quickstart) - Installation and basic usage
-2. [Best Practices](/en/guide/best-practices) - Classification strategies and organization habits
-3. [LLM Templates](/en/reference/llm-templates) - Optimize classification quality
+Built with ❤️ by [LessUp](https://github.com/LessUp)
 
-### I want to understand how it works
-1. [Design Overview](/en/design/overview) - Overall architecture philosophy
-2. [System Architecture](/en/design/architecture) - Module design and data flow
-3. [ML Design](/en/design/ml-design) - Classification algorithms and models
+[MIT Licensed](https://github.com/LessUp/bookmarks-cleaner/blob/master/LICENSE)
 
-### I want to contribute
-1. [Development Guide](/en/guide/development) - Environment setup and contribution guidelines
-2. [Design Overview](/en/design/overview) - Understand core design decisions
-3. [Technical Report](/en/advanced/technical-report) - Deep technical details
-
----
-
-<p align="center" style="margin-top: 4rem;">
-  <a href="https://github.com/LessUp/bookmarks-cleaner" target="_blank">
-    <img src="https://img.shields.io/github/stars/LessUp/bookmarks-cleaner?style=social" alt="GitHub Stars">
-  </a>
-</p>
-
-<p align="center" style="color: var(--vp-c-text-3); margin-top: 1rem;">
-  Made with ❤️ by <a href="https://github.com/LessUp">LessUp</a>
-</p>
+</div>

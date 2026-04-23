@@ -1,23 +1,4 @@
 User-agent: *
 Allow: /
 
-# Sitemap
 Sitemap: https://lessup.github.io/bookmarks-cleaner/sitemap.xml
-Sitemap: https://lessup.github.io/bookmarks-cleaner/sitemap-zh.xml
-Sitemap: https://lessup.github.io/bookmarks-cleaner/sitemap-en.xml
-
-# Crawl-delay
-Crawl-delay: 1
-
-# AI Crawlers
-User-agent: ChatGPT-User
-Allow: /
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: Claude-Web
-Allow: /

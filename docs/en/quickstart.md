@@ -1,197 +1,203 @@
 # Quick Start
 
-CleanBook is a command-line tool for cleaning and classifying browser bookmarks.
-It supports rules + machine learning + optional LLM classification,
-working offline by default.
+<CbBadge text="5 minutes" type="tip" />
+
+This guide will get you up and running with CleanBook in 5 minutes.
 
 ## Installation
 
-### Recommended: pipx (Isolated Environment)
+::: tip Recommended
+Using [pipx](https://pipx.pypa.io/) ensures CleanBook runs in an isolated virtual environment without conflicts with other Python packages.
+:::
 
-```bash
+::: code-group
+
+```bash [pipx recommended]
 # Install pipx (if not already installed)
-python -m pip install --user pipx
-python -m pipx ensurepath
+pip install pipx
+pipx ensurepath
 
 # Install CleanBook
 pipx install cleanbook
 ```
 
-### Alternative: pip
-
-```bash
+```bash [pip]
 pip install cleanbook
 ```
 
-### From Source
-
-```bash
-# Clone and run directly
-git clone https://github.com/LessUp/bookmarks-cleaner.git
-cd bookmarks-cleaner
-python main.py --help
+```bash [uv]
+uv tool install cleanbook
 ```
 
-## Command Entry Points
+:::
 
-| Command | Description |
-|---------|-------------|
-| `cleanbook` | Command-line processing (equivalent to `python main.py`) |
-| `cleanbook-wizard` | Interactive wizard (Rich-based menu interface) |
-
-## Minimal Example
+Verify installation:
 
 ```bash
-# Process a single bookmark HTML file
-cleanbook -i examples/demo_bookmarks.html -o output
+cleanbook --version
+# cleanbook, version 2.0.0
+```
 
-# Process and train ML model
-cleanbook -i examples/demo_bookmarks.html --train
+## Export Your Bookmarks
 
-# Interactive wizard mode
+### Chrome / Edge
+1. Open Bookmark Manager: `chrome://bookmarks` or `edge://favorites`
+2. Click menu (⋮) → "Export bookmarks"
+3. Save as `bookmarks.html`
+
+### Firefox
+1. Open Library: `Ctrl+Shift+O`
+2. Click "Import and Backup" → "Export Bookmarks to HTML"
+3. Save as `bookmarks.html`
+
+### Safari
+1. File → Export → Bookmarks
+2. Save as `bookmarks.html`
+
+## Run Cleaning
+
+Basic usage:
+
+```bash
+cleanbook -i bookmarks.html -o output/
+```
+
+Output files:
+
+```
+output/
+├── bookmarks_clean.html    # Cleaned bookmarks (import to browser)
+├── bookmarks_data.json     # Structured data for analysis
+├── bookmarks_summary.md    # Classification report
+└── taxonomy_summary.yaml   # Taxonomy summary
+```
+
+## Check Results
+
+### Import to Browser
+
+Open `output/bookmarks_clean.html`, then import using your browser's import function:
+
+**Chrome**: Bookmarks → Import bookmarks and settings → Bookmarks HTML file
+
+**Firefox**: Bookmarks → Manage Bookmarks → Import and Backup → Import Bookmarks from HTML
+
+### View Report
+
+```bash
+cat output/bookmarks_summary.md
+```
+
+Example output:
+
+```markdown
+# CleanBook Processing Report
+
+## Statistics
+- Total bookmarks: 1,247
+- Duplicates removed: 23
+- Classified: 1,224 (91.4%)
+- Unclassified: 0
+
+## Category Distribution
+| Category | Count | Percentage |
+|----------|-------|------------|
+| 💻 Programming | 456 | 37.3% |
+| 🤖 AI/ML | 189 | 15.4% |
+| 📚 Documentation | 234 | 19.1% |
+| 🛠️ Tools | 167 | 13.7% |
+| 📰 News | 178 | 14.5% |
+```
+
+## Advanced Usage
+
+### Enable Machine Learning
+
+First use of `--train` downloads and trains the ML model, then it's used automatically:
+
+```bash
+cleanbook -i bookmarks.html --train
+```
+
+### Interactive Wizard
+
+```bash
 cleanbook-wizard
-
-# Health check
-cleanbook --health-check
 ```
 
-## Common Parameters
+The wizard guides you through:
+1. Selecting input files
+2. Choosing output formats
+3. Adjusting classification thresholds
+4. Previewing results
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `-i, --input` | Input file or glob pattern | Required |
-| `-o, --output` | Output directory | `output` |
-| `--workers` | Number of parallel threads | 4 |
-| `--threshold` | Classification confidence threshold | 0.7 |
-| `--train` | Enable ML training | Off |
-| `--no-ml` | Disable ML classification | Off |
-| `--limit N` | Limit processing count (debug) | Unlimited |
-| `--health-check` | System health check | - |
-| `--log-level` | Log level | INFO |
-
-## Output Formats
-
-| Format | Filename | Purpose |
-|--------|----------|---------|
-| HTML | `bookmarks_*.html` | Import to browser (Netscape format) |
-| JSON | `bookmarks_*.json` | Further processing, data analysis |
-| Markdown | `report_*.md` | Knowledge base archiving, documentation |
-
-## LLM Classification (Optional)
-
-Disabled by default. Follows the "use if available, fallback automatically" principle.
-
-### Configuration Steps
-
-1. Edit `config.json`:
-
-```json
-{
-  "llm": {
-    "enable": true,
-    "provider": "openai",
-    "base_url": "https://api.openai.com",
-    "model": "gpt-4o-mini",
-    "api_key_env": "OPENAI_API_KEY",
-    "temperature": 0.0,
-    "timeout_seconds": 25
-  }
-}
-```
-
-2. Set environment variable:
+### Batch Processing
 
 ```bash
-# Linux/macOS
-export OPENAI_API_KEY="your-api-key"
+# Process multiple files
+cleanbook -i file1.html file2.html -o output/
 
-# Windows PowerShell
-$env:OPENAI_API_KEY = "your-api-key"
-
-# Windows CMD
-set OPENAI_API_KEY=your-api-key
+# Specify worker processes
+cleanbook -i bookmarks.html --workers 8
 ```
 
-> **Note**: If API key is not set or call fails, the system automatically
-> falls back to offline classification without interrupting processing.
+## Configuration Basics
 
-## Classification Strategy
+CleanBook's main configuration file is `config.json`:
 
-CleanBook adopts a multi-level classification strategy:
+```bash
+# Generate default config
+cleanbook --init-config
 
-```
-┌─────────────────────────────────────────┐
-│  1. Rule Engine (Highest Priority)      │
-│     - Domain matching, keywords, paths  │
-├─────────────────────────────────────────┤
-│  2. Machine Learning (Medium Priority)  │
-│     - Random Forest, SVM, Naive Bayes   │
-├─────────────────────────────────────────┤
-│  3. Semantic Analysis (Auxiliary)       │
-│     - Word vector similarity, TF-IDF    │
-├─────────────────────────────────────────┤
-│  4. LLM Classification (Optional)       │
-│     - OpenAI-compatible API             │
-└─────────────────────────────────────────┘
+# Edit configuration
+nano config.json
 ```
 
-### Classification Fusion Mechanism
-
-The system uses weighted voting to fuse results from multiple classification methods:
-
-```
-Rule Engine × 0.3 + ML Classifier × 0.25 + Semantic × 0.2 + User Profile × 0.1 + LLM × 0.15
-```
-
-Each method's confidence is calibrated by historical accuracy, producing the final classification result.
-
-## Configuration Guide
-
-### config.json Core Structure
+Key settings:
 
 ```json
 {
+  "ai_settings": {
+    "confidence_threshold": 0.7,    // Classification confidence threshold
+    "use_semantic_analysis": true,  // Enable semantic analysis
+    "max_workers": 4                // Parallel processing count
+  },
   "category_rules": {
-    "Technology/Programming": {
+    "Tech/Python": {
       "rules": [
-        {
-          "match": "domain",
-          "keywords": ["github.com", "stackoverflow.com"],
-          "weight": 15
-        }
+        { "match": "domain", "keywords": ["python.org", "pypi.org"], "weight": 15 },
+        { "match": "title", "keywords": ["django", "flask", "fastapi"], "weight": 10 }
       ]
     }
-  },
-  "ai_settings": {
-    "confidence_threshold": 0.7,
-    "cache_size": 10000,
-    "max_workers": 4
-  },
-  "llm": {
-    "enable": false
   }
 }
 ```
 
-### Custom Vocabularies
+See [Configuration Guide](./guide/configuration) for more options.
 
-Maintain YAML format controlled vocabularies in `taxonomy/` directory:
+## FAQ
 
-- `subjects.yaml` - Subject vocabulary (e.g., AI, Python, Productivity)
-- `resource_types.yaml` - Resource type vocabulary (e.g., documentation, video)
+**Q: Out of memory when processing large bookmark files?**
 
-## Troubleshooting
+```bash
+# Limit parallel workers
+cleanbook -i bookmarks.html --workers 1 --no-ml
+```
 
-| Issue | Solution |
-|-------|----------|
-| Emoji overlay in output titles | Use latest version, check `show_confidence_indicator` config |
-| LLM calls not working | Check `llm.enable` and environment variables, fallback is automatic |
-| Package installation errors | Use `pipx install .` or `python -m pip install .` |
-| Out of memory | Use `--no-ml` to disable ML, or reduce `--workers` |
-| Classification results unsatisfactory | Adjust `--threshold` parameter, or customize rules |
+**Q: How to improve classification accuracy?**
+
+1. Customize `category_rules` for your domain
+2. Enable ML (`--train`)
+3. Adjust `confidence_threshold` (default 0.7, lower for more classifications)
+
+**Q: What output formats are supported?**
+
+```bash
+cleanbook -i bookmarks.html -o output/ --format html,json,markdown
+```
 
 ## Next Steps
 
-- [Best Practices](/en/guide/best-practices) - Learn how to build an efficient bookmark classification system
-- [System Architecture](/en/design/architecture) - Understand CleanBook's internal workings
-- [Development Guide](/en/guide/development) - Learn how to extend and contribute
+- [Installation Guide](/en/guide/installation) — Detailed installation options
+- [Configuration](/en/reference/config) — Deep customization of rules
+- [Best Practices](./guide/best-practices) — Bookmark management methodology

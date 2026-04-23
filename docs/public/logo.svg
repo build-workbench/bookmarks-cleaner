@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="url(#gradient)"/>
+  <!-- Bookmark shape -->
+  <path d="M80 60 h96 a10 10 0 0 1 10 10 v136 a8 8 0 0 1 -13 6l-45 -35 -45 35 a8 8 0 0 1 -13 -6v-136 a10 10 0 0 1 10 -10z" fill="white"/>
+  <!-- Folder/Clean indicator lines -->
+  <rect x="96" y="92" width="64" height="8" rx="4" fill="#3b82f6"/>
+  <rect x="96" y="112" width="48" height="8" rx="4" fill="#8b5cf6"/>
+  <rect x="96" y="132" width="56" height="8" rx="4" fill="#10b981"/>
+</svg>
