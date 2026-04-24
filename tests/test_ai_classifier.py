@@ -36,7 +36,7 @@ class TestBookmarkFeatures:
         assert features.title == "Example Title"
         assert features.domain == "example.com"
         assert features.url_length == 24
-        assert features.title_length == 14
+        assert features.title_length == 13
         assert features.is_secure is True
         assert features.has_chinese is False
 

@@ -9,10 +9,11 @@ import os
 import sys
 import time
 
-import numpy as np
 import pytest
 from hypothesis import HealthCheck, assume, given, settings
 from hypothesis import strategies as st
+
+np = pytest.importorskip("numpy")
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 

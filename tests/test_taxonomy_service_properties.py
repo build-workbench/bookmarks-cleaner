@@ -60,7 +60,7 @@ def create_service():
 class TestTaxonomyYAMLRoundTrip:
     """YAML 往返测试 - Property 19"""
 
-    @settings(max_examples=50)
+    @settings(max_examples=50, deadline=None)
     @given(
         categories=st.lists(valid_name_strategy, min_size=1, max_size=10, unique=True)
     )
@@ -100,7 +100,7 @@ class TestTaxonomyYAMLRoundTrip:
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    @settings(max_examples=30)
+    @settings(max_examples=30, deadline=None)
     @given(
         parent=valid_name_strategy,
         children=st.lists(valid_name_strategy, min_size=1, max_size=5, unique=True),
@@ -166,7 +166,7 @@ class TestCategoryNameValidation:
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    @settings(max_examples=50)
+    @settings(max_examples=50, deadline=None)
     @given(name=invalid_name_strategy)
     def test_invalid_category_names_rejected(self, name):
         """

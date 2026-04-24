@@ -6,10 +6,11 @@ Tests Properties:
 - Property 7: Cosine Similarity Classification
 """
 
-import numpy as np
 import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
+
+np = pytest.importorskip("numpy")
 
 # 尝试导入依赖
 try:
