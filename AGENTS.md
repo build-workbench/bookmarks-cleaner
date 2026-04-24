@@ -1,175 +1,73 @@
 # AGENTS.md
 
-## OpenSpec Workflow (Spec-Driven Development)
+## Project Phase
 
-This project uses **OpenSpec** for spec-driven development. All changes flow through the OpenSpec change management system.
+CleanBook is in a **closeout and stabilization** phase. The goal is to finish the current CLI product cleanly, reduce maintenance noise, and leave the repository in a coherent archive-ready state. Avoid speculative expansion.
 
-### Command Reference
+## Canonical Workflow
 
-| Command | Purpose | When to Use |
-|---------|---------|-------------|
-| `/opsx:explore "<topic>"` | Think, investigate, clarify | Before any proposal - explore ideas |
-| `/opsx:propose "<idea>"` | Create change proposal | When you know what to build |
-| `/opsx:apply` | Implement tasks | When proposal is ready |
-| `/opsx:archive` | Archive completed change | After all tasks done |
+This repository uses **OpenSpec** as the only active specification workflow.
 
-### Development Workflow
+1. `/opsx:explore` — clarify the problem and inspect the current state
+2. `/opsx:propose` — create or update the change artifacts
+3. `/opsx:apply` — implement tasks from the change
+4. `/opsx:archive` — archive the change after implementation is complete
 
-```
-┌─────────────────┐
-│  /opsx:explore  │ ← Think, investigate, clarify
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ /opsx:propose   │ ← Creates: proposal.md, design.md, tasks.md
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  /opsx:apply    │ ← Implements tasks from tasks.md
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ /opsx:archive   │ ← Moves to openspec/changes/archive/
-└─────────────────┘
-```
+Use **one change at a time**. The default maintainer workflow is **direct push on the default branch**. Temporary branches or worktrees are optional tools for risky refactors, not a required process step.
 
-### Example Session
+## Authoritative Paths
 
-```
-You: I want to add CSV export support
+- `openspec/config.yaml` — OpenSpec schema rules
+- `openspec/specs/` — persistent capability requirements
+- `openspec/changes/` — active changes
+- `openspec/changes/archive/` — completed changes
 
-AI: /opsx:explore "CSV export"
-    [discusses options, investigates codebase]
+Do not recreate a legacy `specs/` workflow surface.
 
-You: Let's proceed with the proposal
+## Closeout Guardrails
 
-AI: /opsx:propose "add-csv-export"
-    Creates:
-    - openspec/changes/add-csv-export/proposal.md
-    - openspec/changes/add-csv-export/design.md
-    - openspec/changes/add-csv-export/tasks.md
+- Do not introduce a REST API or database layer as part of closeout work.
+- Do not reintroduce PR-first guidance into docs or tooling.
+- Do not expand the docs surface without a specific maintained purpose.
+- Prefer fewer, trustworthy workflows and checks over noisy automation.
+- Keep README and GitHub Pages aligned with the maintained product story.
 
-You: Looks good, implement it
+## Product Boundaries
 
-AI: /opsx:apply
-    [implements each task, marks complete]
+CleanBook is an **offline-first bookmark cleaning and classification CLI**:
 
-You: Done
+- **Primary entry points**: `cleanbook`, `python main.py`
+- **Core inputs**: browser bookmark HTML exports
+- **Core outputs**: cleaned bookmark HTML, JSON data, markdown/report-style outputs
+- **Classification stack**: rules first, ML assisted, optional LLM integration
 
-AI: /opsx:archive
+## Architecture Snapshot
+
+```text
+CLI / main.py
+  -> BookmarkProcessor
+  -> AI classifier orchestration
+  -> Plugin pipeline (rule / ML / embedding / LLM)
+  -> Services (feature store, taxonomy, performance, etc.)
 ```
 
-### Directory Structure
+Keep packaging metadata, runtime resource loading, and documented entry points aligned with this structure.
 
-```
-openspec/
-├── config.yaml           # Project context and rules
-├── specs/                # Persistent capability specifications
-│   ├── bookmark-classifier/
-│   ├── classification-testing/
-│   ├── api/              # (planned)
-│   └── database/         # (planned)
-└── changes/              # Active and archived changes
-    ├── <active-change>/  # Current work
-    └── archive/          # Completed changes
-        └── 2026-04-23-architecture-upgrade/
-```
+## Verification Baseline
 
-### Artifact Files
-
-| File | Purpose |
-|------|---------|
-| `proposal.md` | Why & What - motivation, scope, non-goals |
-| `design.md` | How - architecture, decisions, trade-offs |
-| `tasks.md` | Implementation checklist with acceptance criteria |
-| `specs/<capability>/spec.md` | Capability requirements with scenarios |
-
-### Historical Specs
-
-The `specs/` directory contains historical specifications that have been migrated to OpenSpec format. New specs should be created through `/opsx:propose`.
-
----
-
-## Project Commands
+Use the smallest verification set that still gives trustworthy signal:
 
 ```bash
-# Setup
-pip install -e .                    # Creates CLI: cleanbook, cleanbook-wizard
-pre-commit install                  # Required for dev workflow
-
-# Test
-pytest                              # Full suite
-pytest -m "not slow"                # Skip slow tests
-pytest -m property                  # Property-based tests only
-
-# Quality (run before committing)
-black src/ tests/ && isort src/ tests/ && flake8 src/ tests/ && mypy src/
-
-# Run
-python main.py -i bookmarks.html -o output/
-python main.py --health-check       # Debug component status
-python main.py --no-ml ...          # Disable ML to save ~80MB memory
+pytest -q tests/test_runtime_paths.py
+pytest -q
 ```
 
----
+If you touch workflow-equivalent tooling, also run the enforced local format/lint/type commands that match the maintained CI configuration.
 
-## Architecture
+## Maintained Conventions
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      User Interface                         │
-│              CLI (main.py, cleanbook)                       │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Orchestration Layer                        │
-│        BookmarkProcessor → ClassifierPipeline               │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Plugin Registry                           │
-│   ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐          │
-│   │  Rule   │ │   ML    │ │Embedding│ │   LLM   │          │
-│   │Classifier│ │Classifier│ │Classifier│ │Classifier│         │
-│   └─────────┘ └─────────┘ └─────────┘ └─────────┘          │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Services Layer                           │
-│  EmbeddingService │ ActiveLearning │ TaxonomyService        │
-│  FeatureStore     │ IncrTrainer    │ PerformanceMonitor     │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Adding a Classifier Plugin
-
-1. Create `src/plugins/classifiers/your_classifier.py`
-2. Inherit from `ClassifierPlugin` in `src/plugins/base.py`
-3. Implement: `metadata`, `classify(features)`, `initialize(config)`, `shutdown()`
-4. Register in `config.json` under `plugins`
-
----
-
-## Config Rules (`config.json`)
-
-Rule types in `category_rules`:
-- `match: domain` - URL domain patterns
-- `match: title` - Bookmark title keywords
-- `match: url_ends_with` - URL suffixes (e.g., `.pdf`)
-- `match_all_keywords_in` - Require all keywords
-
----
-
-## Conventions
-
-- **Mixed Chinese/English codebase** - accept both in comments/docstrings
-- **Type hints** throughout
-- **Docstrings** required for public APIs
-- **Logger**: Use `logging.getLogger(__name__)`, not `print`
-- **OpenSpec-first**: All new features via `/opsx:propose`
+- Type hints throughout
+- Docstrings for public APIs
+- `logging.getLogger(__name__)` instead of `print`
+- Mixed Chinese/English comments and docs are acceptable when they add clarity
+- Project-specific guidance should live in a small set of maintained instruction files, not in duplicate AI documents

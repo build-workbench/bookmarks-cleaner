@@ -97,3 +97,4 @@ config_temp.json
 # BMad Method V6
 _bmad/
 _bmad-output/
+.github/copilot-instructions.md

@@ -8,7 +8,7 @@ version = "2.0.0"
 description = "智能书签清理与分类：规则+ML+LLM（可选）"
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "LessUp", email = "github@lessup.dev" }
 ]
@@ -29,7 +29,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -110,13 +109,14 @@ packages = [
     "src.plugins.classifiers",
     "src.services",
     "src.resources",
+    "src.resources.taxonomy",
     "config",
 ]
 
 [tool.setuptools.package-data]
-# 打包模型与配置（如需）
-"src" = ["**/*.pkl", "**/*.json", "resources/taxonomy/*.yaml"]
-"src.config" = ["taxonomy/*.yaml", "agent/**/*"]
+# 打包运行时资源与模型
+"src" = ["**/*.pkl"]
+"src.resources" = ["config.json", "taxonomy/*.yaml"]
 
 
 # ====================

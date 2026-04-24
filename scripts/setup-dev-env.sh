@@ -23,7 +23,7 @@ else
     else
         echo "✅ 虚拟环境已存在"
     fi
-    
+
     echo "📝 激活虚拟环境..."
     source .venv/bin/activate
 fi
@@ -40,7 +40,7 @@ pre-commit install
 echo ""
 echo "🔧 验证安装..."
 echo "----------------------------"
-for tool in black isort flake8 mypy pytest; do
+for tool in black isort flake8 pytest; do
     if command -v $tool &> /dev/null; then
         version=$($tool --version 2>&1 | head -1)
         echo "✅ $tool: $version"
@@ -70,7 +70,15 @@ isort --check-only --diff src/ main.py tests/ 2>/dev/null || {
 # 运行 flake8
 echo ""
 echo "📋 运行代码检查 (flake8)..."
-flake8 src/ main.py --max-line-length=120 --count --select=E9,F63,F7,F82 --show-source --statistics || true
+if ! flake8 src/ main.py --max-line-length=120 --count --select=E9,F63,F7,F82 --show-source --statistics; then
+    echo "💡 发现 flake8 问题，请修复后重新运行验证"
+fi
+
+echo ""
+echo "📋 运行运行时路径测试..."
+if ! python3 -m pytest -q tests/test_runtime_paths.py; then
+    echo "💡 运行时路径测试失败，请先修复 packaging / resource path 问题"
+fi
 
 echo ""
 echo "✅ 开发环境配置完成！"
@@ -80,8 +88,8 @@ echo "  source .venv/bin/activate      # 激活虚拟环境"
 echo "  black src/ main.py tests/      # 格式化代码"
 echo "  isort src/ main.py tests/      # 排序导入"
 echo "  flake8 src/ main.py            # 代码检查"
-echo "  mypy src/                      # 类型检查"
-echo "  pytest                         # 运行测试"
+echo "  python3 -m pytest -q tests/test_runtime_paths.py  # 运行时路径基线"
+echo "  python3 -m pytest -q           # 运行完整测试"
 echo "  pre-commit run --all-files     # 运行所有预提交检查"
 echo "  pre-commit run black           # 只运行 black"
 echo ""
