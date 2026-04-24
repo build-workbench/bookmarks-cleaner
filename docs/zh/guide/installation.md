@@ -28,7 +28,7 @@ which cleanbook
 cleanbook --version
 ```
 
-**升级**: `pipx upgrade cleanbook`  
+**升级**: `pipx upgrade cleanbook`
 **卸载**: `pipx uninstall cleanbook`
 
 ### 方式二：pip
@@ -70,12 +70,11 @@ git clone https://github.com/LessUp/bookmarks-cleaner.git
 cd bookmarks-cleaner
 
 # 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 
 # 安装依赖
-pip install -r requirements.txt
-pip install -e .
+pip install -e ".[dev]"
 
 # 验证
 cleanbook --version
@@ -93,7 +92,7 @@ cleanbook --version
 cleanbook --help
 
 # 运行健康检查
-cleanbook --check
+cleanbook --health-check
 ```
 
 ## 可选依赖
@@ -120,29 +119,12 @@ pipx inject cleanbook openai
 
 ## 配置环境
 
-### 初始化配置
+### 使用自定义配置
+
+CleanBook 默认使用内置配置；如果你要覆盖它，请显式传入配置文件：
 
 ```bash
-# 生成默认配置文件
-cleanbook --init-config
-
-# 这会创建 config.json
-```
-
-### 配置目录
-
-CleanBook 会按以下顺序查找配置：
-
-1. 当前目录的 `config.json`
-2. `~/.config/cleanbook/config.json`
-3. 内置默认配置
-
-```bash
-# 创建配置目录
-mkdir -p ~/.config/cleanbook
-
-# 复制默认配置
-cleanbook --init-config -o ~/.config/cleanbook/
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
 
 ## 常见问题
@@ -189,4 +171,4 @@ rm -rf ~/.cache/cleanbook
 
 - [快速开始](../quickstart) — 5 分钟上手
 - [配置详解](/zh/reference/config) — 了解 config.json 配置
-- [基础用法示例](../examples/basic) — 更多使用场景
+- [配置指南](/zh/guide/configuration) — 理解配置文件覆盖方式

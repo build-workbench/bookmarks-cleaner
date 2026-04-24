@@ -143,14 +143,14 @@ cleanbook -i bookmarks.html --workers 8
 
 ## 配置简介
 
-CleanBook 的核心配置文件是 `config.json`：
+CleanBook 内置默认 `config.json`；只有在你需要自定义规则时才需要显式覆盖：
 
 ```bash
-# 生成默认配置
-cleanbook --init-config
+# 使用内置默认配置
+cleanbook -i bookmarks.html -o output/
 
-# 编辑配置
-nano config.json
+# 使用本地配置覆盖
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
 
 关键配置项：
@@ -173,7 +173,7 @@ nano config.json
 }
 ```
 
-更多配置选项参见 [配置详解](./guide/configuration)。
+更多配置选项参见 [配置详解](/zh/guide/configuration)。
 
 ## 常见问题
 
@@ -190,14 +190,14 @@ cleanbook -i bookmarks.html --workers 1 --no-ml
 2. 启用 ML（`--train`）
 3. 调整 `confidence_threshold`（默认 0.7，降低可获得更多分类）
 
-**Q: 支持哪些输出格式？**
+**Q: 如何切到更稳定的运行模式？**
 
 ```bash
-cleanbook -i bookmarks.html -o output/ --format html,json,markdown
+cleanbook -i bookmarks.html -o output/ --no-ml
 ```
 
 ## 下一步
 
 - [安装指南](/zh/guide/installation) — 详细了解安装选项
 - [配置详解](/zh/reference/config) — 深度定制分类规则
-- [最佳实践](./guide/best-practices) — 书签管理方法论
+- [配置指南](/zh/guide/configuration) — 理解配置文件和自定义规则

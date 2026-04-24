@@ -28,7 +28,7 @@ which cleanbook
 cleanbook --version
 ```
 
-**Upgrade**: `pipx upgrade cleanbook`  
+**Upgrade**: `pipx upgrade cleanbook`
 **Uninstall**: `pipx uninstall cleanbook`
 
 ### Method 2: pip
@@ -70,12 +70,11 @@ git clone https://github.com/LessUp/bookmarks-cleaner.git
 cd bookmarks-cleaner
 
 # Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\\Scripts\\activate
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -e .
+pip install -e ".[dev]"
 
 # Verify
 cleanbook --version
@@ -93,7 +92,7 @@ cleanbook --version
 cleanbook --help
 
 # Run health check
-cleanbook --check
+cleanbook --health-check
 ```
 
 ## Optional Dependencies
@@ -120,29 +119,12 @@ pipx inject cleanbook openai
 
 ## Environment Setup
 
-### Initialize Configuration
+### Use a custom config
+
+CleanBook uses its built-in default config unless you explicitly override it:
 
 ```bash
-# Generate default config file
-cleanbook --init-config
-
-# This creates config.json
-```
-
-### Configuration Directory
-
-CleanBook looks for configuration in this order:
-
-1. `config.json` in current directory
-2. `~/.config/cleanbook/config.json`
-3. Built-in defaults
-
-```bash
-# Create config directory
-mkdir -p ~/.config/cleanbook
-
-# Copy default config
-cleanbook --init-config -o ~/.config/cleanbook/
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
 
 ## FAQ
@@ -189,4 +171,4 @@ rm -rf ~/.cache/cleanbook
 
 - [Quick Start](../quickstart) — Get started in 5 minutes
 - [Configuration](/en/reference/config) — Learn about config.json
-- [Basic Examples](../examples/basic) — More usage scenarios
+- [Configuration Guide](/en/guide/configuration) — Learn how to override config safely

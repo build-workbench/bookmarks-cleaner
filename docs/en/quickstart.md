@@ -143,14 +143,14 @@ cleanbook -i bookmarks.html --workers 8
 
 ## Configuration Basics
 
-CleanBook's main configuration file is `config.json`:
+CleanBook ships with a built-in default `config.json`. Override it only when you need custom rules:
 
 ```bash
-# Generate default config
-cleanbook --init-config
+# Use built-in defaults
+cleanbook -i bookmarks.html -o output/
 
-# Edit configuration
-nano config.json
+# Use a local config override
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
 
 Key settings:
@@ -173,7 +173,7 @@ Key settings:
 }
 ```
 
-See [Configuration Guide](./guide/configuration) for more options.
+See [Configuration Guide](/en/guide/configuration) for more options.
 
 ## FAQ
 
@@ -190,14 +190,14 @@ cleanbook -i bookmarks.html --workers 1 --no-ml
 2. Enable ML (`--train`)
 3. Adjust `confidence_threshold` (default 0.7, lower for more classifications)
 
-**Q: What output formats are supported?**
+**Q: How do I choose the most stable execution path?**
 
 ```bash
-cleanbook -i bookmarks.html -o output/ --format html,json,markdown
+cleanbook -i bookmarks.html -o output/ --no-ml
 ```
 
 ## Next Steps
 
 - [Installation Guide](/en/guide/installation) — Detailed installation options
 - [Configuration](/en/reference/config) — Deep customization of rules
-- [Best Practices](./guide/best-practices) — Bookmark management methodology
+- [Configuration Guide](/en/guide/configuration) — Understand the config file and custom rules

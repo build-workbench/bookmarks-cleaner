@@ -4,20 +4,13 @@ CleanBook 使用 `config.json` 作为核心配置文件。
 
 ## 配置文件位置
 
-按以下顺序查找：
-1. `--config` 指定的路径
-2. 当前目录的 `config.json`
-3. `~/.config/cleanbook/config.json`
-4. 内置默认配置
+当前维护版本只有两种方式：
 
-## 快速生成配置
+1. 通过 `-c / --config` 显式指定配置文件
+2. 不指定时使用内置默认配置
 
 ```bash
-# 生成默认配置到当前目录
-cleanbook --init-config
-
-# 生成到指定目录
-cleanbook --init-config -o ~/.config/cleanbook/
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
 
 ## 核心配置项
@@ -42,7 +35,7 @@ cleanbook --init-config -o ~/.config/cleanbook/
 
 ### category_rules
 
-定义分类规则，见 [自定义规则示例](../examples/custom-rules)。
+分类规则是最重要的配置面。每个分类包含一组规则，支持基于域名、标题和 URL 后缀的匹配。
 
 ### llm
 
@@ -57,9 +50,12 @@ cleanbook --init-config -o ~/.config/cleanbook/
 }
 ```
 
-## 配置验证
+## 配置使用方式
 
 ```bash
-cleanbook --validate-config
-cleanbook --show-config
+# 使用默认配置
+cleanbook -i bookmarks.html -o output/
+
+# 使用自定义配置
+cleanbook -i bookmarks.html -o output/ -c ./config.json
 ```
