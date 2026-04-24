@@ -19,7 +19,8 @@
       "Bash(gh:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Skill(zcf:git-commit)"
     ],
     "deny": []
   },
