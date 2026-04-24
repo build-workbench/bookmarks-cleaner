@@ -5,38 +5,25 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
+      "Bash(git status:*)",
       "Bash(rm:*)",
       "Bash(mv:*)",
       "Bash(mkdir:*)",
       "Bash(python:*)",
       "Bash(pip install:*)",
+      "Bash(pytest:*)",
+      "Bash(black:*)",
+      "Bash(isort:*)",
+      "Bash(flake8:*)",
+      "Bash(mypy:*)",
+      "Bash(gh:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(ls:*)"
     ],
     "deny": []
   },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; if [[ \"$f\" == *.py ]]; then black \"$f\" --quiet 2>/dev/null && isort \"$f\" --quiet 2>/dev/null; fi; } || true",
-            "timeout": 30,
-            "statusMessage": "Formatting with black + isort..."
-          },
-          {
-            "type": "command",
-            "command": "jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; if [[ \"$f\" == *.py ]]; then mypy \"$f\" --ignore-missing-imports --no-error-summary 2>&1 | head -10; fi; } || true",
-            "timeout": 60,
-            "statusMessage": "Type checking with mypy..."
-          }
-        ]
-      }
-    ]
-  },
+  "hooks": {},
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
   }
