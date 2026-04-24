@@ -59,6 +59,24 @@ Support various output formats for different use cases.
 - **WHEN** JSON output is requested
 - **THEN** detailed classification metadata is included
 
+### Requirement: Supported CLI entry points remain coherent
+The shipped bookmark-classifier product MUST expose only maintained CLI entry points and MUST keep packaging metadata aligned with the actual code layout.
+
+#### Scenario: Package entry point resolution
+- **GIVEN** a user installs the project from the supported distribution metadata
+- **WHEN** they invoke a documented CLI entry point
+- **THEN** the referenced module path MUST exist
+- **AND** the entry point MUST start the maintained CLI flow
+
+### Requirement: Runtime resources match documented behavior
+The maintained classifier runtime MUST ship the configuration and resource files required by documented CLI workflows.
+
+#### Scenario: Documented runtime path works
+- **GIVEN** a user follows a documented local run command
+- **WHEN** the CLI loads configuration, taxonomy, or model resources
+- **THEN** required files MUST be discoverable through maintained runtime paths
+- **AND** unsupported optional paths MUST not be presented as guaranteed behavior
+
 ## Correctness Properties
 
 1. **Classification Confidence**: All classifiers return confidence scores in range [0.0, 1.0]
@@ -94,6 +112,5 @@ Support various output formats for different use cases.
 
 ## References
 
-- Product requirements: `specs/product/bookmark-classifier-system.md` (historical)
 - Architecture RFC: `openspec/changes/archive/2026-04-23-architecture-upgrade/`
 - Tests: `tests/` directory
