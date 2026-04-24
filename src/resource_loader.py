@@ -36,13 +36,13 @@ def _packaged_path(*parts: str) -> Optional[Path]:
 
 
 def default_config_path() -> Path:
-    repo_config = _candidate_repo_path("config.json")
-    if repo_config.is_file():
-        return repo_config
-
     packaged = _packaged_path("config.json")
     if packaged is not None:
         return packaged
+
+    repo_config = _candidate_repo_path("config.json")
+    if repo_config.is_file():
+        return repo_config
 
     raise ResourceResolutionError("无法定位默认配置文件 config.json")
 
@@ -83,18 +83,21 @@ def resolve_taxonomy_path(
     raw_value = taxonomy_cfg.get(key) or default_relative_path
     candidate = Path(str(raw_value)).expanduser()
 
-    if candidate.is_absolute() and candidate.is_file():
-        return candidate
+    if candidate.is_absolute():
+        return candidate.resolve()
 
     if candidate.is_file():
         return candidate.resolve()
 
+    if str(raw_value) != default_relative_path:
+        return (Path.cwd() / candidate).resolve()
+
+    packaged = _packaged_path(*Path(default_relative_path).parts)
+    if str(raw_value) == default_relative_path and packaged is not None:
+        return packaged
+
     repo_candidate = _candidate_repo_path(*Path(default_relative_path).parts)
     if str(raw_value) == default_relative_path and repo_candidate.is_file():
         return repo_candidate
-
-    packaged = _packaged_path(*Path(default_relative_path).parts)
-    if packaged is not None:
-        return packaged
 
     raise FileNotFoundError(f"无法定位 taxonomy 资源: {raw_value}")

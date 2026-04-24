@@ -29,9 +29,16 @@ class TaxonomyService:
             config: 配置字典
         """
         self.config = config or {}
-        self.taxonomy_path = resolve_taxonomy_path(
-            self.config, "subjects_file", "taxonomy/subjects.yaml"
-        )
+        explicit_taxonomy_path = self.config.get("taxonomy_path")
+        if explicit_taxonomy_path:
+            taxonomy_candidate = Path(str(explicit_taxonomy_path)).expanduser()
+            if not taxonomy_candidate.is_absolute():
+                taxonomy_candidate = (Path.cwd() / taxonomy_candidate).resolve()
+            self.taxonomy_path = taxonomy_candidate
+        else:
+            self.taxonomy_path = resolve_taxonomy_path(
+                self.config, "subjects_file", "taxonomy/subjects.yaml"
+            )
         migrations_value = self.config.get("migrations_path", "taxonomy/migrations")
         migrations_candidate = Path(str(migrations_value)).expanduser()
         if not migrations_candidate.is_absolute():
@@ -167,10 +174,12 @@ class TaxonomyService:
             self.logger.error(f"Category not found: {old_name}")
             return False
 
-        # 检查新名称是否已存在
-        if old_name != new_name and self.get_category(new_name) is not None:
-            self.logger.error(f"Category already exists: {new_name}")
-            return False
+        # 检查新名称是否已存在于其他分类；允许把本分类的变体提升为首选名称
+        if old_name != new_name:
+            new_entry = self._find_category_entry(new_name)
+            if new_entry is not None and new_entry is not entry:
+                self.logger.error(f"Category already exists: {new_name}")
+                return False
 
         # 更新名称
         entry["preferred"] = new_name

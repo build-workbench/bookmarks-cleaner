@@ -89,6 +89,9 @@ class RuleEngine:
                         "match_all_keywords_in", {}
                     )
 
+                    if not isinstance(keywords, list) or not keywords:
+                        continue
+
                     try:
                         weight = float(weight)
                     except (TypeError, ValueError):

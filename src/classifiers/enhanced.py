@@ -450,6 +450,7 @@ class EnhancedClassifier:
                     category="未分类",
                     confidence=0.0,
                     reasoning=["没有匹配的分类规则"],
+                    features_used=[],
                 )
             else:
                 # 计算置信度
@@ -482,6 +483,7 @@ class EnhancedClassifier:
                     confidence=confidence,
                     reasoning=reasoning,
                     alternatives=alternatives[:5],
+                    features_used=features_used,
                 )
 
             # 记录处理时间
@@ -505,6 +507,7 @@ class EnhancedClassifier:
                 confidence=0.0,
                 reasoning=[f"分类失败: {str(e)}"],
                 processing_time=time.time() - start_time,
+                features_used=[],
             )
 
     def _apply_priority_rules(

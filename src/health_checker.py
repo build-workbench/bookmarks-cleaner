@@ -39,22 +39,36 @@ def run_health_check(config_path: Optional[str] = None):
         ("beautifulsoup4", "bs4"),
         ("lxml", "lxml"),
         ("rich", "rich"),
+    ]
+    optional_packages = [
         ("numpy", "numpy"),
         ("scikit-learn", "sklearn"),
     ]
 
-    missing_packages = []
+    missing_required_packages = []
     for package_name, import_name in required_packages:
         try:
             __import__(import_name)
             print(f"[OK] 依赖包: {package_name}")
         except ImportError:
-            missing_packages.append(package_name)
+            missing_required_packages.append(package_name)
             issues.append(f"[ERROR] 缺少依赖包: {package_name}")
 
-    if missing_packages:
+    missing_optional_packages = []
+    for package_name, import_name in optional_packages:
+        try:
+            __import__(import_name)
+            print(f"[OK] 可选依赖包: {package_name}")
+        except ImportError:
+            missing_optional_packages.append(package_name)
+            print(f"[WARN] 可选依赖包缺失: {package_name}")
+
+    if missing_required_packages:
         print("\n安装缺少的依赖包:")
-        print(f"pip install {' '.join(missing_packages)}")
+        print(f"pip install {' '.join(missing_required_packages)}")
+    if missing_optional_packages:
+        print("\n可选增强功能缺少依赖包:")
+        print(f"pip install {' '.join(missing_optional_packages)}")
 
     try:
         config, resolved_config, explicit = load_json_config(config_path)

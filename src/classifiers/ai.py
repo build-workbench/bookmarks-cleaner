@@ -109,6 +109,7 @@ class ClassificationResult:
     method: str = "unknown"
     facets: Dict[str, str] = field(default_factory=dict)
     score_breakdown: Dict[str, float] = field(default_factory=dict)
+    features_used: List[str] = field(default_factory=list)
 
     @property
     def alternative_categories(self) -> List[Tuple[str, float]]:
