@@ -98,3 +98,4 @@ config_temp.json
 _bmad/
 _bmad-output/
 .github/copilot-instructions.md
+.omc/
