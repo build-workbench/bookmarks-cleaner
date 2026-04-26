@@ -1,6 +1,6 @@
 # 安装
 
-<CbBadge text="稳定版 v2.0.0" type="tip" />
+<CbBadge text="稳定版 v2.0.1" type="tip" />
 
 ## 系统要求
 

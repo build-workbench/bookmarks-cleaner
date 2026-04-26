@@ -77,6 +77,24 @@ The maintained classifier runtime MUST ship the configuration and resource files
 - **THEN** required files MUST be discoverable through maintained runtime paths
 - **AND** unsupported optional paths MUST not be presented as guaranteed behavior
 
+### Requirement: Dependency declarations remain coherent across maintained package surfaces
+The maintained project MUST keep runtime and development dependency declarations synchronized across the package metadata and auxiliary dependency files that are still supported.
+
+#### Scenario: Auditing dependency declarations
+- **GIVEN** dependency versions or package lists are declared in more than one maintained file
+- **WHEN** the closeout pass reviews dependency strategy
+- **THEN** the repository MUST define one coherent declaration model or keep mirrored files intentionally synchronized
+- **AND** redundant or misleading dependency declarations MUST be removed or updated
+
+### Requirement: The maintained runtime surface is intentionally limited
+Only documented CLI entry points, runtime resources, and actively supported code paths MUST be presented as maintained behavior for the classifier product.
+
+#### Scenario: Reviewing a documented runtime path
+- **GIVEN** a user-facing command, configuration path, or resource-loading path is documented
+- **WHEN** the runtime audit validates that behavior
+- **THEN** the path MUST work with the maintained packaging and repository layout
+- **AND** unsupported historical paths MUST not remain documented as supported behavior
+
 ## Correctness Properties
 
 1. **Classification Confidence**: All classifiers return confidence scores in range [0.0, 1.0]
@@ -84,6 +102,9 @@ The maintained classifier runtime MUST ship the configuration and resource files
 3. **Plugin Failure Isolation**: A plugin failure does not affect other plugins in the pipeline
 4. **Cache TTL Expiration**: Cached features expire after configured TTL
 5. **LRU Eviction Policy**: Least recently used entries are evicted first
+6. Dependency declarations do not contradict the shipped package surface.
+7. Documented runtime paths reflect tested behavior.
+8. The product surface stays focused on maintained entry points.
 
 ## Performance Requirements
 

@@ -89,6 +89,7 @@ results/
 # Test data (user-specific)
 tests/input/*
 tests/output/*
+tests/output-round-*/
 
 # Runtime artifacts
 unclassified_log.txt

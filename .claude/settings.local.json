@@ -5,27 +5,27 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
       "Bash(git status:*)",
-      "Bash(rm:*)",
-      "Bash(mv:*)",
       "Bash(mkdir:*)",
-      "Bash(python:*)",
+      "Bash(python3:*)",
       "Bash(pip install:*)",
       "Bash(pytest:*)",
       "Bash(black:*)",
       "Bash(isort:*)",
       "Bash(flake8:*)",
       "Bash(mypy:*)",
+      "Bash(openspec:*)",
+      "Bash(npm:*)",
       "Bash(gh:*)",
       "Bash(find:*)",
       "Bash(grep:*)",
       "Bash(ls:*)",
-      "Skill(zcf:git-commit)"
+      "mcp__plugin_oh-my-claudecode_t__state_get_status"
     ],
     "deny": []
   },
   "hooks": {},
-  "enabledPlugins": {
-    "skill-creator@claude-plugins-official": true
-  }
+  "enabledPlugins": {}
 }

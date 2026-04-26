@@ -15,6 +15,8 @@ This repository uses **OpenSpec** as the only active specification workflow.
 
 Use **one change at a time**. The default maintainer workflow is **direct push on the default branch**. Temporary branches or worktrees are optional tools for risky refactors, not a required process step.
 
+For a repository-wide closeout initiative, one umbrella OpenSpec change is allowed if its tasks remain explicitly phased and dependency-ordered.
+
 ## Authoritative Paths
 
 - `openspec/config.yaml` — OpenSpec schema rules
@@ -31,6 +33,7 @@ Do not recreate a legacy `specs/` workflow surface.
 - Do not expand the docs surface without a specific maintained purpose.
 - Prefer fewer, trustworthy workflows and checks over noisy automation.
 - Keep README and GitHub Pages aligned with the maintained product story.
+- Use lightweight `/review` checkpoints at logical milestones; do not recreate PR-first rituals.
 
 ## Product Boundaries
 
@@ -71,3 +74,5 @@ If you touch workflow-equivalent tooling, also run the enforced local format/lin
 - `logging.getLogger(__name__)` instead of `print`
 - Mixed Chinese/English comments and docs are acceptable when they add clarity
 - Project-specific guidance should live in a small set of maintained instruction files, not in duplicate AI documents
+- Prefer repository-scoped instructions and skills over new MCP/plugin layers unless a recurring repository task clearly justifies the added surface
+- Default to **no project-level MCP or Opencode config** unless a repeated repository workflow cannot be served by maintained instructions, skills, or ordinary CLI commands

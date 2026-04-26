@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from xml.dom import minidom
 
+from src import __version__
 from src.utils.emoji_cleaner import clean_title as clean_emoji_title
 
 
@@ -56,7 +57,7 @@ class DataExporter:
         # 添加统计信息注释
         if stats:
             html_parts.append("<!--")
-            html_parts.append(f"    Generator: AI智能书签分类系统 v2.0")
+            html_parts.append(f"    Generator: AI智能书签分类系统 v{__version__}")
             html_parts.append(f"    Export Time: {self.export_timestamp}")
             html_parts.append(
                 f'    Processed Bookmarks: {stats.get("processed_bookmarks", 0)} / {stats.get("total_bookmarks", 0)}'
@@ -226,6 +227,7 @@ class DataExporter:
         filtered = self._prune_empty(organized_bookmarks)
         metadata = {
             "export_time": self.export_timestamp,
+            "processor_version": __version__,
             "format_version": "2.0",
             "generator": "AI智能书签分类系统",
             "total_categories": len(filtered),
@@ -373,7 +375,9 @@ class DataExporter:
 
         # 页脚
         lines.append("---")
-        lines.append(f"*由 AI智能书签分类系统 v2.0 生成 - {self.export_timestamp}*")
+        lines.append(
+            f"*由 AI智能书签分类系统 v{__version__} 生成 - {self.export_timestamp}*"
+        )
 
         return "\n".join(lines)
 
@@ -527,7 +531,7 @@ class DataExporter:
         head = ET.SubElement(root, "head")
         ET.SubElement(head, "title").text = "AI智能书签分类结果"
         ET.SubElement(head, "dateCreated").text = self.export_timestamp
-        ET.SubElement(head, "generator").text = "AI智能书签分类系统 v2.0"
+        ET.SubElement(head, "generator").text = f"AI智能书签分类系统 v{__version__}"
 
         body = ET.SubElement(root, "body")
 

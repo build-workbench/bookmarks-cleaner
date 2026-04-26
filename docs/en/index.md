@@ -33,6 +33,19 @@ features:
 
 CleanBook is for people who already have a large bookmark pile and want to clean it up **without handing it to a hosted platform**. It is meant to help you deduplicate, classify, and export the collection you already own.
 
+## How it works
+
+1. Export bookmark HTML from your browser
+2. Run `cleanbook -i bookmarks.html -o output/`
+3. Let stable rules run first, with ML and optional LLM layers only where they add value
+4. Review the cleaned outputs and keep iterating on your own taxonomy
+
+## What you get back
+
+- **Cleaned HTML** for browser re-import
+- **JSON output** for analysis and automation
+- **Report-style artifacts** for review and manual refinement
+
 ## Fastest path
 
 ```bash
@@ -51,6 +64,12 @@ cleanbook -i bookmarks.html -o output/ --no-ml
 - **Individuals** cleaning years of saved browser bookmarks
 - **Team maintainers** sharing classification rules and taxonomy files
 - **Developers** studying bookmark-processing pipelines and CLI design
+
+## Why it stays trustworthy
+
+- **Actually offline**: no hosted account is required for the default path
+- **Rules first**: stable matches remain explainable and reproducible
+- **Bounded AI usage**: ML and LLM layers improve recall instead of replacing the whole pipeline
 
 ## Next steps
 

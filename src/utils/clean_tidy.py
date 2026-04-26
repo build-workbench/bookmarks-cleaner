@@ -30,6 +30,7 @@ except ImportError:
 import html
 import re
 
+from src import __version__
 from src.classifiers.enhanced import ClassificationResult, EnhancedClassifier
 from src.utils.emoji_cleaner import clean_title as clean_emoji_title
 from src.utils.resource_loader import resolve_config_path
@@ -608,7 +609,7 @@ class EnhancedBookmarkProcessor:
         report = {
             "metadata": {
                 "generation_time": datetime.now().isoformat(),
-                "processor_version": "2.0.0",
+                "processor_version": __version__,
                 "config_file": self.config_file,
             },
             "statistics": {

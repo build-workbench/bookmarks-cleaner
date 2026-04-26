@@ -35,7 +35,7 @@ uv tool install cleanbook
 
 ```bash
 cleanbook --version
-# cleanbook, version 2.0.0
+# cleanbook, version 2.0.1
 ```
 
 ## 获取书签文件

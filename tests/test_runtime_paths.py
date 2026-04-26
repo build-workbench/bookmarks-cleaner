@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 from unittest.mock import patch
 
@@ -19,6 +20,7 @@ from src.resource_loader import (
 ROOT = Path(__file__).resolve().parent.parent
 MAIN = ROOT / "main.py"
 EXAMPLE = ROOT / "examples" / "demo_bookmarks.html"
+PYPROJECT = ROOT / "pyproject.toml"
 
 
 def test_default_config_and_taxonomy_resolve_without_repo_cwd(tmp_path, monkeypatch):
@@ -110,3 +112,11 @@ def test_main_batch_smoke(tmp_path):
     assert exported, "expected JSON export file"
     payload = json.loads(exported[0].read_text(encoding="utf-8"))
     assert "bookmarks" in payload
+    assert payload["metadata"]["processor_version"] == __import__("src").__version__
+
+
+def test_package_metadata_version_matches_runtime_version():
+    with PYPROJECT.open("rb") as f:
+        data = tomllib.load(f)
+
+    assert data["project"]["version"] == __import__("src").__version__

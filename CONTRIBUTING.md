@@ -19,6 +19,8 @@ For any non-trivial change, follow:
 
 The maintainer workflow defaults to **direct pushes on the default branch**. Temporary branches or worktrees are optional isolation tools, not a required norm.
 
+For a repository-wide closeout pass, one umbrella OpenSpec change is acceptable as long as the tasks keep explicit phase order and dependencies.
+
 ## Scope Rules
 
 Good contributions for this phase:
@@ -27,6 +29,7 @@ Good contributions for this phase:
 - docs cleanup with a clear maintained purpose
 - workflow and CI simplification
 - fixes that reduce maintenance cost or clarify the product story
+- small, repository-specific AI/editor/tooling improvements that reduce recurring maintenance friction
 
 Out of scope unless explicitly requested:
 
@@ -52,6 +55,7 @@ If you touch formatting, linting, typing, or workflow configuration, run the mat
 - README is the canonical repository entry point.
 - GitHub Pages should remain a concise landing surface, not a mirror of every markdown file.
 - Remove or consolidate stale docs instead of layering new duplicates on top.
+- Use lightweight `/review` at logical checkpoints rather than PR-first process overhead.
 
 ## Reporting Problems
 

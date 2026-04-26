@@ -1,6 +1,6 @@
 # Installation
 
-<CbBadge text="Stable v2.0.0" type="tip" />
+<CbBadge text="Stable v2.0.1" type="tip" />
 
 ## System Requirements
 

@@ -1,13 +1,13 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
   - name: Documentation
     url: https://lessup.github.io/bookmarks-cleaner/
-    about: Check the documentation for usage guides and API reference
+    about: Check the maintained docs for installation, configuration, and workflow guidance
 
   - name: Discussions
     url: https://github.com/LessUp/bookmarks-cleaner/discussions
-    about: Ask questions and share ideas with the community
+    about: Ask questions or discuss whether a cleanup belongs in the maintained closeout scope
 
   - name: Contributing Guidelines
     url: https://github.com/LessUp/bookmarks-cleaner/blob/master/CONTRIBUTING.md
-    about: Learn about Spec-Driven Development and our contribution process
+    about: Learn the OpenSpec-first, direct-push maintenance workflow for this repository
