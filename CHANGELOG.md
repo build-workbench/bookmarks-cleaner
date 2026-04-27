@@ -4,8 +4,24 @@ This file keeps a **small maintained release record** for CleanBook. Detailed hi
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-04-28
+
+### Fixed
+- 删除重复的 deduplicator.py 文件 (src/deduplicator.py, src/core/deduplicator.py)
+- 修复 CI 中未执行 mypy/bandit/coverage 的问题
+- 锁定依赖版本确保可重复构建 (使用 ~= 约束)
+
+### Removed
+- 删除遗留目录 (agent/, _bmad/, _bmad-output/)
+- 删除临时配置文件 (config_temp.json)
+- 删除重复的 docs/index.md
+- 精简 OpenSpec 归档 (保留最新的 2026-04-26)
+
 ### Changed
-- Repository closeout normalization in progress: governance, docs surface, workflows, packaging, and runtime validation are being simplified around the maintained CLI product.
+- 增强 CI 工作流：添加 mypy 类型检查、bandit 安全检查、覆盖率报告
+- 添加 Dependabot 支持 GitHub Actions 更新
+- pre-commit 配置添加 mypy 检查
+- 更新 GitHub 仓库描述和 topics
 
 ## Recent Releases
 
