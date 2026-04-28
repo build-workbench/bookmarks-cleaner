@@ -220,6 +220,27 @@ def test_feature_store_find_similar():
         assert results[0][1] > 0.9  # High similarity
 
 
+def test_feature_store_prefers_ann_index_when_available():
+    """Test ANN index is used ahead of brute-force fallback when configured."""
+
+    class FakeAnnIndex:
+        def knn_query(self, embedding, k=2):
+            return np.array([[1, 0]]), np.array([[0.1, 0.2]], dtype=np.float32)
+
+    store = FeatureStore({"max_size": 100, "ttl_seconds": 3600})
+    store.put("vec1", np.array([1.0, 0.0, 0.0], dtype=np.float32))
+    store.put("vec2", np.array([0.2, 0.8, 0.0], dtype=np.float32))
+    store._ann_index = FakeAnnIndex()
+    store._ann_labels = ["vec1", "vec2"]
+    store._ann_space = "cosine"
+
+    results = store.find_similar(np.array([1.0, 0.0, 0.0], dtype=np.float32), top_k=2)
+
+    assert [key for key, _ in results] == ["vec2", "vec1"]
+    assert results[0][1] == pytest.approx(0.9)
+    assert results[1][1] == pytest.approx(0.8)
+
+
 def test_feature_store_stats():
     """Test statistics tracking"""
     store = FeatureStore({"max_size": 100, "ttl_seconds": 3600})

@@ -120,3 +120,29 @@ def test_package_metadata_version_matches_runtime_version():
         data = tomllib.load(f)
 
     assert data["project"]["version"] == __import__("src").__version__
+
+
+def test_optional_dependency_groups_cover_semantic_and_audit_support():
+    with PYPROJECT.open("rb") as f:
+        data = tomllib.load(f)
+
+    optional = data["project"]["optional-dependencies"]
+
+    assert "semantic" in optional
+    assert "audit" in optional
+    assert any(dep.startswith("sentence-transformers") for dep in optional["semantic"])
+    assert any(dep.startswith("hnswlib") for dep in optional["semantic"])
+    assert any(dep.startswith("cleanlab") for dep in optional["audit"])
+
+
+def test_default_config_exposes_hybrid_runtime_hooks(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    config, _, _ = load_json_config(None)
+
+    assert "embedding" in config
+    assert "confidence_calibration" in config
+    assert "feedback_loop" in config
+
+    assert config["embedding"]["backend"] == "auto"
+    assert config["confidence_calibration"]["method"] == "platt"
+    assert config["feedback_loop"]["review_queue_path"]

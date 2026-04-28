@@ -86,6 +86,13 @@ dev = [
   "pytest-cov~=5.0.0",
   "hypothesis~=6.0.0",
 ]
+semantic = [
+  "sentence-transformers~=3.0.1",
+  "hnswlib>=0.8,<1.0",
+]
+audit = [
+  "cleanlab~=2.7.1",
+]
 
 [project.scripts]
 # 命令入口（推荐 pipx 安装后直接使用）

@@ -77,6 +77,23 @@ def create_embedding_service_with_cache():
     return service
 
 
+def test_embedding_service_respects_tfidf_backend_config():
+    service = EmbeddingService(
+        {
+            "backend": "tfidf",
+            "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
+            "embedding_dim": 64,
+        }
+    )
+
+    initialized = service.initialize()
+
+    assert initialized is True
+    assert service.model is None
+    assert service._fallback_vectorizer is not None
+    assert service._use_transformer is False
+
+
 @pytest.mark.skipif(
     not IMPORTS_AVAILABLE or not EMBEDDING_BACKEND_AVAILABLE,
     reason="Required imports not available",

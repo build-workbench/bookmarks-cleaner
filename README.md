@@ -47,6 +47,13 @@ pip install -e ".[dev]"
 cleanbook -i examples/demo_bookmarks.html -o output/
 ```
 
+Optional local extras:
+
+```bash
+pip install -e ".[dev,semantic]"   # sentence-transformers + hnswlib
+pip install -e ".[dev,audit]"      # cleanlab-backed feedback data audit
+```
+
 ## What it ships
 
 - `cleanbook` — the maintained CLI entry point

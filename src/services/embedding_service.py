@@ -29,6 +29,7 @@ class EmbeddingService:
         """
         self.config = config or {}
         self.model = None
+        self.backend = str(self.config.get("backend", "auto")).lower()
         self.model_name = self.config.get(
             "model_name", "paraphrase-multilingual-MiniLM-L12-v2"
         )
@@ -36,6 +37,7 @@ class EmbeddingService:
         self._fallback_vectorizer = None
         self._fallback_fitted = False
         self._embedding_dim = self.config.get("embedding_dim", 384)
+        self._fallback_enabled = bool(self.config.get("fallback_enabled", True))
         self.logger = logging.getLogger(__name__)
         self._use_transformer = True
 
@@ -46,6 +48,22 @@ class EmbeddingService:
         Returns:
             初始化是否成功
         """
+        if self.backend == "tfidf":
+            self._init_fallback()
+            self._use_transformer = False
+            return self._fallback_vectorizer is not None
+
+        if self.backend == "hash":
+            self._fallback_vectorizer = _HashFallbackVectorizer(self._embedding_dim)
+            self._use_transformer = False
+            return True
+
+        if self.backend == "disabled":
+            self.model = None
+            self._fallback_vectorizer = None
+            self._use_transformer = False
+            return False
+
         try:
             from sentence_transformers import SentenceTransformer
 
@@ -56,9 +74,10 @@ class EmbeddingService:
             return True
         except Exception as e:
             self.logger.warning(f"Failed to load Transformer model: {e}")
-            self._init_fallback()
+            if self._fallback_enabled or self.backend == "auto":
+                self._init_fallback()
             self._use_transformer = False
-            return False
+            return self._fallback_vectorizer is not None
 
     def _init_fallback(self):
         """初始化 TF-IDF 降级方案"""
@@ -73,8 +92,10 @@ class EmbeddingService:
             )
             self.logger.info("Initialized TF-IDF fallback vectorizer")
         except ImportError:
-            self.logger.error("sklearn not available for TF-IDF fallback")
-            self._fallback_vectorizer = None
+            self.logger.warning(
+                "sklearn not available for TF-IDF fallback, using hash fallback"
+            )
+            self._fallback_vectorizer = _HashFallbackVectorizer(self._embedding_dim)
 
     def set_feature_store(self, feature_store: "FeatureStore"):
         """
@@ -152,7 +173,11 @@ class EmbeddingService:
                 return np.zeros(self._embedding_dim, dtype=np.float32)
 
         try:
-            embedding = self._fallback_vectorizer.transform([text]).toarray()[0]
+            transformed = self._fallback_vectorizer.transform([text])
+            if hasattr(transformed, "toarray"):
+                embedding = transformed.toarray()[0]
+            else:
+                embedding = np.asarray(transformed)[0]
             # 填充到目标维度
             if len(embedding) < self._embedding_dim:
                 embedding = np.pad(embedding, (0, self._embedding_dim - len(embedding)))
@@ -241,3 +266,23 @@ class EmbeddingService:
             是否可用
         """
         return self.model is not None
+
+
+class _HashFallbackVectorizer:
+    """轻量级哈希降级向量器，用于无 sklearn 环境。"""
+
+    def __init__(self, embedding_dim: int):
+        self.embedding_dim = embedding_dim
+
+    def fit(self, texts: List[str]):
+        return self
+
+    def transform(self, texts: List[str]) -> np.ndarray:
+        vectors = []
+        for text in texts:
+            vec = np.zeros(self.embedding_dim, dtype=np.float32)
+            for token in text.lower().split():
+                bucket = hash(token) % self.embedding_dim
+                vec[bucket] += 1.0
+            vectors.append(vec)
+        return np.vstack(vectors)

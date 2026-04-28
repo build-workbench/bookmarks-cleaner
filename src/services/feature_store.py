@@ -29,6 +29,15 @@ class FeatureStore:
         self.ttl_seconds = config.get("ttl_seconds", 86400 * 7)  # 7天
         self.persist_path = config.get("persist_path", "cache/features")
         self.hit_rate_threshold = config.get("hit_rate_threshold", 0.5)
+        ann_config = (
+            config.get("ann", {}) if isinstance(config.get("ann"), dict) else {}
+        )
+        self._ann_enabled = bool(ann_config.get("enabled", False))
+        self._ann_space = str(ann_config.get("space", "cosine"))
+        self._ann_max_elements = int(ann_config.get("max_elements", self.max_size))
+        self._ann_ef_construction = int(ann_config.get("ef_construction", 200))
+        self._ann_m = int(ann_config.get("M", 16))
+        self._ann_ef_search = int(ann_config.get("ef_search", 50))
 
         self._cache: OrderedDict = OrderedDict()
         self._timestamps: Dict[str, float] = {}
@@ -40,6 +49,8 @@ class FeatureStore:
 
         # ANN 索引（可选）
         self._ann_index = None
+        self._ann_labels: List[str] = []
+        self._ann_dirty = self._ann_enabled
 
         self.logger = logging.getLogger(__name__)
 
@@ -79,6 +90,7 @@ class FeatureStore:
             value: 特征向量
         """
         with self._lock:
+            value = np.asarray(value, dtype=np.float32)
             # LRU 驱逐
             while len(self._cache) >= self.max_size:
                 oldest_key = next(iter(self._cache))
@@ -86,6 +98,7 @@ class FeatureStore:
 
             self._cache[key] = value
             self._timestamps[key] = time.time()
+            self._ann_dirty = self._ann_enabled
 
     def _evict(self, key: str):
         """
@@ -98,6 +111,7 @@ class FeatureStore:
             del self._cache[key]
         if key in self._timestamps:
             del self._timestamps[key]
+        self._ann_dirty = self._ann_enabled
 
     def _check_hit_rate(self):
         """检查命中率并发出警告"""
@@ -123,6 +137,8 @@ class FeatureStore:
         Returns:
             (键, 相似度) 元组列表
         """
+        if self._ann_index is None and self._ann_enabled:
+            self._ensure_ann_index()
         if self._ann_index is None:
             return self._brute_force_search(embedding, top_k)
         # 使用 ANN 索引
@@ -161,8 +177,90 @@ class FeatureStore:
         Returns:
             (键, 相似度) 元组列表
         """
-        # 预留接口，可以集成 FAISS 或 Annoy
-        return self._brute_force_search(embedding, top_k)
+        if self._ann_index is None or not self._ann_labels:
+            return self._brute_force_search(embedding, top_k)
+
+        try:
+            k = max(1, min(top_k, len(self._ann_labels)))
+            query = np.asarray(embedding, dtype=np.float32)
+            labels, distances = self._ann_index.knn_query(query, k=k)
+            return [
+                (
+                    self._ann_labels[int(label_idx)],
+                    self._distance_to_similarity(float(distance)),
+                )
+                for label_idx, distance in zip(labels[0], distances[0])
+                if 0 <= int(label_idx) < len(self._ann_labels)
+            ]
+        except Exception as exc:
+            self.logger.warning(
+                f"ANN search failed, falling back to brute force: {exc}"
+            )
+            return self._brute_force_search(embedding, top_k)
+
+    def _ensure_ann_index(self):
+        """在可用时构建 ANN 索引。"""
+        if not self._ann_enabled and self._ann_index is None:
+            return
+        if self._ann_index is not None and not self._ann_dirty:
+            return
+
+        try:
+            import hnswlib
+        except ImportError:
+            return
+
+        with self._lock:
+            items = [
+                (key, np.asarray(value, dtype=np.float32))
+                for key, value in self._cache.items()
+                if isinstance(value, np.ndarray) and value.ndim == 1 and value.size > 0
+            ]
+
+        if not items:
+            self._ann_index = None
+            self._ann_labels = []
+            self._ann_dirty = False
+            return
+
+        base_dim = int(items[0][1].shape[0])
+        filtered = [
+            (key, value) for key, value in items if int(value.shape[0]) == base_dim
+        ]
+        if not filtered:
+            self._ann_index = None
+            self._ann_labels = []
+            self._ann_dirty = False
+            return
+
+        keys = [key for key, _ in filtered]
+        embeddings = np.vstack([value for _, value in filtered]).astype(np.float32)
+
+        try:
+            index = hnswlib.Index(space=self._ann_space, dim=base_dim)
+            index.init_index(
+                max_elements=max(len(keys), self._ann_max_elements),
+                ef_construction=self._ann_ef_construction,
+                M=self._ann_m,
+            )
+            index.add_items(embeddings, np.arange(len(keys)))
+            index.set_ef(max(self._ann_ef_search, 1))
+            self._ann_index = index
+            self._ann_labels = keys
+            self._ann_dirty = False
+        except Exception as exc:
+            self.logger.warning(f"ANN index initialization failed: {exc}")
+            self._ann_index = None
+            self._ann_labels = []
+            self._ann_dirty = True
+
+    def _distance_to_similarity(self, distance: float) -> float:
+        """将 ANN 距离转换为统一的相似度分数。"""
+        if self._ann_space in {"cosine", "ip"}:
+            return max(-1.0, min(1.0, 1.0 - distance))
+        if self._ann_space == "l2":
+            return 1.0 / (1.0 + max(distance, 0.0))
+        return 1.0 - distance
 
     def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
         """
@@ -215,6 +313,9 @@ class FeatureStore:
                 stats = data.get("stats", {})
                 self._hits = stats.get("hits", 0)
                 self._misses = stats.get("misses", 0)
+                self._ann_index = None
+                self._ann_labels = []
+                self._ann_dirty = self._ann_enabled
 
             self.logger.info(f"Feature store loaded from {filepath}")
         except Exception as e:
@@ -259,4 +360,7 @@ class FeatureStore:
             self._timestamps.clear()
             self._hits = 0
             self._misses = 0
+            self._ann_index = None
+            self._ann_labels = []
+            self._ann_dirty = self._ann_enabled
         self.logger.info("Feature store cleared")

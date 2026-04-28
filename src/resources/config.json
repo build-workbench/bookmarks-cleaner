@@ -10,6 +10,26 @@
     "enable_learning": true,
     "enable_ml": true
   },
+  "embedding": {
+    "enabled": false,
+    "backend": "auto",
+    "model_name": "paraphrase-multilingual-MiniLM-L12-v2",
+    "embedding_dim": 384,
+    "similarity_threshold": 0.5,
+    "ann": {
+      "enabled": false,
+      "space": "cosine",
+      "max_elements": 100000,
+      "ef_construction": 200,
+      "M": 16,
+      "ef_search": 50
+    }
+  },
+  "confidence_calibration": {
+    "enabled": false,
+    "method": "platt",
+    "min_samples": 100
+  },
   "ml_settings": {
     "model_dir": "models/ml",
     "online_buffer_size": 1000,
@@ -25,6 +45,16 @@
     "confidence_threshold": 0.6,
     "max_requests_per_session": 10,
     "persist_path": "data/active_learning"
+  },
+  "feedback_loop": {
+    "enabled": false,
+    "review_queue_path": "data/review_queue.json",
+    "applied_feedback_path": "data/applied_feedback.json",
+    "model_dir": "models/incremental",
+    "audit": {
+      "enabled": false,
+      "output_path": "data/feedback_audit.json"
+    }
   },
   "llm": {
     "enable": false,
