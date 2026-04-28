@@ -20,6 +20,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
+import numpy as np
+
 # Pre-compiled regex patterns for performance
 _CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
 _ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
@@ -59,6 +61,30 @@ try:
     from src.utils.optimizer import PerformanceMonitor
 except ImportError:
     PerformanceMonitor = None  # type: ignore[misc,assignment]
+
+# Embedding classifier (optional)
+try:
+    from src.plugins.classifiers.embedding_classifier import EmbeddingClassifier
+except ImportError:
+    EmbeddingClassifier = None  # type: ignore[misc,assignment]
+
+# Confidence calibrator (optional)
+try:
+    from src.services.confidence_calibrator import ConfidenceCalibrator
+except ImportError:
+    ConfidenceCalibrator = None  # type: ignore[misc,assignment]
+
+# Embedding service (optional)
+try:
+    from src.services.embedding_service import EmbeddingService
+except ImportError:
+    EmbeddingService = None  # type: ignore[misc,assignment]
+
+# Feature store (optional)
+try:
+    from src.services.feature_store import FeatureStore
+except ImportError:
+    FeatureStore = None  # type: ignore[misc,assignment]
 
 
 @dataclass
@@ -144,6 +170,11 @@ class AIBookmarkClassifier:
         self._ml_classifier: Optional[MLClassifierWrapper] = None
         self._llm_classifier: Optional[LLMClassifier] = None
 
+        # Embedding-based classification (optional)
+        self._embedding_service: Optional[EmbeddingService] = None
+        self._embedding_classifier: Optional[EmbeddingClassifier] = None
+        self._confidence_calibrator: Optional[ConfidenceCalibrator] = None
+
         # 缓存（OrderedDict 实现 LRU 淘汰）
         self.feature_cache: OrderedDict[str, BookmarkFeatures] = OrderedDict()
         self.classification_cache: OrderedDict[str, ClassificationResult] = (
@@ -160,6 +191,8 @@ class AIBookmarkClassifier:
             "ml_classifier": 0,
             "semantic_analyzer": 0,
             "user_profiler": 0,
+            "embedding": 0,
+            "calibrated": 0,
             "fallback": 0,
             "cache_hits": 0,
             "average_confidence": 0.0,
@@ -223,6 +256,97 @@ class AIBookmarkClassifier:
             except Exception as e:
                 self.logger.warning(f"LLM 分类器初始化失败: {e}")
         return self._llm_classifier
+
+    @property
+    def embedding_service(self) -> Optional[EmbeddingService]:
+        """Lazy-initialized embedding service for embedding-based classification."""
+        if self._embedding_service is None and EmbeddingService is not None:
+            try:
+                ai_settings = self.config.get("ai_settings", {})
+                emb_config = self.config.get("embedding", {}) or ai_settings.get(
+                    "embedding", {}
+                )
+                if emb_config.get("enabled", False):
+                    self._embedding_service = EmbeddingService(emb_config)
+                    initialized = self._embedding_service.initialize()
+                    if initialized:
+                        self.logger.info("Embedding service initialized")
+                    else:
+                        self._embedding_service = None
+            except Exception as e:
+                self.logger.warning(f"Embedding service initialization failed: {e}")
+                self._embedding_service = None
+        return self._embedding_service
+
+    @property
+    def embedding_classifier(self) -> Optional[EmbeddingClassifier]:
+        """Lazy-initialized embedding classifier using category prototypes."""
+        if (
+            self._embedding_classifier is None
+            and EmbeddingClassifier is not None
+            and self.embedding_service is not None
+        ):
+            try:
+                self._embedding_classifier = EmbeddingClassifier()
+                # Build category prototypes from config
+                prototypes = self._build_category_prototypes()
+                config = {
+                    "embedding_service": self.embedding_service,
+                    "category_prototypes": prototypes,
+                    "similarity_threshold": (self.config.get("embedding", {}) or {})
+                    .get(
+                        "similarity_threshold",
+                        self.config.get("ai_settings", {})
+                        .get("embedding", {})
+                        .get("similarity_threshold", 0.5),
+                    ),
+                }
+                if self._embedding_classifier.initialize(config):
+                    self.logger.info("Embedding classifier initialized")
+                else:
+                    self._embedding_classifier = None
+            except Exception as e:
+                self.logger.warning(f"Embedding classifier initialization failed: {e}")
+                self._embedding_classifier = None
+        return self._embedding_classifier
+
+    @property
+    def confidence_calibrator(self) -> Optional[ConfidenceCalibrator]:
+        """Lazy-initialized confidence calibrator."""
+        if self._confidence_calibrator is None and ConfidenceCalibrator is not None:
+            try:
+                ai_settings = self.config.get("ai_settings", {})
+                cal_config = self.config.get(
+                    "confidence_calibration", {}
+                ) or ai_settings.get("calibration", {})
+                if cal_config.get("enabled", False):
+                    self._confidence_calibrator = ConfidenceCalibrator(cal_config)
+                    self.logger.info("Confidence calibrator initialized")
+            except Exception as e:
+                self.logger.warning(f"Confidence calibrator initialization failed: {e}")
+        return self._confidence_calibrator
+
+    def _build_category_prototypes(self) -> Dict[str, np.ndarray]:
+        """Build category prototypes from config keywords for embedding classification."""
+        prototypes: Dict[str, np.ndarray] = {}
+        if self.embedding_service is None:
+            return prototypes
+
+        category_rules = self.config.get("category_rules", {})
+        for category, rules in category_rules.items():
+            if isinstance(rules, dict):
+                keywords = list(rules.get("keywords", []))
+                for rule in rules.get("rules", []):
+                    if isinstance(rule, dict):
+                        keywords.extend(rule.get("keywords", []) or [])
+                if keywords:
+                    # Use keywords to build prototype embedding
+                    keyword_text = " ".join(keywords[:10])  # Limit keywords
+                    try:
+                        prototypes[category] = self.embedding_service.embed(keyword_text)
+                    except Exception:
+                        pass
+        return prototypes
 
     def _load_config(self) -> Dict:
         config, _, explicit = load_json_config(self.config_path)
@@ -364,6 +488,13 @@ class AIBookmarkClassifier:
             except Exception as e:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
+        # 6) Embedding classifier (optional, additive signal)
+        if self.embedding_classifier:
+            try:
+                _collect(self.embedding_classifier.classify(features))
+            except Exception as e:
+                self.logger.warning(f"Embedding classification failed: {e}")
+
         # 融合
         final_result = self._ensemble_classification(results, features)
 
@@ -379,6 +510,10 @@ class AIBookmarkClassifier:
             self.stats["user_profiler"] += 1
         if "llm" in final_method:
             self.stats["llm"] += 1
+        if "embedding" in final_method:
+            self.stats["embedding"] += 1
+        if "calibrated_from" in (final_result.score_breakdown or {}):
+            self.stats["calibrated"] += 1
         if final_method == "fallback":
             self.stats["fallback"] += 1
 
@@ -429,6 +564,7 @@ class AIBookmarkClassifier:
 
         # 加权投票
         category_scores = defaultdict(float)
+        category_weight_totals = defaultdict(float)
         all_reasoning: List[str] = []
         methods_used: List[str] = []
         merged_facets: Dict[str, str] = {}
@@ -438,8 +574,10 @@ class AIBookmarkClassifier:
             "machine_learning": 0.15,  # 降低 ML 权重（因为模型可能过时）
             "semantic_analyzer": 0.10,
             "user_profiler": 0.10,
+            "embedding": 0.20,
             "llm": 0.50,
         }
+        total_weight_used = 0.0
 
         for res in results:
             method = res.method
@@ -450,6 +588,8 @@ class AIBookmarkClassifier:
 
             weight = method_weights.get(method, 0.1)
             category_scores[category] += confidence * weight
+            category_weight_totals[category] += weight
+            total_weight_used += weight
             all_reasoning.extend(reasoning)
             methods_used.append(method)
             # 合并分面提示（保留先到先得，避免覆盖更强信号）
@@ -467,19 +607,41 @@ class AIBookmarkClassifier:
 
         best_category = max(category_scores, key=category_scores.get)
         top_score = category_scores[best_category]
-        total_score = sum(category_scores.values())
-        confidence = top_score / total_score if total_score > 0 else 0.0
+        winner_weight = category_weight_totals[best_category]
+        confidence = top_score / winner_weight if winner_weight > 0 else 0.0
 
         alternatives = [
-            (cat, score / total_score)
+            (
+                cat,
+                score / category_weight_totals[cat]
+                if category_weight_totals[cat] > 0
+                else 0.0,
+            )
             for cat, score in category_scores.items()
-            if cat != best_category and total_score > 0
+            if cat != best_category
         ]
         alternatives.sort(key=lambda x: x[1], reverse=True)
 
         subcategory = self._determine_subcategory(best_category, features)
 
         final_method = "+".join(set(methods_used)) if methods_used else "unknown"
+        score_breakdown = {
+            "raw_confidence": confidence,
+            "weighted_support": top_score,
+            "total_weight": total_weight_used,
+            "winner_weight": winner_weight,
+            "agreement_ratio": top_score / sum(category_scores.values())
+            if category_scores
+            else 0.0,
+        }
+
+        calibrated_confidence = confidence
+        if self.confidence_calibrator and confidence > 0:
+            calibrated_confidence = self.confidence_calibrator.calibrate(confidence)
+            score_breakdown["calibrated_from"] = confidence
+            all_reasoning.append(
+                f"置信度校准: {confidence:.2f} -> {calibrated_confidence:.2f}"
+            )
 
         threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
         try:
@@ -491,13 +653,16 @@ class AIBookmarkClassifier:
         if threshold > 1:
             threshold = 1.0
 
-        if best_category != "未分类" and confidence < threshold:
+        if best_category != "未分类" and calibrated_confidence < threshold:
             threshold_reasoning = list(all_reasoning)
+            raw_text = (
+                f"（原始 {confidence:.2f}）" if calibrated_confidence != confidence else ""
+            )
             threshold_reasoning.append(
-                f"最终置信度 {confidence:.2f} 低于阈值 {threshold:.2f}，标记为未分类"
+                f"最终置信度 {calibrated_confidence:.2f}{raw_text} 低于阈值 {threshold:.2f}，标记为未分类"
             )
 
-            threshold_alternatives = [(best_category, confidence)]
+            threshold_alternatives = [(best_category, calibrated_confidence)]
             for alt in alternatives:
                 if alt[0] != best_category:
                     threshold_alternatives.append(alt)
@@ -505,21 +670,23 @@ class AIBookmarkClassifier:
             return ClassificationResult(
                 category="未分类",
                 subcategory=None,
-                confidence=confidence,
+                confidence=calibrated_confidence,
                 reasoning=threshold_reasoning,
                 alternatives=threshold_alternatives[:3],
                 method=final_method,
                 facets=merged_facets,
+                score_breakdown=score_breakdown,
             )
 
         return ClassificationResult(
             category=best_category,
             subcategory=subcategory,
-            confidence=confidence,
+            confidence=calibrated_confidence,
             reasoning=all_reasoning,
             alternatives=alternatives[:3],
             method=final_method,
             facets=merged_facets,
+            score_breakdown=score_breakdown,
         )
 
     def _determine_subcategory(
@@ -596,6 +763,7 @@ class AIBookmarkClassifier:
             + self.stats["ml_classifier"]
             + self.stats["semantic_analyzer"]
             + self.stats["user_profiler"]
+            + self.stats["embedding"]
             + self.stats["llm"]
             + self.stats["fallback"]
         )
@@ -605,11 +773,13 @@ class AIBookmarkClassifier:
             "cache_hit_rate": self.stats["cache_hits"]
             / max(self.stats["total_classified"], 1),
             "average_confidence": self.stats["average_confidence"],
+            "calibrated_predictions": self.stats["calibrated"],
             "classification_methods": {
                 "rule_engine": self.stats["rule_engine"],
                 "ml_classifier": self.stats["ml_classifier"],
                 "semantic_analyzer": self.stats["semantic_analyzer"],
                 "user_profiler": self.stats["user_profiler"],
+                "embedding": self.stats["embedding"],
                 "llm": self.stats["llm"],
                 "unclassified (fallback)": self.stats["fallback"],
                 "total": total_predictions,

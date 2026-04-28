@@ -61,6 +61,31 @@ def main():
     parser.add_argument("--interactive", action="store_true", help="启动交互模式")
     parser.add_argument("--train", action="store_true", help="训练机器学习模型")
     parser.add_argument("--health-check", action="store_true", help="运行健康检查")
+    parser.add_argument(
+        "--export-review-queue",
+        default=None,
+        help="将低置信度结果导出为离线 review queue JSON",
+    )
+    parser.add_argument(
+        "--apply-feedback",
+        default=None,
+        help="导入离线 feedback JSON 并应用到本地反馈管道",
+    )
+    parser.add_argument(
+        "--train-feedback",
+        default=None,
+        help="使用离线 feedback JSON 触发增量训练并保存版本",
+    )
+    parser.add_argument(
+        "--audit-feedback",
+        default=None,
+        help="审核 feedback JSON 数据质量，必要时使用 optional audit backend",
+    )
+    parser.add_argument(
+        "--audit-output",
+        default=None,
+        help="feedback audit JSON 输出路径（默认取配置）",
+    )
 
     parser.add_argument("--workers", type=int, default=4, help="并行处理线程数")
     parser.add_argument("--threshold", type=float, default=0.7, help="分类置信度阈值")
@@ -92,6 +117,43 @@ def main():
             ok = run_health_check(str(config_path))
             if not ok:
                 sys.exit(1)
+            return
+
+        if args.apply_feedback:
+            processor = BookmarkProcessor(
+                config_path=str(config_path),
+                max_workers=args.workers,
+                use_ml=not args.no_ml,
+                confidence_threshold=args.threshold,
+            )
+            summary = processor.apply_feedback_file(args.apply_feedback)
+            logger.info(f"已应用 {summary['applied_count']} 条反馈")
+            return
+
+        if args.train_feedback:
+            processor = BookmarkProcessor(
+                config_path=str(config_path),
+                max_workers=args.workers,
+                use_ml=not args.no_ml,
+                confidence_threshold=args.threshold,
+            )
+            summary = processor.train_feedback_file(args.train_feedback)
+            logger.info(
+                f"已训练 {summary['trained_samples']} 条反馈，当前版本 {summary['current_version']}"
+            )
+            return
+
+        if args.audit_feedback:
+            processor = BookmarkProcessor(
+                config_path=str(config_path),
+                max_workers=args.workers,
+                use_ml=not args.no_ml,
+                confidence_threshold=args.threshold,
+            )
+            summary = processor.audit_feedback_file(
+                args.audit_feedback, args.audit_output
+            )
+            logger.info(f"反馈审计完成: {summary['path']}")
             return
 
         if args.input:
@@ -145,6 +207,7 @@ def main():
                 output_dir=args.output,
                 train_models=args.train,
                 limit=args.limit if args.limit and args.limit > 0 else 0,
+                review_queue_path=args.export_review_queue,
             )
 
             logger.info(f"处理完成: {results['processed_bookmarks']} 个书签已分类")

@@ -1,0 +1,104 @@
+import json
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+from src.bookmark_processor import BookmarkProcessor
+
+
+def _make_processor(tmp_path: Path) -> BookmarkProcessor:
+    config = {
+        "category_rules": {
+            "编程": {
+                "rules": [{"match": "domain", "keywords": ["github.com"], "weight": 15}]
+            }
+        },
+        "ai_settings": {"confidence_threshold": 0.7},
+        "category_order": ["编程"],
+        "feedback_loop": {
+            "enabled": True,
+            "review_queue_path": str(tmp_path / "review_queue.json"),
+            "applied_feedback_path": str(tmp_path / "applied_feedback.json"),
+        },
+    }
+
+    with patch("src.bookmark_processor.load_json_config") as mock_load:
+        mock_load.return_value = (config, None, True)
+        return BookmarkProcessor()
+
+
+def test_export_review_queue_writes_deterministic_low_confidence_artifact(tmp_path):
+    processor = _make_processor(tmp_path)
+    classified_bookmarks = [
+        {
+            "url": "https://example.com/llm",
+            "title": "LLM notes",
+            "category": "AI",
+            "confidence": 0.31,
+            "alternatives": [("编程", 0.22)],
+            "reasoning": ["low confidence"],
+            "method": "embedding",
+            "score_breakdown": {"raw_confidence": 0.31},
+        },
+        {
+            "url": "https://github.com/user/repo",
+            "title": "Repo",
+            "category": "编程",
+            "confidence": 0.91,
+            "alternatives": [],
+            "reasoning": ["high confidence"],
+            "method": "rule_engine",
+            "score_breakdown": {"raw_confidence": 0.91},
+        },
+    ]
+
+    review_path = tmp_path / "review_queue.json"
+
+    summary = processor.export_review_queue(classified_bookmarks, str(review_path))
+    payload = json.loads(review_path.read_text(encoding="utf-8"))
+
+    assert summary["items_exported"] == 1
+    assert payload["items"][0]["url"] == "https://example.com/llm"
+    assert payload["items"][0]["score_breakdown"]["raw_confidence"] == 0.31
+    assert payload["items"][0]["alternatives"] == [["编程", 0.22]]
+
+    processor.export_review_queue(classified_bookmarks, str(review_path))
+    payload_again = json.loads(review_path.read_text(encoding="utf-8"))
+    assert payload == payload_again
+
+
+def test_apply_feedback_file_preserves_bookmark_attribution(tmp_path):
+    processor = _make_processor(tmp_path)
+    processor._classifier = Mock()
+
+    feedback_path = tmp_path / "feedback.json"
+    feedback_path.write_text(
+        json.dumps(
+            {
+                "items": [
+                    {
+                        "bookmark_id": "bookmark-1",
+                        "url": "https://example.com/llm",
+                        "title": "LLM notes",
+                        "predicted_category": "AI",
+                        "correct_category": "编程",
+                        "original_confidence": 0.31,
+                    }
+                ]
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    summary = processor.apply_feedback_file(str(feedback_path))
+    labeled_samples = processor.active_learning_engine.get_labeled_samples()
+
+    assert summary["applied_count"] == 1
+    assert labeled_samples[0]["bookmark_id"] == "bookmark-1"
+    processor.classifier.learn_from_feedback.assert_called_once_with(
+        "https://example.com/llm",
+        "LLM notes",
+        "编程",
+        "AI",
+    )

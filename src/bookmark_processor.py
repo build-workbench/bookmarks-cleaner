@@ -15,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
 from src.utils.emoji_cleaner import clean_title as clean_emoji_title
 
@@ -41,6 +42,50 @@ from src.data.deduplicator import BookmarkDeduplicator
 # 导入核心组件
 from src.data.exporter import DataExporter
 from src.health.bookmark_checker import HealthChecker
+
+try:
+    from src.services.active_learning import ActiveLearningEngine
+except ImportError:
+    ActiveLearningEngine = None
+
+try:
+    from src.services.incremental_trainer import IncrementalTrainer
+except ImportError:
+    IncrementalTrainer = None
+
+
+class FeedbackIncrementalModel:
+    """轻量级反馈增量模型，用于离线 feedback 训练与版本化。"""
+
+    def __init__(self):
+        self.classes_: List[str] = []
+        self._label_by_signature: Dict[str, str] = {}
+        self._label_counts: Dict[str, int] = {}
+
+    def partial_fit(self, X, y, classes=None):
+        if classes:
+            merged = set(self.classes_) | set(classes)
+            self.classes_ = sorted(str(label) for label in merged)
+
+        for features, label in zip(X, y):
+            label = str(label)
+            signature = self._signature(features)
+            self._label_by_signature[signature] = label
+            self._label_counts[label] = self._label_counts.get(label, 0) + 1
+
+    def predict(self, X):
+        default_label = max(
+            self._label_counts,
+            key=self._label_counts.get,
+            default="未分类",
+        )
+        return [self._label_by_signature.get(self._signature(features), default_label) for features in X]
+
+    def _signature(self, features: Dict) -> str:
+        url = str(features.get("url", ""))
+        title = str(features.get("title", "")).strip().lower()
+        domain = urlparse(url).netloc.lower().replace("www.", "")
+        return f"{domain}::{title}"
 
 
 class BookmarkProcessor:
@@ -114,6 +159,8 @@ class BookmarkProcessor:
         self._health_checker = None
         self._exporter = None
         self._llm_organizer = None
+        self._active_learning_engine = None
+        self._incremental_trainer = None
         self.llm_organizer_meta: Optional[Dict] = None
 
         # 缓存和性能优化 (OrderedDict with LRU eviction)
@@ -194,12 +241,37 @@ class BookmarkProcessor:
                 self._llm_organizer = None
         return self._llm_organizer
 
+    @property
+    def active_learning_engine(self):
+        """Lazy loading offline review/feedback engine."""
+        if self._active_learning_engine is None and ActiveLearningEngine is not None:
+            feedback_config = dict(self.config.get("active_learning_settings", {}) or {})
+            feedback_config.update(self.config.get("feedback_loop", {}) or {})
+            if "confidence_threshold" not in feedback_config:
+                feedback_config["confidence_threshold"] = self.config.get(
+                    "ai_settings", {}
+                ).get("confidence_threshold", 0.7)
+            if feedback_config.get("enabled", False):
+                self._active_learning_engine = ActiveLearningEngine(feedback_config)
+        return self._active_learning_engine
+
+    @property
+    def incremental_trainer(self):
+        """Lazy loading incremental trainer for approved feedback."""
+        if self._incremental_trainer is None and IncrementalTrainer is not None:
+            feedback_config = dict(self.config.get("feedback_loop", {}) or {})
+            if feedback_config.get("enabled", False):
+                self._incremental_trainer = IncrementalTrainer(feedback_config)
+                self._incremental_trainer.set_model(FeedbackIncrementalModel())
+        return self._incremental_trainer
+
     def process_files(
         self,
         input_files: List[str],
         output_dir: str = "output",
         train_models: bool = False,
         limit: int = 0,
+        review_queue_path: Optional[str] = None,
     ) -> Dict:
         """处理多个书签文件"""
         if BeautifulSoup is None:
@@ -272,6 +344,9 @@ class BookmarkProcessor:
         # 组织分类结果
         organized_bookmarks = self._organize_bookmarks(classified_bookmarks)
 
+        if review_queue_path:
+            self.export_review_queue(classified_bookmarks, review_queue_path)
+
         # 可选：调用 LLM 进行更高层次的整理
         self.llm_organizer_meta = None
         self.stats["llm_organizer_used"] = False
@@ -309,6 +384,327 @@ class BookmarkProcessor:
         self.logger.info(f"处理完成: {self.stats['processed_bookmarks']} 个书签已分类")
 
         return self.stats
+
+    def export_review_queue(
+        self, classified_bookmarks: List[Dict], output_path: Optional[str] = None
+    ) -> Dict:
+        """导出低置信度复核队列。"""
+        engine = self.active_learning_engine
+        if engine is None:
+            return {"items_exported": 0, "path": output_path}
+
+        target_path = output_path or (
+            self.config.get("feedback_loop", {}) or {}
+        ).get("review_queue_path")
+        if not target_path:
+            raise ValueError("feedback_loop.review_queue_path 未配置，无法导出 review queue")
+
+        engine.clear_queue()
+        export_items: List[Dict] = []
+        for bookmark in classified_bookmarks:
+            review_item = engine.process_classification(
+                bookmark=bookmark,
+                category=bookmark.get("category", "未分类"),
+                confidence=float(bookmark.get("confidence", 0.0)),
+                alternatives=bookmark.get("alternatives", []),
+            )
+            if review_item is None:
+                continue
+
+            export_items.append(
+                {
+                    "bookmark_id": review_item.bookmark_id,
+                    "url": review_item.url,
+                    "title": review_item.title,
+                    "predicted_category": review_item.predicted_category,
+                    "confidence": review_item.confidence,
+                    "alternatives": list(review_item.alternatives),
+                    "uncertainty_score": review_item.uncertainty_score,
+                    "reasoning": bookmark.get("reasoning", []),
+                    "method": bookmark.get("method", "unknown"),
+                    "score_breakdown": bookmark.get("score_breakdown", {}),
+                }
+            )
+
+        export_items.sort(
+            key=lambda item: (
+                -float(item.get("uncertainty_score", 0.0)),
+                float(item.get("confidence", 0.0)),
+                str(item.get("url", "")),
+                str(item.get("title", "")),
+            )
+        )
+
+        payload = {
+            "schema_version": "review-queue/v1",
+            "items": export_items,
+            "summary": {"items_exported": len(export_items)},
+        }
+
+        os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
+        with open(target_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+
+        return {"items_exported": len(export_items), "path": target_path}
+
+    def apply_feedback_file(self, feedback_path: str) -> Dict:
+        """导入离线反馈文件并应用到现有反馈管道。"""
+        engine = self.active_learning_engine
+        if engine is None:
+            raise ValueError("feedback_loop 未启用，无法应用反馈文件")
+
+        items = self._load_feedback_items(feedback_path)
+
+        applied_items: List[Dict] = []
+        for item in items:
+            bookmark_id = item.get("bookmark_id")
+            url = item.get("url", "")
+            title = item.get("title", "")
+            predicted_category = item.get("predicted_category", "未分类")
+            correct_category = item.get("correct_category")
+            original_confidence = item.get("original_confidence", item.get("confidence"))
+
+            if not bookmark_id or not correct_category:
+                raise ValueError("反馈项缺少 bookmark_id 或 correct_category")
+
+            engine.submit_feedback(
+                bookmark_id=str(bookmark_id),
+                correct_category=str(correct_category),
+                original_prediction=str(predicted_category),
+                original_confidence=(
+                    float(original_confidence)
+                    if original_confidence is not None
+                    else None
+                ),
+            )
+
+            if url and title:
+                self.classifier.learn_from_feedback(
+                    url,
+                    title,
+                    str(correct_category),
+                    str(predicted_category),
+                )
+
+            applied_items.append(
+                {
+                    "bookmark_id": str(bookmark_id),
+                    "url": url,
+                    "title": title,
+                    "predicted_category": str(predicted_category),
+                    "correct_category": str(correct_category),
+                    "original_confidence": original_confidence,
+                }
+            )
+
+        applied_items.sort(key=lambda item: item["bookmark_id"])
+        applied_feedback_path = (self.config.get("feedback_loop", {}) or {}).get(
+            "applied_feedback_path"
+        )
+        if applied_feedback_path:
+            existing_items: List[Dict] = []
+            if os.path.exists(applied_feedback_path):
+                with open(applied_feedback_path, "r", encoding="utf-8") as f:
+                    existing_payload = json.load(f)
+                existing_items = (
+                    existing_payload.get("items", [])
+                    if isinstance(existing_payload, dict)
+                    else []
+                )
+
+            merged = {
+                str(item["bookmark_id"]): item
+                for item in existing_items + applied_items
+                if isinstance(item, dict) and item.get("bookmark_id")
+            }
+            merged_items = [merged[key] for key in sorted(merged)]
+
+            os.makedirs(os.path.dirname(applied_feedback_path) or ".", exist_ok=True)
+            with open(applied_feedback_path, "w", encoding="utf-8") as f:
+                json.dump(
+                    {
+                        "schema_version": "applied-feedback/v1",
+                        "items": merged_items,
+                        "summary": {"applied_count": len(merged_items)},
+                    },
+                    f,
+                    ensure_ascii=False,
+                    indent=2,
+                )
+
+        return {"applied_count": len(applied_items), "path": feedback_path}
+
+    def train_feedback_file(self, feedback_path: str) -> Dict:
+        """将已批准反馈样本接入增量训练器并生成版本。"""
+        trainer = self.incremental_trainer
+        if trainer is None:
+            raise ValueError("feedback_loop 未启用，无法执行反馈训练")
+
+        items = self._load_feedback_items(feedback_path)
+        trained_samples = 0
+        for item in items:
+            correct_category = item.get("correct_category")
+            if not correct_category:
+                continue
+
+            trainer.add_sample(
+                features={
+                    "url": item.get("url", ""),
+                    "title": item.get("title", ""),
+                    "predicted_category": item.get("predicted_category", "未分类"),
+                    "bookmark_id": item.get("bookmark_id", ""),
+                },
+                label=str(correct_category),
+            )
+            trained_samples += 1
+
+        trainer.force_update()
+        stats = trainer.get_stats()
+        return {
+            "trained_samples": trained_samples,
+            "version_count": stats.get("version_count", 0),
+            "current_version": stats.get("current_version"),
+        }
+
+    def audit_feedback_file(
+        self, feedback_path: str, output_path: Optional[str] = None
+    ) -> Dict:
+        """审核反馈数据质量，在可用时启用 cleanlab 辅助。"""
+        items = self._load_feedback_items(feedback_path)
+        target_path = output_path or (
+            ((self.config.get("feedback_loop", {}) or {}).get("audit", {}) or {}).get(
+                "output_path"
+            )
+        )
+        if not target_path:
+            raise ValueError("feedback_loop.audit.output_path 未配置，无法导出 audit 结果")
+
+        disagreement_count = sum(
+            1
+            for item in items
+            if item.get("correct_category")
+            and item.get("predicted_category")
+            and str(item.get("correct_category")) != str(item.get("predicted_category"))
+        )
+        duplicate_ids = {}
+        for item in items:
+            bookmark_id = str(item.get("bookmark_id", ""))
+            duplicate_ids[bookmark_id] = duplicate_ids.get(bookmark_id, 0) + 1
+
+        summary = {
+            "total_items": len(items),
+            "disagreement_count": disagreement_count,
+            "duplicate_bookmark_ids": sorted(
+                [bookmark_id for bookmark_id, count in duplicate_ids.items() if count > 1]
+            ),
+        }
+
+        audit_backend = "builtin"
+        likely_issues: List[Dict] = []
+        cleanlab_find_label_issues = self._get_cleanlab_find_label_issues()
+        if cleanlab_find_label_issues is not None:
+            try:
+                likely_issues = self._run_cleanlab_audit(
+                    items, cleanlab_find_label_issues
+                )
+                audit_backend = "cleanlab"
+            except Exception as exc:
+                self.logger.warning(f"cleanlab audit failed, falling back to builtin audit: {exc}")
+
+        payload = {
+            "schema_version": "feedback-audit/v1",
+            "audit_backend": audit_backend,
+            "summary": summary,
+            "likely_issues": likely_issues,
+        }
+
+        os.makedirs(os.path.dirname(target_path) or ".", exist_ok=True)
+        with open(target_path, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+
+        return {"audit_backend": audit_backend, "path": target_path}
+
+    def _load_feedback_items(self, feedback_path: str) -> List[Dict]:
+        with open(feedback_path, "r", encoding="utf-8") as f:
+            payload = json.load(f)
+
+        items = payload.get("items", payload) if isinstance(payload, dict) else payload
+        if not isinstance(items, list):
+            raise ValueError("反馈文件格式无效：items 必须是列表")
+        if not all(isinstance(item, dict) for item in items):
+            raise ValueError("反馈项格式无效：每个 item 都必须是对象")
+        return items
+
+    def _get_cleanlab_find_label_issues(self):
+        try:
+            from cleanlab.filter import find_label_issues
+        except ImportError:
+            return None
+        return find_label_issues
+
+    def _run_cleanlab_audit(self, items: List[Dict], find_label_issues) -> List[Dict]:
+        import numpy as np
+
+        categories = sorted(
+            {
+                str(category)
+                for item in items
+                for category in [
+                    item.get("correct_category"),
+                    item.get("predicted_category"),
+                    *[alt[0] for alt in item.get("alternatives", []) if alt],
+                ]
+                if category
+            }
+        )
+        if len(categories) < 2:
+            return []
+
+        category_to_idx = {category: idx for idx, category in enumerate(categories)}
+        labels = []
+        pred_probs = []
+        indexed_items = []
+
+        for item in items:
+            correct_category = item.get("correct_category")
+            predicted_category = item.get("predicted_category")
+            if not correct_category or not predicted_category:
+                continue
+
+            scores = {str(predicted_category): float(item.get("confidence", 1.0) or 0.0)}
+            for alt_category, alt_score in item.get("alternatives", []):
+                scores[str(alt_category)] = float(alt_score)
+
+            total = sum(max(score, 0.0) for score in scores.values())
+            if total <= 0:
+                continue
+
+            probs = np.zeros(len(categories), dtype=float)
+            for category, score in scores.items():
+                probs[category_to_idx[category]] = max(score, 0.0) / total
+
+            labels.append(category_to_idx[str(correct_category)])
+            pred_probs.append(probs)
+            indexed_items.append(item)
+
+        if len(pred_probs) < 2:
+            return []
+
+        issue_indices = find_label_issues(
+            labels=np.array(labels),
+            pred_probs=np.array(pred_probs),
+            return_indices_ranked_by="self_confidence",
+        )
+
+        return [
+            {
+                "bookmark_id": indexed_items[int(idx)].get("bookmark_id"),
+                "url": indexed_items[int(idx)].get("url", ""),
+                "predicted_category": indexed_items[int(idx)].get("predicted_category"),
+                "correct_category": indexed_items[int(idx)].get("correct_category"),
+            }
+            for idx in issue_indices
+        ]
 
     def _load_bookmarks_from_file(self, file_path: str) -> List[Dict]:
         """优化的从HTML文件加载书签"""
@@ -461,6 +857,11 @@ class BookmarkProcessor:
                         else 0.0
                     ),
                     "facets": result.facets if hasattr(result, "facets") else {},
+                    "score_breakdown": (
+                        result.score_breakdown
+                        if hasattr(result, "score_breakdown")
+                        else {}
+                    ),
                 }
             else:
                 # 字典结果
@@ -475,6 +876,7 @@ class BookmarkProcessor:
                     "method": result.get("method", "unknown"),
                     "processing_time": result.get("processing_time", 0.0),
                     "facets": result.get("facets", {}),
+                    "score_breakdown": result.get("score_breakdown", {}),
                 }
 
             # LRU cache eviction

@@ -6,6 +6,7 @@ AI 分类器核心模块测试
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
+import numpy as np
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -224,6 +225,90 @@ class TestAIBookmarkClassifier:
 
         assert result is not None
         # 应该有一个合理的默认处理
+
+    def test_top_level_embedding_config_contributes_to_voting_and_stats(
+        self, mock_config
+    ):
+        config = {
+            **mock_config,
+            "embedding": {
+                "enabled": True,
+                "backend": "hash",
+                "similarity_threshold": 0.1,
+            },
+        }
+
+        with patch("src.ai_classifier.EmbeddingService") as embedding_service_cls:
+            with patch("src.ai_classifier.EmbeddingClassifier") as embedding_cls:
+                embedding_service = embedding_service_cls.return_value
+                embedding_service.initialize.return_value = True
+                embedding_service.embed.return_value = np.array(
+                    [1.0, 0.0], dtype=np.float32
+                )
+
+                embedding_classifier = embedding_cls.return_value
+                embedding_classifier.initialize.return_value = True
+                embedding_classifier.classify.return_value = ClassificationResult(
+                    category="🤖 AI",
+                    confidence=0.95,
+                    reasoning=["embedding match"],
+                    method="embedding",
+                )
+
+                classifier = AIBookmarkClassifier(config=config)
+                classifier._rule_engine = Mock(
+                    classify=Mock(
+                        return_value=ClassificationResult(
+                            category="💻 编程",
+                            confidence=0.1,
+                            reasoning=["rule match"],
+                            method="rule_engine",
+                        )
+                    )
+                )
+                classifier._semantic_analyzer = Mock(classify=Mock(return_value=None))
+                classifier._user_profiler = Mock(classify=Mock(return_value=None))
+
+                result = classifier.classify(
+                    "https://example.com/llm",
+                    "LLM notes",
+                )
+
+                init_config = embedding_classifier.initialize.call_args.args[0]
+
+                assert init_config["similarity_threshold"] == 0.1
+                assert "编程" in init_config["category_prototypes"]
+                assert result.category == "AI"
+                assert "embedding match" in result.reasoning
+                assert (
+                    classifier.get_statistics()["classification_methods"]["embedding"] == 1
+                )
+
+    def test_calibration_applies_before_thresholding_and_surfaces_raw_score(
+        self, classifier
+    ):
+        classifier.config["ai_settings"]["confidence_threshold"] = 0.7
+        classifier._rule_engine = Mock(
+            classify=Mock(
+                return_value=ClassificationResult(
+                    category="💻 编程",
+                    confidence=0.49,
+                    reasoning=["rule match"],
+                    method="rule_engine",
+                )
+            )
+        )
+        classifier._semantic_analyzer = Mock(classify=Mock(return_value=None))
+        classifier._user_profiler = Mock(classify=Mock(return_value=None))
+        classifier._confidence_calibrator = Mock(calibrate=Mock(return_value=0.8))
+
+        result = classifier.classify("https://github.com/user/repo", "Repo")
+        stats = classifier.get_statistics()
+
+        assert result.category == "编程"
+        assert result.confidence == 0.8
+        assert result.score_breakdown["calibrated_from"] == pytest.approx(0.49)
+        assert stats["calibrated_predictions"] == 1
 
     def test_get_statistics(self, classifier):
         """测试统计信息获取"""

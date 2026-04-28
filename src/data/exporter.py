@@ -75,8 +75,14 @@ class DataExporter:
                         f'      - ML Classifier: {methods.get("ml_classifier", 0)}'
                     )
                     html_parts.append(
+                        f'      - Embedding: {methods.get("embedding", 0)}'
+                    )
+                    html_parts.append(
                         f'      - Unclassified: {methods.get("unclassified (fallback)", 0)}'
                     )
+                calibrated = classifier_stats.get("calibrated_predictions", 0)
+                if calibrated:
+                    html_parts.append(f"      - Calibrated: {calibrated}")
             if stats.get("llm_organizer_used"):
                 llm_stats = stats.get("llm_organizer_stats", {})
                 html_parts.append("    LLM Organizer: enabled")
@@ -319,8 +325,14 @@ class DataExporter:
                         f"- **机器学习**: {methods.get('ml_classifier', 0)} ({methods.get('ml_classifier', 0) / total:.1%})"
                     )
                     lines.append(
+                        f"- **Embedding**: {methods.get('embedding', 0)} ({methods.get('embedding', 0) / total:.1%})"
+                    )
+                    lines.append(
                         f"- **未分类**: {methods.get('unclassified (fallback)', 0)} ({methods.get('unclassified (fallback)', 0) / total:.1%})"
                     )
+                calibrated = classifier_stats.get("calibrated_predictions", 0)
+                if calibrated:
+                    lines.append(f"- **校准后输出**: {calibrated}")
                 lines.append(
                     f"- **平均置信度**: {classifier_stats.get('average_confidence', 0):.2f}"
                 )

@@ -4,6 +4,7 @@ Active Learning Engine - 主动学习引擎
 """
 
 import heapq
+import hashlib
 import json
 import logging
 import os
@@ -100,7 +101,7 @@ class ActiveLearningEngine:
 
         item = ReviewItem(
             priority=-uncertainty,  # 负值用于最大堆效果
-            bookmark_id=bookmark.get("id", str(hash(bookmark.get("url", "")))),
+            bookmark_id=self._derive_bookmark_id(bookmark),
             url=bookmark.get("url", ""),
             title=bookmark.get("title", ""),
             predicted_category=category,
@@ -115,6 +116,21 @@ class ActiveLearningEngine:
             heapq.heappush(self.review_queue, item)
 
         return item
+
+    def _derive_bookmark_id(self, bookmark: Dict[str, Any]) -> str:
+        """生成稳定的书签标识，便于离线 review / feedback round-trip。"""
+        explicit_id = bookmark.get("id")
+        if explicit_id:
+            return str(explicit_id)
+
+        payload = "||".join(
+            [
+                str(bookmark.get("url", "")),
+                str(bookmark.get("title", "")),
+                str(bookmark.get("source_file", "")),
+            ]
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
 
     def _calculate_uncertainty(
         self, confidence: float, alternatives: List[Tuple[str, float]]

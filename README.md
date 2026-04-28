@@ -54,6 +54,15 @@ pip install -e ".[dev,semantic]"   # sentence-transformers + hnswlib
 pip install -e ".[dev,audit]"      # cleanlab-backed feedback data audit
 ```
 
+Offline feedback loop:
+
+```bash
+cleanbook -i bookmarks.html -o output/ --export-review-queue output/review-queue.json
+cleanbook --apply-feedback reviewed-feedback.json
+cleanbook --train-feedback reviewed-feedback.json
+cleanbook --audit-feedback reviewed-feedback.json --audit-output output/feedback-audit.json
+```
+
 ## What it ships
 
 - `cleanbook` — the maintained CLI entry point
