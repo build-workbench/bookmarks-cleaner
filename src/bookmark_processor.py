@@ -79,7 +79,10 @@ class FeedbackIncrementalModel:
             key=self._label_counts.get,
             default="未分类",
         )
-        return [self._label_by_signature.get(self._signature(features), default_label) for features in X]
+        return [
+            self._label_by_signature.get(self._signature(features), default_label)
+            for features in X
+        ]
 
     def _signature(self, features: Dict) -> str:
         url = str(features.get("url", ""))
@@ -245,7 +248,9 @@ class BookmarkProcessor:
     def active_learning_engine(self):
         """Lazy loading offline review/feedback engine."""
         if self._active_learning_engine is None and ActiveLearningEngine is not None:
-            feedback_config = dict(self.config.get("active_learning_settings", {}) or {})
+            feedback_config = dict(
+                self.config.get("active_learning_settings", {}) or {}
+            )
             feedback_config.update(self.config.get("feedback_loop", {}) or {})
             if "confidence_threshold" not in feedback_config:
                 feedback_config["confidence_threshold"] = self.config.get(
@@ -393,11 +398,13 @@ class BookmarkProcessor:
         if engine is None:
             return {"items_exported": 0, "path": output_path}
 
-        target_path = output_path or (
-            self.config.get("feedback_loop", {}) or {}
-        ).get("review_queue_path")
+        target_path = output_path or (self.config.get("feedback_loop", {}) or {}).get(
+            "review_queue_path"
+        )
         if not target_path:
-            raise ValueError("feedback_loop.review_queue_path 未配置，无法导出 review queue")
+            raise ValueError(
+                "feedback_loop.review_queue_path 未配置，无法导出 review queue"
+            )
 
         engine.clear_queue()
         export_items: List[Dict] = []
@@ -462,7 +469,9 @@ class BookmarkProcessor:
             title = item.get("title", "")
             predicted_category = item.get("predicted_category", "未分类")
             correct_category = item.get("correct_category")
-            original_confidence = item.get("original_confidence", item.get("confidence"))
+            original_confidence = item.get(
+                "original_confidence", item.get("confidence")
+            )
 
             if not bookmark_id or not correct_category:
                 raise ValueError("反馈项缺少 bookmark_id 或 correct_category")
@@ -577,7 +586,9 @@ class BookmarkProcessor:
             )
         )
         if not target_path:
-            raise ValueError("feedback_loop.audit.output_path 未配置，无法导出 audit 结果")
+            raise ValueError(
+                "feedback_loop.audit.output_path 未配置，无法导出 audit 结果"
+            )
 
         disagreement_count = sum(
             1
@@ -595,7 +606,11 @@ class BookmarkProcessor:
             "total_items": len(items),
             "disagreement_count": disagreement_count,
             "duplicate_bookmark_ids": sorted(
-                [bookmark_id for bookmark_id, count in duplicate_ids.items() if count > 1]
+                [
+                    bookmark_id
+                    for bookmark_id, count in duplicate_ids.items()
+                    if count > 1
+                ]
             ),
         }
 
@@ -609,7 +624,9 @@ class BookmarkProcessor:
                 )
                 audit_backend = "cleanlab"
             except Exception as exc:
-                self.logger.warning(f"cleanlab audit failed, falling back to builtin audit: {exc}")
+                self.logger.warning(
+                    f"cleanlab audit failed, falling back to builtin audit: {exc}"
+                )
 
         payload = {
             "schema_version": "feedback-audit/v1",
@@ -671,7 +688,9 @@ class BookmarkProcessor:
             if not correct_category or not predicted_category:
                 continue
 
-            scores = {str(predicted_category): float(item.get("confidence", 1.0) or 0.0)}
+            scores = {
+                str(predicted_category): float(item.get("confidence", 1.0) or 0.0)
+            }
             for alt_category, alt_score in item.get("alternatives", []):
                 scores[str(alt_category)] = float(alt_score)
 

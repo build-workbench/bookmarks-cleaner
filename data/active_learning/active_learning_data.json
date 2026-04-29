@@ -1,0 +1,37 @@
+{
+  "labeled_samples": [
+    {
+      "bookmark_id": "bookmark-1",
+      "correct_category": "编程",
+      "original_prediction": "AI",
+      "original_confidence": 0.31,
+      "timestamp": "2026-04-28T10:54:46.520944"
+    },
+    {
+      "bookmark_id": "bookmark-1",
+      "correct_category": "编程",
+      "original_prediction": "AI",
+      "original_confidence": 0.31,
+      "timestamp": "2026-04-28T17:13:25.396625"
+    },
+    {
+      "bookmark_id": "bookmark-1",
+      "correct_category": "编程",
+      "original_prediction": "AI",
+      "original_confidence": 0.31,
+      "timestamp": "2026-04-29T14:15:31.677292"
+    },
+    {
+      "bookmark_id": "bookmark-1",
+      "correct_category": "编程",
+      "original_prediction": "AI",
+      "original_confidence": 0.31,
+      "timestamp": "2026-04-29T14:19:04.331744"
+    }
+  ],
+  "stats": {
+    "total_processed": 0,
+    "low_confidence_detected": 0,
+    "feedback_collected": 4
+  }
+}

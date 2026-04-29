@@ -2,12 +2,12 @@
 
 此模块已弃用。请直接从对应模块导入：
 
-    from src.semantic_analyzer import SemanticAnalyzer
-    from src.user_profiler import UserProfiler
-    from src.deduplicator import BookmarkDeduplicator
-    from src.bookmark_health_checker import HealthChecker, HealthStatus
-    from src.data_exporter import DataExporter
-    from src.performance_optimizer import PerformanceMonitor
+    from src.engines.semantic import SemanticAnalyzer
+    from src.utils.profiler import UserProfiler
+    from src.data.deduplicator import BookmarkDeduplicator
+    from src.health.bookmark_checker import HealthChecker, HealthStatus
+    from src.data.exporter import DataExporter
+    from src.utils.optimizer import PerformanceMonitor
 """
 
 import warnings as _warnings

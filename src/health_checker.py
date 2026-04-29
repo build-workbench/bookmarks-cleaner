@@ -99,7 +99,7 @@ def run_health_check(config_path: Optional[str] = None):
         "src.ai_classifier",
         "src.bookmark_processor",
         "src.rule_engine",
-        "src.cli_interface",
+        "src.cli.interface",
         "src.enhanced_cli",
     ]
 

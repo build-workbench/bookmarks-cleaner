@@ -281,7 +281,8 @@ class TestAIBookmarkClassifier:
                 assert result.category == "AI"
                 assert "embedding match" in result.reasoning
                 assert (
-                    classifier.get_statistics()["classification_methods"]["embedding"] == 1
+                    classifier.get_statistics()["classification_methods"]["embedding"]
+                    == 1
                 )
 
     def test_calibration_applies_before_thresholding_and_surfaces_raw_score(

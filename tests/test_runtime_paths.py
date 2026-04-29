@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.cli_interface import CLIInterface
+from src.cli.interface import CLIInterface
 from src.enhanced_cli import main as enhanced_main
 from src.health_checker import run_health_check
 from src.resource_loader import (

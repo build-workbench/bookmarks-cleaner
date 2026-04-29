@@ -293,8 +293,9 @@ class AIBookmarkClassifier:
                 config = {
                     "embedding_service": self.embedding_service,
                     "category_prototypes": prototypes,
-                    "similarity_threshold": (self.config.get("embedding", {}) or {})
-                    .get(
+                    "similarity_threshold": (
+                        self.config.get("embedding", {}) or {}
+                    ).get(
                         "similarity_threshold",
                         self.config.get("ai_settings", {})
                         .get("embedding", {})
@@ -343,7 +344,9 @@ class AIBookmarkClassifier:
                     # Use keywords to build prototype embedding
                     keyword_text = " ".join(keywords[:10])  # Limit keywords
                     try:
-                        prototypes[category] = self.embedding_service.embed(keyword_text)
+                        prototypes[category] = self.embedding_service.embed(
+                            keyword_text
+                        )
                     except Exception:
                         pass
         return prototypes
@@ -613,9 +616,11 @@ class AIBookmarkClassifier:
         alternatives = [
             (
                 cat,
-                score / category_weight_totals[cat]
-                if category_weight_totals[cat] > 0
-                else 0.0,
+                (
+                    score / category_weight_totals[cat]
+                    if category_weight_totals[cat] > 0
+                    else 0.0
+                ),
             )
             for cat, score in category_scores.items()
             if cat != best_category
@@ -630,9 +635,9 @@ class AIBookmarkClassifier:
             "weighted_support": top_score,
             "total_weight": total_weight_used,
             "winner_weight": winner_weight,
-            "agreement_ratio": top_score / sum(category_scores.values())
-            if category_scores
-            else 0.0,
+            "agreement_ratio": (
+                top_score / sum(category_scores.values()) if category_scores else 0.0
+            ),
         }
 
         calibrated_confidence = confidence
@@ -656,7 +661,9 @@ class AIBookmarkClassifier:
         if best_category != "未分类" and calibrated_confidence < threshold:
             threshold_reasoning = list(all_reasoning)
             raw_text = (
-                f"（原始 {confidence:.2f}）" if calibrated_confidence != confidence else ""
+                f"（原始 {confidence:.2f}）"
+                if calibrated_confidence != confidence
+                else ""
             )
             threshold_reasoning.append(
                 f"最终置信度 {calibrated_confidence:.2f}{raw_text} 低于阈值 {threshold:.2f}，标记为未分类"
