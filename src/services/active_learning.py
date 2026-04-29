@@ -3,8 +3,8 @@ Active Learning Engine - 主动学习引擎
 识别低置信度样本并管理用户反馈收集
 """
 
-import heapq
 import hashlib
+import heapq
 import json
 import logging
 import os
@@ -253,7 +253,9 @@ class ActiveLearningEngine:
     def get_remaining_requests(self) -> int:
         """获取本会话剩余请求数"""
         with self._count_lock:
-            return max(0, self.max_requests_per_session - self.session_request_count)
+            return int(
+                max(0, self.max_requests_per_session - self.session_request_count)
+            )
 
     def reset_session(self):
         """重置会话计数"""
