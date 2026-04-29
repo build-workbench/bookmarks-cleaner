@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: OpenSpec is the sole active specification workflow
 The repository MUST treat `openspec/` as the only normative specification system for planning, proposal, implementation, and archival workflows.
@@ -26,6 +26,12 @@ All maintained AI instruction files MUST communicate the same repository workflo
 - **WHEN** they describe workflow or repository conventions
 - **THEN** they MUST agree on OpenSpec-first governance, direct-push operation, and the authoritative project surface
 
+#### Scenario: Copilot instructions are ignored
+- **GIVEN** `.github/copilot-instructions.md` exists
+- **WHEN** the project is cleaned for final closeout
+- **THEN** the file MUST remain in `.gitignore` (already configured)
+- **AND** it MUST NOT be tracked in version control
+
 ### Requirement: Final closeout work proceeds through one umbrella change with ordered phases
 The repository MUST allow a final closeout initiative to run as one umbrella OpenSpec change, provided its internal tasks preserve explicit phase ordering and dependency tracking.
 
@@ -52,3 +58,4 @@ Governance documents MUST explain how `/review` or equivalent review steps are u
 - One umbrella closeout change does not imply unordered execution.
 - Review remains present as quality control without becoming a branching ritual.
 - Handoff expectations are explicit enough for a follow-up model or maintainer.
+- All zombie branches have been removed from the remote.

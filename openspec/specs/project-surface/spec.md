@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: The public documentation surface is intentionally small
 The repository MUST keep a small set of maintained public-facing documents and MUST remove or retire low-value, redundant, or stale documentation that is not needed for users or maintainers.
@@ -8,6 +8,18 @@ The repository MUST keep a small set of maintained public-facing documents and M
 - **WHEN** the project surface is reviewed
 - **THEN** one canonical maintained document MUST remain
 - **AND** redundant documents MUST be removed, archived, or replaced with a brief migration breadcrumb
+
+#### Scenario: Duplicate source files are removed
+- **GIVEN** duplicate source files exist in the repository (e.g., `src/data_exporter.py` vs `src/data/exporter.py`)
+- **WHEN** the project surface is normalized
+- **THEN** only one version of each module MUST be retained
+- **AND** the retained version MUST be in the canonical location matching `pyproject.toml` package configuration
+
+#### Scenario: BMad Skills are removed
+- **GIVEN** the repository contains 46 BMad skills unrelated to the project
+- **WHEN** the project surface is cleaned
+- **THEN** all `bmad-*` skills MUST be removed
+- **AND** only OpenSpec-related skills (`opsx-*`) MAY be retained
 
 ### Requirement: README is the canonical repository entry point
 The root README MUST present the maintained product story, supported installation paths, and links to the essential documentation surface without duplicating the entire docs site.
@@ -53,3 +65,6 @@ The maintained docs site MUST keep only pages that serve the product landing sto
 - The docs source tree contains maintainable source, not large reproducible build outputs.
 - Pages content stays aligned with active product messaging.
 - Deep pages exist only when they still explain maintained behavior.
+- No duplicate source files exist in the codebase.
+- All source files match the package configuration in `pyproject.toml`.
+- Only project-relevant skills remain in `.claude/skills/`.
