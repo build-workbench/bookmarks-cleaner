@@ -95,6 +95,10 @@ tests/output-round-*/
 unclassified_log.txt
 config_temp.json
 
+# Runtime data (user-specific)
+data/active_learning/
+models/*.pkl
+
 # BMad Method V6
 _bmad/
 _bmad-output/
