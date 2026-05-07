@@ -11,8 +11,8 @@ from .category import (
     strip_category_prefix,
 )
 
-# 直接从模块导入
-from .config import EnhancedConfigManager as ConfigManager
+# 从 config_manager 导入（替代已删除的 utils/config.py）
+from src.config_manager import EnhancedConfigManager as ConfigManager
 
 # 从 resource_loader 导入函数和异常
 from .resource_loader import (
