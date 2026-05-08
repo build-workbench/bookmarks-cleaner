@@ -18,6 +18,13 @@ Project governance documents MUST describe a single-maintainer workflow that def
 - **THEN** the default sequence MUST be `/opsx:explore`, `/opsx:propose`, `/opsx:apply`, review, verify, direct push, archive
 - **AND** pull-request-only steps MUST NOT be required
 
+#### Scenario: Branch management for stable maintenance
+- **GIVEN** the project is in stable maintenance phase
+- **WHEN** checking the Git repository structure
+- **THEN** only the master/main branch MUST exist
+- **AND** all feature branches MUST be deleted after merge
+- **AND** no zombie branches MUST remain in remote repository
+
 ### Requirement: AI instruction files stay synchronized
 All maintained AI instruction files MUST communicate the same repository workflow, architecture summary, and closeout constraints without conflicting process rules.
 
@@ -41,6 +48,13 @@ The repository MUST allow a final closeout initiative to run as one umbrella Ope
 - **THEN** the work MAY be organized under one umbrella change
 - **AND** the change MUST define phase order, task dependencies, and archive criteria clearly enough for handoff
 
+#### Scenario: Repository closeout completion
+- **GIVEN** final closeout tasks are completed
+- **WHEN** the maintainer verifies the repository state
+- **THEN** no runtime data files MUST be tracked in version control
+- **AND** no obsolete documentation MUST remain in the repository
+- **AND** Git repository MUST be in clean state with single master branch
+
 ### Requirement: Lightweight review is defined for direct-push maintenance
 Governance documents MUST explain how `/review` or equivalent review steps are used in a single-maintainer direct-push workflow without reintroducing PR-first process overhead.
 
@@ -59,3 +73,5 @@ Governance documents MUST explain how `/review` or equivalent review steps are u
 - Review remains present as quality control without becoming a branching ritual.
 - Handoff expectations are explicit enough for a follow-up model or maintainer.
 - All zombie branches have been removed from the remote.
+- No runtime data or temporary files are tracked in version control.
+- Documentation reflects current project state without obsolete artifacts.
