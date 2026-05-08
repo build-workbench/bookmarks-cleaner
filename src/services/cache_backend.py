@@ -133,7 +133,9 @@ class InMemoryCache(CacheBackend):
 
             self._cache[key] = value
             self._timestamps[key] = time.time()
-            self._ttl[key] = ttl_seconds if ttl_seconds is not None else self.default_ttl
+            self._ttl[key] = (
+                ttl_seconds if ttl_seconds is not None else self.default_ttl
+            )
 
     def delete(self, key: str) -> bool:
         with self._lock:

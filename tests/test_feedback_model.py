@@ -74,7 +74,9 @@ def test_signature_generation():
     """测试特征签名生成"""
     model = FeedbackIncrementalModel()
 
-    sig1 = model._signature({"url": "https://www.example.com/path", "title": " Example "})
+    sig1 = model._signature(
+        {"url": "https://www.example.com/path", "title": " Example "}
+    )
     sig2 = model._signature({"url": "https://example.com/other", "title": "Example"})
     sig3 = model._signature({"url": "https://Example.Com/", "title": "EXAMPLE"})
     sig4 = model._signature({"url": "https://example.com/", "title": "Different"})

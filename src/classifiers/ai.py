@@ -470,7 +470,10 @@ class AIBookmarkClassifier:
             category_scores[category] += confidence * weight
 
             # 保存最高原始置信度
-            if category not in category_raw_confidences or confidence > category_raw_confidences[category]:
+            if (
+                category not in category_raw_confidences
+                or confidence > category_raw_confidences[category]
+            ):
                 category_raw_confidences[category] = confidence
 
             all_reasoning.extend(reasoning)

@@ -47,9 +47,7 @@ class ReportGenerator:
 
         # 生成JSON报告
         if format in ("json", "all"):
-            json_path = self._generate_json_report(
-                classified_bookmarks, stats, prefix
-            )
+            json_path = self._generate_json_report(classified_bookmarks, stats, prefix)
             reports["json"] = json_path
 
         # 生成Markdown报告
@@ -72,12 +70,8 @@ class ReportGenerator:
         category_counts = Counter(categories)
 
         # 置信度统计
-        confidences = [
-            b.get("confidence", 0) for b in bookmarks if "confidence" in b
-        ]
-        avg_confidence = (
-            sum(confidences) / len(confidences) if confidences else 0
-        )
+        confidences = [b.get("confidence", 0) for b in bookmarks if "confidence" in b]
+        avg_confidence = sum(confidences) / len(confidences) if confidences else 0
 
         # 方法统计
         methods = [b.get("method", "unknown") for b in bookmarks]
@@ -102,7 +96,11 @@ class ReportGenerator:
         prefix: str,
     ) -> Path:
         """生成JSON报告"""
-        filename = f"{prefix}classification_report.json" if prefix else "classification_report.json"
+        filename = (
+            f"{prefix}classification_report.json"
+            if prefix
+            else "classification_report.json"
+        )
         path = self.output_dir / filename
 
         report = {

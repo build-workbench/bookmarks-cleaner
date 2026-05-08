@@ -13,7 +13,7 @@ import warnings
 warnings.warn(
     "从 src.ai_classifier 导入已弃用，请使用 src.classifiers.ai 代替",
     DeprecationWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 # 重定向到新模块
@@ -23,4 +23,4 @@ from src.classifiers.ai import (
     ClassificationResult,
 )
 
-__all__ = ['AIBookmarkClassifier', 'BookmarkFeatures', 'ClassificationResult']
+__all__ = ["AIBookmarkClassifier", "BookmarkFeatures", "ClassificationResult"]

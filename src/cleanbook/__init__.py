@@ -8,7 +8,11 @@ Example:
     >>> result = classifier.classify("https://github.com", "GitHub")
 """
 
-from ..classifiers.ai import AIBookmarkClassifier, BookmarkFeatures, ClassificationResult
+from ..classifiers.ai import (
+    AIBookmarkClassifier,
+    BookmarkFeatures,
+    ClassificationResult,
+)
 from ..bookmark_processor import BookmarkProcessor
 from ..engines.rules import RuleEngine
 

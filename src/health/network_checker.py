@@ -96,8 +96,7 @@ class SyncHTTPChecker(NetworkChecker):
         self.session = requests.Session()
         self.session.headers.update(
             {
-                "User-Agent": user_agent
-                or "Mozilla/5.0 (compatible; CleanBook/2.0)",
+                "User-Agent": user_agent or "Mozilla/5.0 (compatible; CleanBook/2.0)",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             }
         )

@@ -21,7 +21,7 @@ class BookmarkOrganizer:
     def organize(
         self,
         bookmarks: List[Dict],
-        taxonomy_standardizer: "TaxonomyStandardizer" = None
+        taxonomy_standardizer: "TaxonomyStandardizer" = None,
     ) -> Dict[str, Dict[str, List]]:
         """
         组织书签到分类结构
@@ -42,8 +42,8 @@ class BookmarkOrganizer:
 
             # 标准化分类
             if taxonomy_standardizer:
-                subject = taxonomy_standardizer.standardize_subject(subject)
-                resource_type = taxonomy_standardizer.standardize_resource_type(
+                subject = taxonomy_standardizer.normalize_subject(subject)
+                resource_type = taxonomy_standardizer.normalize_resource_type(
                     resource_type
                 )
 
@@ -88,9 +88,9 @@ class BookmarkOrganizer:
             total += subject_count
 
             for resource_type, bookmarks in types.items():
-                resource_type_counts[resource_type] = (
-                    resource_type_counts.get(resource_type, 0) + len(bookmarks)
-                )
+                resource_type_counts[resource_type] = resource_type_counts.get(
+                    resource_type, 0
+                ) + len(bookmarks)
 
         return {
             "total": total,

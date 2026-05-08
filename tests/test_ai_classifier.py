@@ -226,7 +226,9 @@ class TestAIBookmarkClassifier:
         assert result is not None
         # 应该有一个合理的默认处理
 
-    @pytest.mark.skip(reason="TODO: 需要实现 embedding classifier 集成到 AIBookmarkClassifier")
+    @pytest.mark.skip(
+        reason="TODO: 需要实现 embedding classifier 集成到 AIBookmarkClassifier"
+    )
     def test_top_level_embedding_config_contributes_to_voting_and_stats(
         self, mock_config
     ):
@@ -239,8 +241,12 @@ class TestAIBookmarkClassifier:
             },
         }
 
-        with patch("src.services.embedding_service.EmbeddingService") as embedding_service_cls:
-            with patch("src.plugins.classifiers.embedding_classifier.EmbeddingClassifier") as embedding_cls:
+        with patch(
+            "src.services.embedding_service.EmbeddingService"
+        ) as embedding_service_cls:
+            with patch(
+                "src.plugins.classifiers.embedding_classifier.EmbeddingClassifier"
+            ) as embedding_cls:
                 embedding_service = embedding_service_cls.return_value
                 embedding_service.initialize.return_value = True
                 embedding_service.embed.return_value = np.array(
