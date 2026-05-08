@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple
 import yaml
 
 from src.utils.resource_loader import resolve_taxonomy_path
+from src.utils.text_cleaner import TextCleaner
 
 
 class TaxonomyStandardizer:
@@ -11,6 +12,7 @@ class TaxonomyStandardizer:
         self.config = config or {}
         self._subjects_map: Dict[str, str] = {}
         self._resource_types_map: Dict[str, str] = {}
+        self._cleaner = TextCleaner()
         self._load_subjects()
         self._load_resource_types()
 
@@ -53,13 +55,8 @@ class TaxonomyStandardizer:
                     self._resource_types_map[v.lower()] = key
 
     def _strip_prefix(self, text: str) -> str:
-        if not text:
-            return ""
-        s = str(text).strip()
-        i = 0
-        while i < len(s) and not ("\u4e00" <= s[i] <= "\u9fff" or s[i].isalnum()):
-            i += 1
-        return s[i:] if i < len(s) else s
+        """使用 TextCleaner 移除非文字前缀"""
+        return self._cleaner.strip_prefix(text)
 
     def normalize_subject(self, text: str) -> Optional[str]:
         if not text:

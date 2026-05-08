@@ -17,7 +17,6 @@ IMPORT_MAP = {
     # 引擎
     "rule_engine": ("src.engines.rules", "RuleEngine"),
     "semantic_analyzer": ("src.engines.semantic", "SemanticAnalyzer"),
-    "url_analyzer": ("src.engines.url", "URLAnalyzer"),
     "smart_rule_loader": ("src.engines.smart_loader", "SmartRuleLoader"),
     # LLM
     "llm_organizer": ("src.llm.organizer", "LLMBookmarkOrganizer"),
@@ -33,11 +32,8 @@ IMPORT_MAP = {
     # 工具
     "config_manager": ("src.utils.config", "ConfigManager"),
     "category_utils": ("src.utils.category", "CategoryUtils"),
-    "url_analyzer_old": ("src.utils.url", "URLAnalyzer"),
     "resource_loader": ("src.utils.resource_loader", None),
     "emoji_cleaner": ("src.utils.emoji_cleaner", None),
-    "taxonomy_standardizer": ("src.utils.standardizer", "TaxonomyStandardizer"),
-    "user_profiler": ("src.utils.profiler", "UserProfiler"),
     "advanced_features": ("src.utils.advanced", "AdvancedFeatures"),
     "performance_optimizer": ("src.utils.optimizer", "PerformanceOptimizer"),
     "placeholder_modules": ("src.utils.placeholders", None),

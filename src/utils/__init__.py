@@ -22,11 +22,9 @@ from .resource_loader import (
     resolve_config_path,
     resolve_taxonomy_path,
 )
-from .url import URLAnalyzer
 
 __all__ = [
     "ConfigManager",
-    "URLAnalyzer",
     "strip_category_prefix",
     "normalize_category_string",
     "normalize_category_config",

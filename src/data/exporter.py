@@ -1,16 +1,13 @@
 """
 Data Exporter - 数据导出器
-支持多种格式的书签导出（HTML/JSON/Markdown/CSV/XML/OPML）
+支持多种格式的书签导出（HTML/JSON/Markdown）
 """
 
-import csv
 import json
 import os
 import re
-import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-from xml.dom import minidom
 
 from src import __version__
 from src.utils.emoji_cleaner import clean_title as clean_emoji_title
@@ -21,7 +18,7 @@ class DataExporter:
 
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
-        self.supported_formats = ["html", "json", "markdown", "csv", "xml", "opml"]
+        self.supported_formats = ["html", "json", "markdown"]
 
     @property
     def export_timestamp(self) -> str:
@@ -411,179 +408,6 @@ class DataExporter:
         slug = re.sub(r"[-\s]+", "-", slug)
         return slug
 
-    def export_csv(
-        self, organized_bookmarks: Dict, output_file: str, stats: Optional[Dict] = None
-    ):
-        """导出CSV格式 - 适合数据分析"""
-        with open(output_file, "w", newline="", encoding="utf-8-sig") as csvfile:
-            fieldnames = [
-                "category",
-                "subcategory",
-                "title",
-                "url",
-                "confidence",
-                "method",
-                "add_date",
-                "source_file",
-            ]
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-
-            for category, category_data in organized_bookmarks.items():
-                items = category_data.get("_items", [])
-                for item in items:
-                    writer.writerow(
-                        {
-                            "category": category,
-                            "subcategory": "",
-                            "title": item.get("title", ""),
-                            "url": item.get("url", ""),
-                            "confidence": item.get("confidence", 0),
-                            "method": item.get("method", ""),
-                            "add_date": item.get("add_date", ""),
-                            "source_file": item.get("source_file", ""),
-                        }
-                    )
-
-                subcategories = category_data.get("_subcategories", {})
-                for subcat_name, subcat_data in subcategories.items():
-                    sub_items = subcat_data.get("_items", [])
-                    for item in sub_items:
-                        writer.writerow(
-                            {
-                                "category": category,
-                                "subcategory": subcat_name,
-                                "title": item.get("title", ""),
-                                "url": item.get("url", ""),
-                                "confidence": item.get("confidence", 0),
-                                "method": item.get("method", ""),
-                                "add_date": item.get("add_date", ""),
-                                "source_file": item.get("source_file", ""),
-                            }
-                        )
-
-    def export_xml(
-        self, organized_bookmarks: Dict, output_file: str, stats: Optional[Dict] = None
-    ):
-        """导出XML格式 - 结构化数据"""
-        root = ET.Element("bookmarks")
-        root.set("version", "2.0")
-        root.set("generator", "AI智能书签分类系统")
-        root.set("export_time", self.export_timestamp)
-
-        if stats:
-            stats_elem = ET.SubElement(root, "statistics")
-            for key, value in stats.items():
-                if isinstance(value, dict):
-                    dict_elem = ET.SubElement(stats_elem, key)
-                    for sub_key, sub_value in value.items():
-                        sub_elem = ET.SubElement(dict_elem, "item")
-                        sub_elem.set("name", str(sub_key))
-                        sub_elem.text = str(sub_value)
-                else:
-                    stat_elem = ET.SubElement(stats_elem, key)
-                    stat_elem.text = str(value)
-
-        bookmarks_elem = ET.SubElement(root, "categories")
-
-        for category, category_data in organized_bookmarks.items():
-            items = category_data.get("_items", [])
-            subcategories = category_data.get("_subcategories", {})
-            has_sub_items = any(
-                len(sc.get("_items", [])) > 0 for sc in subcategories.values()
-            )
-            if not items and not has_sub_items:
-                continue
-            category_elem = ET.SubElement(bookmarks_elem, "category")
-            category_elem.set("name", category)
-
-            if items:
-                items_elem = ET.SubElement(category_elem, "items")
-                for item in items:
-                    self._add_bookmark_xml(items_elem, item)
-
-            filtered_sub = {
-                n: d for n, d in subcategories.items() if len(d.get("_items", [])) > 0
-            }
-            if filtered_sub:
-                subcats_elem = ET.SubElement(category_elem, "subcategories")
-                for subcat_name, subcat_data in filtered_sub.items():
-                    subcat_elem = ET.SubElement(subcats_elem, "subcategory")
-                    subcat_elem.set("name", subcat_name)
-                    sub_items = subcat_data.get("_items", [])
-                    sub_items_elem = ET.SubElement(subcat_elem, "items")
-                    for item in sub_items:
-                        self._add_bookmark_xml(sub_items_elem, item)
-
-        xml_str = minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(xml_str)
-
-    def _add_bookmark_xml(self, parent: ET.Element, item: Dict):
-        """添加书签XML元素"""
-        bookmark_elem = ET.SubElement(parent, "bookmark")
-        bookmark_elem.set("url", item.get("url", ""))
-        bookmark_elem.set("title", item.get("title", ""))
-        if item.get("confidence"):
-            bookmark_elem.set("confidence", str(item["confidence"]))
-        if item.get("method"):
-            bookmark_elem.set("method", item["method"])
-        if item.get("add_date"):
-            bookmark_elem.set("add_date", item["add_date"])
-        if item.get("source_file"):
-            bookmark_elem.set("source_file", item["source_file"])
-
-    def export_opml(
-        self, organized_bookmarks: Dict, output_file: str, stats: Optional[Dict] = None
-    ):
-        """导出OPML格式 - RSS/阅读器兼容"""
-        root = ET.Element("opml")
-        root.set("version", "2.0")
-
-        head = ET.SubElement(root, "head")
-        ET.SubElement(head, "title").text = "AI智能书签分类结果"
-        ET.SubElement(head, "dateCreated").text = self.export_timestamp
-        ET.SubElement(head, "generator").text = f"AI智能书签分类系统 v{__version__}"
-
-        body = ET.SubElement(root, "body")
-
-        for category, category_data in organized_bookmarks.items():
-            items = category_data.get("_items", [])
-            subcategories = category_data.get("_subcategories", {})
-            has_sub_items = any(
-                len(sc.get("_items", [])) > 0 for sc in subcategories.values()
-            )
-            if not items and not has_sub_items:
-                continue
-            category_outline = ET.SubElement(body, "outline")
-            category_outline.set("text", category)
-            category_outline.set("title", category)
-
-            for item in items:
-                item_outline = ET.SubElement(category_outline, "outline")
-                item_outline.set("text", item.get("title", ""))
-                item_outline.set("title", item.get("title", ""))
-                item_outline.set("type", "link")
-                item_outline.set("url", item.get("url", ""))
-
-            for subcat_name, subcat_data in subcategories.items():
-                sub_items = subcat_data.get("_items", [])
-                if not sub_items:
-                    continue
-                subcat_outline = ET.SubElement(category_outline, "outline")
-                subcat_outline.set("text", subcat_name)
-                subcat_outline.set("title", subcat_name)
-                for item in sub_items:
-                    item_outline = ET.SubElement(subcat_outline, "outline")
-                    item_outline.set("text", item.get("title", ""))
-                    item_outline.set("title", item.get("title", ""))
-                    item_outline.set("type", "link")
-                    item_outline.set("url", item.get("url", ""))
-
-        xml_str = minidom.parseString(ET.tostring(root)).toprettyxml(indent="  ")
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(xml_str)
-
     def _count_total_bookmarks(self, organized_bookmarks: Dict) -> int:
         """计算总书签数量"""
         total = 0
@@ -609,9 +433,6 @@ class DataExporter:
             "html": self.export_html,
             "json": self.export_json,
             "markdown": self.export_markdown,
-            "csv": self.export_csv,
-            "xml": self.export_xml,
-            "opml": self.export_opml,
         }
 
         exported_files = []

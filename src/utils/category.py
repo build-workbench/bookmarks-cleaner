@@ -3,20 +3,22 @@ Category Utilities - 分类名称规范化工具
 
 提供分类名称前缀清理、规范化等共享函数，
 消除 ai_classifier.py 与 bookmark_processor.py 之间的重复代码。
+
+注意：此模块现在使用 TextCleaner 实现，保持向后兼容。
 """
 
 from typing import Dict
 
+# 从 TextCleaner 导入实现
+from src.utils.text_cleaner import TextCleaner, strip_prefix
+
+# 创建默认实例
+_default_cleaner = TextCleaner()
+
 
 def strip_category_prefix(text: str) -> str:
     """移除分类名称中的 emoji 等非文字前缀，保留中文/字母/数字起始的内容。"""
-    if not text:
-        return ""
-    s = str(text).strip()
-    i = 0
-    while i < len(s) and not ("\u4e00" <= s[i] <= "\u9fff" or s[i].isalnum()):
-        i += 1
-    return s[i:].strip() if i < len(s) else s
+    return _default_cleaner.strip_prefix(text)
 
 
 def normalize_category_string(category: str) -> str:

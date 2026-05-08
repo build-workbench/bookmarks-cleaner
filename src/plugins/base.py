@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -14,10 +15,28 @@ from urllib.parse import urlparse
 if TYPE_CHECKING:
     pass
 
+import re
+
+# Pre-compiled regex for Chinese character detection
+_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
+
 
 @dataclass
 class BookmarkFeatures:
-    """书签特征数据类"""
+    """书签特征数据类
+    
+    封装书签的所有特征信息，用于分类和相似度计算。
+    
+    Attributes:
+        url: 书签URL
+        title: 书签标题
+        domain: 域名
+        path_segments: URL路径段列表
+        query_params: 查询参数字典
+        content_type: 内容类型
+        language: 语言标识
+        timestamp: 特征提取时间戳
+    """
 
     url: str
     title: str
@@ -26,6 +45,7 @@ class BookmarkFeatures:
     query_params: Dict[str, str]
     content_type: str
     language: str
+    timestamp: datetime = field(default_factory=datetime.now)
 
     @property
     def url_length(self) -> int:
@@ -41,6 +61,11 @@ class BookmarkFeatures:
     def is_secure(self) -> bool:
         """是否为HTTPS安全链接"""
         return self.url.startswith("https://")
+    
+    @property
+    def has_chinese(self) -> bool:
+        """标题是否包含中文"""
+        return bool(_CHINESE_REGEX.search(self.title))
 
 
 @dataclass

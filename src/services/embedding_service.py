@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 import numpy as np
 
 if TYPE_CHECKING:
-    from models.bookmark_features import BookmarkFeatures
-    from models.feature_store import FeatureStore
+    from src.plugins.base import BookmarkFeatures
+    from src.services.feature_store import FeatureStore
 
 
 class EmbeddingService:

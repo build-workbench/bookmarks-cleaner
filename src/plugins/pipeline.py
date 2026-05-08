@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from .registry import PluginRegistry
 
 if TYPE_CHECKING:
-    from ..classifiers.ai import BookmarkFeatures, ClassificationResult
+    from ..plugins.base import BookmarkFeatures, ClassificationResult
 
 
 class FusionStrategy(Enum):

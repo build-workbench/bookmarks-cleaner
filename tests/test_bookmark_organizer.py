@@ -60,10 +60,10 @@ def test_organize_with_taxonomy_standardizer():
 
     # 创建一个简单的模拟标准化器
     class MockStandardizer:
-        def standardize_subject(self, subject):
+        def normalize_subject(self, subject):
             return subject.upper()
 
-        def standardize_resource_type(self, resource_type):
+        def normalize_resource_type(self, resource_type):
             return resource_type.title()
 
     bookmarks = [

@@ -10,13 +10,13 @@ import os
 import re
 import threading
 import time
-from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
+from src.utils.cache_manager import CacheManager
 from src.utils.emoji_cleaner import clean_title as clean_emoji_title
 
 try:
@@ -139,10 +139,16 @@ class BookmarkProcessor:
         self._incremental_trainer = None
         self.llm_organizer_meta: Optional[Dict] = None
 
-        # 缓存和性能优化 (OrderedDict with LRU eviction)
+        # 缓存和性能优化 (使用统一的 CacheManager)
         self._max_cache_size = 10000
-        self._classification_cache: OrderedDict = OrderedDict()
-        self._url_validation_cache: OrderedDict = OrderedDict()
+        self._classification_cache: CacheManager[Dict] = CacheManager(
+            max_size=self._max_cache_size,
+            strategy='lru'
+        )
+        self._url_validation_cache: CacheManager[bool] = CacheManager(
+            max_size=self._max_cache_size,
+            strategy='lru'
+        )
         self._stats_lock = threading.Lock()
 
         # 处理统计
@@ -818,10 +824,9 @@ class BookmarkProcessor:
             # 创建缓存键
             cache_key = f"{url}|{title}"
 
-            # 检查缓存 (with LRU update)
-            if cache_key in self._classification_cache:
-                self._classification_cache.move_to_end(cache_key)
-                cached_result = self._classification_cache[cache_key]
+            # 检查缓存
+            cached_result = self._classification_cache.get(cache_key)
+            if cached_result is not None:
                 return {**bookmark, **cached_result}
 
             # 使用AI分类器
@@ -871,10 +876,8 @@ class BookmarkProcessor:
                     "score_breakdown": result.get("score_breakdown", {}),
                 }
 
-            # LRU cache eviction
-            if len(self._classification_cache) >= self._max_cache_size:
-                self._classification_cache.popitem(last=False)
-            self._classification_cache[cache_key] = cached_data
+            # 存入缓存（使用 CacheManager 自动处理淘汰）
+            self._classification_cache.put(cache_key, cached_data)
 
             # 构建结果
             classified_bookmark = {**bookmark, **cached_data}
