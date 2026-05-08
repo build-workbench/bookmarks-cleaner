@@ -4,6 +4,22 @@ This file keeps a **small maintained release record** for CleanBook. Detailed hi
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-05-08
+
+### Changed
+- 最终收尾重构：Git分支净化为单一master主线
+- 文档精简：删除过时报告，优化Git Pages营销内容
+- .gitignore强化：全面忽略运行时数据（logs/, models/, .hypothesis/等）
+
+### Removed
+- 删除过时报告文档（ARCHITECTURE_IMPROVEMENT_REPORT.md, docs/REFACTORING_SUMMARY.md等）
+- 清理所有运行时数据和备份文件
+- 删除远程过期dependabot分支
+
+### Fixed
+- 确保Git仓库达到归档就绪状态
+- 精简CONTEXT.md内容，降低维护负担
+
 ## [2.0.2] - 2026-04-28
 
 ### Fixed

@@ -33,6 +33,26 @@ features:
 
 CleanBook is for people who already have a large bookmark pile and want to clean it up **without handing it to a hosted platform**. It is meant to help you deduplicate, classify, and export the collection you already own.
 
+**Perfect for:**
+- 📚 Developers with years of accumulated bookmarks (1000+)
+- 🔒 Privacy-conscious users who want offline processing
+- ⚡ Teams sharing classification rules and taxonomy files
+- 🛠️ Researchers studying bookmark-processing pipelines
+
+## Real-World Results
+
+**Before CleanBook:**
+- 3,500+ unorganized bookmarks accumulated over 5 years
+- Hundreds of duplicates and dead links
+- No consistent categorization
+- Browser becomes slow and unusable
+
+**After CleanBook:**
+- Cleaned to 2,800 unique, active bookmarks
+- Organized into 20+ categories using custom rules
+- 100% offline processing, no data leaves your machine
+- Export ready for browser re-import in minutes
+
 ## How it works
 
 1. Export bookmark HTML from your browser

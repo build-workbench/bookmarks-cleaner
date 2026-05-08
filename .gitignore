@@ -97,7 +97,13 @@ config_temp.json
 
 # Runtime data (user-specific)
 data/active_learning/
-models/*.pkl
+models/
+logs/
+.hypothesis/
+.pytest_cache/
+
+# Frontend dependencies
+docs/package-lock.json
 
 # BMad Method V6
 _bmad/

@@ -47,3 +47,20 @@ pytest -q
 - Docstrings for public APIs
 - `logging.getLogger(__name__)` instead of `print`
 - Mixed Chinese/English comments and docs are acceptable
+
+## Project Skills
+
+This project has the following skills installed at `.agents/skills/`:
+
+### Essential Skills
+- **python-performance-optimization** — Profile and optimize Python code using cProfile, memory profilers, and performance best practices
+- **python-testing-patterns** — Implement comprehensive testing strategies with pytest, fixtures, mocking, and TDD
+
+### Recommended Skills
+- **refactor** — Surgical code refactoring to improve maintainability without changing behavior
+- **llm-evaluation** — Implement comprehensive evaluation strategies for LLM applications
+
+### Optional Skills
+- **documentation-writer** — Diátaxis Documentation Expert for creating high-quality software documentation
+
+**Usage**: Invoke skills using the skill tool in OpenCode. All skills are compatible with OpenCode format.
