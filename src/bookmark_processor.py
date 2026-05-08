@@ -53,42 +53,15 @@ try:
 except ImportError:
     IncrementalTrainer = None
 
+try:
+    from src.services.feedback_model import FeedbackIncrementalModel
+except ImportError:
+    FeedbackIncrementalModel = None
 
-class FeedbackIncrementalModel:
-    """轻量级反馈增量模型，用于离线 feedback 训练与版本化。"""
-
-    def __init__(self):
-        self.classes_: List[str] = []
-        self._label_by_signature: Dict[str, str] = {}
-        self._label_counts: Dict[str, int] = {}
-
-    def partial_fit(self, X, y, classes=None):
-        if classes:
-            merged = set(self.classes_) | set(classes)
-            self.classes_ = sorted(str(label) for label in merged)
-
-        for features, label in zip(X, y):
-            label = str(label)
-            signature = self._signature(features)
-            self._label_by_signature[signature] = label
-            self._label_counts[label] = self._label_counts.get(label, 0) + 1
-
-    def predict(self, X):
-        default_label = max(
-            self._label_counts,
-            key=self._label_counts.get,
-            default="未分类",
-        )
-        return [
-            self._label_by_signature.get(self._signature(features), default_label)
-            for features in X
-        ]
-
-    def _signature(self, features: Dict) -> str:
-        url = str(features.get("url", ""))
-        title = str(features.get("title", "")).strip().lower()
-        domain = urlparse(url).netloc.lower().replace("www.", "")
-        return f"{domain}::{title}"
+try:
+    from src.processing.bookmark_organizer import BookmarkOrganizer
+except ImportError:
+    BookmarkOrganizer = None
 
 
 class BookmarkProcessor:
