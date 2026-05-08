@@ -143,6 +143,7 @@ class AIBookmarkClassifier:
         self._performance_monitor: Optional[PerformanceMonitor] = None
         self._ml_classifier: Optional[MLClassifierWrapper] = None
         self._llm_classifier: Optional[LLMClassifier] = None
+        self._confidence_calibrator: Optional["ConfidenceCalibrator"] = None
 
         # 缓存（OrderedDict 实现 LRU 淘汰）
         self.feature_cache: OrderedDict[str, BookmarkFeatures] = OrderedDict()
@@ -223,6 +224,22 @@ class AIBookmarkClassifier:
             except Exception as e:
                 self.logger.warning(f"LLM 分类器初始化失败: {e}")
         return self._llm_classifier
+
+    @property
+    def confidence_calibrator(self) -> Optional["ConfidenceCalibrator"]:
+        """置信度校准器"""
+        # 如果已经设置（例如通过测试注入），直接返回
+        if self._confidence_calibrator is not None:
+            return self._confidence_calibrator
+
+        try:
+            from src.services.confidence_calibrator import ConfidenceCalibrator
+
+            calibrator_config = self.config.get("confidence_calibration", {})
+            self._confidence_calibrator = ConfidenceCalibrator(calibrator_config)
+        except Exception as e:
+            self.logger.warning(f"置信度校准器初始化失败: {e}")
+        return self._confidence_calibrator
 
     def _load_config(self) -> Dict:
         config, _, explicit = load_json_config(self.config_path)
@@ -429,6 +446,7 @@ class AIBookmarkClassifier:
 
         # 加权投票
         category_scores = defaultdict(float)
+        category_raw_confidences: Dict[str, float] = {}  # 保存每个类别的原始置信度
         all_reasoning: List[str] = []
         methods_used: List[str] = []
         merged_facets: Dict[str, str] = {}
@@ -450,6 +468,11 @@ class AIBookmarkClassifier:
 
             weight = method_weights.get(method, 0.1)
             category_scores[category] += confidence * weight
+
+            # 保存最高原始置信度
+            if category not in category_raw_confidences or confidence > category_raw_confidences[category]:
+                category_raw_confidences[category] = confidence
+
             all_reasoning.extend(reasoning)
             methods_used.append(method)
             # 合并分面提示（保留先到先得，避免覆盖更强信号）
@@ -468,7 +491,15 @@ class AIBookmarkClassifier:
         best_category = max(category_scores, key=category_scores.get)
         top_score = category_scores[best_category]
         total_score = sum(category_scores.values())
-        confidence = top_score / total_score if total_score > 0 else 0.0
+
+        # 使用原始置信度而不是加权后的
+        confidence = category_raw_confidences.get(best_category, 0.0)
+
+        # 置信度校准
+        calibrated_confidence = confidence
+        calibrator = self.confidence_calibrator
+        if calibrator:
+            calibrated_confidence = calibrator.calibrate(confidence)
 
         alternatives = [
             (cat, score / total_score)
@@ -491,36 +522,54 @@ class AIBookmarkClassifier:
         if threshold > 1:
             threshold = 1.0
 
-        if best_category != "未分类" and confidence < threshold:
+        if best_category != "未分类" and calibrated_confidence < threshold:
             threshold_reasoning = list(all_reasoning)
             threshold_reasoning.append(
-                f"最终置信度 {confidence:.2f} 低于阈值 {threshold:.2f}，标记为未分类"
+                f"最终置信度 {calibrated_confidence:.2f} 低于阈值 {threshold:.2f}，标记为未分类"
             )
 
-            threshold_alternatives = [(best_category, confidence)]
+            threshold_alternatives = [(best_category, calibrated_confidence)]
             for alt in alternatives:
                 if alt[0] != best_category:
                     threshold_alternatives.append(alt)
 
-            return ClassificationResult(
+            result = ClassificationResult(
                 category="未分类",
                 subcategory=None,
-                confidence=confidence,
+                confidence=calibrated_confidence,
                 reasoning=threshold_reasoning,
                 alternatives=threshold_alternatives[:3],
                 method=final_method,
                 facets=merged_facets,
+                score_breakdown={"calibrated_from": confidence} if calibrator else {},
             )
 
-        return ClassificationResult(
+            # 更新统计（即使低于阈值）
+            if calibrator:
+                self.stats["calibrated_predictions"] = (
+                    self.stats.get("calibrated_predictions", 0) + 1
+                )
+
+            return result
+
+        result = ClassificationResult(
             category=best_category,
             subcategory=subcategory,
-            confidence=confidence,
+            confidence=calibrated_confidence,
             reasoning=all_reasoning,
             alternatives=alternatives[:3],
             method=final_method,
             facets=merged_facets,
+            score_breakdown={"calibrated_from": confidence} if calibrator else {},
         )
+
+        # 更新统计
+        if calibrator:
+            self.stats["calibrated_predictions"] = (
+                self.stats.get("calibrated_predictions", 0) + 1
+            )
+
+        return result
 
     def _determine_subcategory(
         self, category: str, features: BookmarkFeatures
@@ -605,6 +654,7 @@ class AIBookmarkClassifier:
             "cache_hit_rate": self.stats["cache_hits"]
             / max(self.stats["total_classified"], 1),
             "average_confidence": self.stats["average_confidence"],
+            "calibrated_predictions": self.stats.get("calibrated_predictions", 0),
             "classification_methods": {
                 "rule_engine": self.stats["rule_engine"],
                 "ml_classifier": self.stats["ml_classifier"],
