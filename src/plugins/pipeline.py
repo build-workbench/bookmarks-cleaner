@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 from .registry import PluginRegistry
 
 if TYPE_CHECKING:
-    from ..ai_classifier import BookmarkFeatures, ClassificationResult
+    from ..classifiers.ai import BookmarkFeatures, ClassificationResult
 
 
 class FusionStrategy(Enum):
@@ -158,7 +158,7 @@ class ClassifierPipeline:
         Returns:
             融合后的分类结果
         """
-        from ..ai_classifier import ClassificationResult
+        from ..classifiers.ai import ClassificationResult
 
         category_scores: Dict[str, float] = defaultdict(float)
 
@@ -274,7 +274,7 @@ class ClassifierPipeline:
         Returns:
             默认分类结果
         """
-        from ..ai_classifier import ClassificationResult
+        from ..classifiers.ai import ClassificationResult
 
         return ClassificationResult(
             category="未分类",

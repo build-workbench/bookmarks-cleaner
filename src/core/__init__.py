@@ -1,32 +1,21 @@
 """
-core - 核心功能模块
+Core Modules - 核心深层模块
 
-包含书签处理的核心功能：处理器、导出器、去重器等
+包含高杠杆的深层模块，每个模块都有简单的接口和复杂的实现。
 """
 
-# 延迟导入，避免循环依赖
-from typing import TYPE_CHECKING
+from .classification_orchestrator import ClassificationOrchestrator
+from .feedback_learner import FeedbackLearner, FeedbackIncrementalModel
+from .pipeline_config import BackendType, FusionStrategy, PipelineConfig, StageConfig
+from .report_generator import ReportGenerator
 
-if TYPE_CHECKING:
-    from src.data.deduplicator import BookmarkDeduplicator
-
-    from .exporter import DataExporter
-    from .processor import BookmarkProcessor
-
-__all__ = ["BookmarkProcessor", "DataExporter", "BookmarkDeduplicator"]
-
-
-def __getattr__(name: str):
-    """按需加载核心模块"""
-    _mapping = {
-        "BookmarkProcessor": (".processor", "BookmarkProcessor"),
-        "DataExporter": (".exporter", "DataExporter"),
-        "BookmarkDeduplicator": (".deduplicator", "BookmarkDeduplicator"),
-    }
-    if name in _mapping:
-        module_path, cls_name = _mapping[name]
-        import importlib
-
-        module = importlib.import_module(module_path, __name__)
-        return getattr(module, cls_name)
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__all__ = [
+    "ClassificationOrchestrator",
+    "FeedbackLearner",
+    "FeedbackIncrementalModel",
+    "PipelineConfig",
+    "StageConfig",
+    "BackendType",
+    "FusionStrategy",
+    "ReportGenerator",
+]

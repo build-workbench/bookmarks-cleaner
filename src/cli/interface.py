@@ -27,8 +27,8 @@ except ImportError:
     RICH_AVAILABLE = False
     print("警告: rich库未安装，将使用基础CLI界面")
 
-from ..ai_classifier import AIBookmarkClassifier
-from ..core.processor import BookmarkProcessor
+from ..classifiers.ai import AIBookmarkClassifier
+from ..bookmark_processor import BookmarkProcessor
 from ..utils.resource_loader import resolve_config_path
 
 

@@ -192,6 +192,7 @@ skips = ["B101", "B601"]  # Skip assert warnings and shell injection in tests
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

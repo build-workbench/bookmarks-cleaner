@@ -9,7 +9,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
-from src.rule_engine import RuleEngine, RuleMatch
+from src.engines.rules import RuleEngine, RuleMatch
 
 
 class TestRuleMatch:

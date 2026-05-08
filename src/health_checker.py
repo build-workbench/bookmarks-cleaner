@@ -96,9 +96,9 @@ def run_health_check(config_path: Optional[str] = None):
         issues.append(f"[ERROR] 配置加载失败: {exc}")
 
     core_modules = [
-        "src.ai_classifier",
+        "src.classifiers.ai",
         "src.bookmark_processor",
-        "src.rule_engine",
+        "src.engines.rules",
         "src.cli.interface",
         "src.enhanced_cli",
     ]
