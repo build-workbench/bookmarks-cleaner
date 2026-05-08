@@ -66,6 +66,10 @@ except ImportError:
 
 class BookmarkProcessor:
     """书签处理器主类"""
+    
+    # 命名常量
+    MAX_WORKERS_LIMIT = 32  # 限制最大线程数，避免过度竞争
+    DEFAULT_CACHE_SIZE = 10000  # 默认缓存大小，平衡内存和性能
 
     def __init__(
         self,
@@ -77,7 +81,7 @@ class BookmarkProcessor:
         resolved_path, self._explicit_config = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
         # 优化线程池大小：限制最大线程数避免过度竞争
-        self.max_workers = min(max_workers, 32)  # 限制最大32线程
+        self.max_workers = min(max_workers, self.MAX_WORKERS_LIMIT)
         self.use_ml = use_ml
 
         self.confidence_threshold: Optional[float] = None
@@ -140,7 +144,7 @@ class BookmarkProcessor:
         self.llm_organizer_meta: Optional[Dict] = None
 
         # 缓存和性能优化 (使用统一的 CacheManager)
-        self._max_cache_size = 10000
+        self._max_cache_size = self.DEFAULT_CACHE_SIZE
         self._classification_cache: CacheManager[Dict] = CacheManager(
             max_size=self._max_cache_size,
             strategy='lru'
