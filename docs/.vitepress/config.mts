@@ -95,7 +95,7 @@ export default defineConfig({
   lastUpdated: true,
   head: meta("zh"),
   locales: {
-    root: {
+    zh: {
       label: "简体中文",
       lang: "zh-CN",
       title: SITE.title,
