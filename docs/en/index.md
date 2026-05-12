@@ -66,6 +66,21 @@ CleanBook is for people who already have a large bookmark pile and want to clean
 - **JSON output** for analysis and automation
 - **Report-style artifacts** for review and manual refinement
 
+<div class="cb-stats">
+  <div class="cb-stat">
+    <span class="cb-stat-value">3500+</span>
+    <span class="cb-stat-label">Bookmarks Processed</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">100%</span>
+    <span class="cb-stat-label">Offline Processing</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">20+</span>
+    <span class="cb-stat-label">Custom Categories</span>
+  </div>
+</div>
+
 ## Fastest path
 
 ```bash

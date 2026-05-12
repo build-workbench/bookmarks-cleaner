@@ -66,6 +66,21 @@ CleanBook 适合已经积累了大量浏览器书签、又不想把数据交给�
 - **JSON 数据**：便于二次分析和自动化处理
 - **报告型输出**：适合检查分类结果和后续人工微调
 
+<div class="cb-stats">
+  <div class="cb-stat">
+    <span class="cb-stat-value">3500+</span>
+    <span class="cb-stat-label">书签处理量</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">100%</span>
+    <span class="cb-stat-label">离线处理</span>
+  </div>
+  <div class="cb-stat">
+    <span class="cb-stat-value">20+</span>
+    <span class="cb-stat-label">自定义分类</span>
+  </div>
+</div>
+
 ## 最快体验
 
 ```bash
