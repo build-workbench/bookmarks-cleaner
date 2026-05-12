@@ -142,6 +142,7 @@ export default withMermaid(defineConfig({
   },
 
   themeConfig: {
+    i18nRouting: true,
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: REPO },
