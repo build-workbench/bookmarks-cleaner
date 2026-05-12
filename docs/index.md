@@ -1,76 +1,28 @@
 ---
 layout: home
+hero:
+  name: CleanBook
+  text: ' '
+  actions:
+    - theme: brand
+      text: 简体中文
+      link: /zh/
+    - theme: alt
+      text: English
+      link: /en/
 ---
 
-# CleanBook
+<script setup>
+import { onMounted } from 'vue'
+import { useRouter } from 'vitepress'
 
-**离线优先的书签清理与分类工具** — 规则优先，ML 辅助，LLM 可选。为那些书签太多的开发者而设计。
-
-## 核心指标
-
-| 指标 | 数值 |
-|------|------|
-| **处理模式** | 100% 离线，数据不离开本地 |
-| **分类方式** | 规则引擎 + ML 增强 + 可选 LLM |
-| **输出格式** | HTML、JSON、Markdown 报告 |
-| **安装方式** | pipx / pip，零云依赖 |
-
-## 为什么选择 CleanBook
-
-1. **真正的离线** — 默认所有处理在本地完成，无需云账户，书签数据从不离开你的机器
-2. **配置驱动** — 通过 config.json 和 YAML 文件自定义分类、阈值和词表，无需修改代码
-3. **规则优先，AI 增强** — 稳定的规则匹配优先，ML 和可选 LLM 层提高覆盖率，而非替代你的逻辑
-4. **开箱即用** — 输入浏览器导出的书签 HTML，输出清理后的 HTML、JSON 和报告，可直接重新导入或分析
-
-## 快速开始
-
-:::code-group
-
-```bash [安装]
-pipx install cleanbook
-```
-
-```bash [使用]
-cleanbook -i bookmarks.html -o output/
-```
-
-```text [输出]
-✓ 处理 3,500 个书签
-✓ 移除 412 个重复项
-✓ 分类到 23 个类别
-✓ 完成！查看 output/ 目录
-```
-
-:::
-
-## 输出文件
-
-| 文件 | 说明 |
-|------|------|
-| `cleaned.html` | 浏览器可导入的 HTML |
-| `bookmarks.json` | 结构化数据，便于自动化处理 |
-| `report.md` | 人类可读的分类报告 |
-
-## 选择你的语言
-
-**[English Documentation](/en/)** — Installation guide, configuration reference, FAQ
-
-**[中文文档](/zh/)** — 安装指南、配置参考、常见问题
-
-**[源代码](https://github.com/LessUp/bookmarks-cleaner)** — GitHub 仓库、问题反馈
-
-## 适用场景
-
-**书签收集者** — 多年积累的书签（1000+）？几分钟内清理重复项、修复死链、整理分类。
-
-**隐私意识用户** — 无云端、无账户、无追踪。书签始终留在你的机器上。
-
-**开发团队** — 在团队间共享分类规则和词表文件，保持一致的分类标准。
-
-## 技术亮点
-
-- **分类引擎**：规则匹配 → ML 增强 → 可选 LLM 层
-- **词表格式**：YAML 配置，支持自定义分类体系
-- **死链检测**：可选 HTTP 状态检查
-- **重复检测**：URL 规范化 + 内容哈希
-- **扩展性**：插件架构支持自定义处理器
+onMounted(() => {
+  const router = useRouter()
+  const lang = navigator.language || navigator.userLanguage
+  if (lang.startsWith('zh')) {
+    router.go('/zh/')
+  } else {
+    router.go('/en/')
+  }
+})
+</script>

@@ -142,8 +142,6 @@ export default withMermaid(defineConfig({
   },
 
   themeConfig: {
-    logo: '/logo.svg',
-    siteTitle: 'CleanBook',
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: REPO },
