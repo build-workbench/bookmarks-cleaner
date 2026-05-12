@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: CleanBook
+  name: Bookmarks Cleaner
   text: Offline-first bookmark cleanup for developers
   tagline: Rules-first · ML-assisted · LLM-optional · built for people with too many bookmarks
   actions:

@@ -24,7 +24,7 @@ function meta(lang: 'zh' | 'en'): any[] {
     ['meta', { name: 'description', content: description }],
     ['meta', { name: 'keywords', content: keywords }],
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:title', content: 'CleanBook' }],
+    ['meta', { property: 'og:title', content: 'Bookmarks Cleaner' }],
     ['meta', { property: 'og:description', content: description }],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
     ['link', { rel: 'manifest', href: '/manifest.json' }],
@@ -33,7 +33,7 @@ function meta(lang: 'zh' | 'en'): any[] {
 
 export default withMermaid(defineConfig({
   base,
-  title: 'CleanBook',
+  title: 'Bookmarks Cleaner',
   description: 'Offline-first bookmark cleaner for developers',
 
   locales: {
@@ -41,7 +41,7 @@ export default withMermaid(defineConfig({
       label: '简体中文',
       lang: 'zh-CN',
       link: '/zh/',
-      title: 'CleanBook',
+      title: 'Bookmarks Cleaner',
       description: '开发者的离线优先书签清理与分类工具：规则优先，ML 辅助，LLM 可选。',
       head: meta('zh'),
       themeConfig: {
@@ -83,7 +83,7 @@ export default withMermaid(defineConfig({
         sidebarMenuLabel: '菜单',
         darkModeSwitchLabel: '切换主题',
         footer: {
-          message: 'CleanBook · Offline-first bookmark cleanup',
+          message: 'Bookmarks Cleaner · Offline-first bookmark cleanup',
           copyright: `Copyright © 2025-${new Date().getFullYear()} LessUp`,
         },
       },
@@ -92,7 +92,7 @@ export default withMermaid(defineConfig({
       label: 'English',
       lang: 'en-US',
       link: '/en/',
-      title: 'CleanBook',
+      title: 'Bookmarks Cleaner',
       description: 'Offline-first bookmark cleaner for developers: rules-first, ML-assisted, LLM-optional.',
       head: meta('en'),
       themeConfig: {
@@ -134,7 +134,7 @@ export default withMermaid(defineConfig({
         sidebarMenuLabel: 'Menu',
         darkModeSwitchLabel: 'Appearance',
         footer: {
-          message: 'CleanBook · Offline-first bookmark cleanup',
+          message: 'Bookmarks Cleaner · Offline-first bookmark cleanup',
           copyright: `Copyright © 2025-${new Date().getFullYear()} LessUp`,
         },
       },
@@ -142,7 +142,6 @@ export default withMermaid(defineConfig({
   },
 
   themeConfig: {
-    i18nRouting: true,
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: REPO },

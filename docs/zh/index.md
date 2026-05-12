@@ -1,7 +1,7 @@
 ---
 layout: home
 hero:
-  name: CleanBook
+  name: Bookmarks Cleaner
   text: 离线优先的智能书签清理工具
   tagline: 规则优先 · ML 辅助 · LLM 可选 · 适合开发者与重度书签用户
   actions:
