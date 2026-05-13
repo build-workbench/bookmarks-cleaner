@@ -265,6 +265,247 @@ class IFusionEngine(Protocol):
         ...
 
 
+@runtime_checkable
+class ICoordinator(Protocol):
+    """
+    处理器协调器接口 Protocol
+
+    协调各个 Pipeline 模块完成整个书签处理流程。
+    深度: 高（简单接口，复杂的 Pipeline 协调逻辑）
+
+    现有兼容类:
+    - BookmarkProcessorCoordinator
+    """
+
+    def process_files(
+        self,
+        input_files: List[str],
+        output_dir: str = "output",
+        train_models: bool = False,
+        limit: int = 0,
+        review_queue_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        处理多个书签文件
+
+        Args:
+            input_files: HTML 文件路径列表
+            output_dir: 输出目录
+            train_models: 是否训练模型
+            limit: 限制处理的书签数量
+            review_queue_path: 复核队列输出路径
+
+        Returns:
+            处理统计信息
+        """
+        ...
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """
+        获取处理统计信息
+
+        Returns:
+            统计信息字典
+        """
+        ...
+
+    def export_review_queue(
+        self,
+        classified_bookmarks: List[Dict[str, Any]],
+        output_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        导出低置信度复核队列
+
+        Args:
+            classified_bookmarks: 已分类的书签列表
+            output_path: 输出文件路径
+
+        Returns:
+            导出统计信息
+        """
+        ...
+
+    def apply_feedback(self, feedback_path: str) -> Dict[str, Any]:
+        """
+        应用反馈数据
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            应用统计信息
+        """
+        ...
+
+    def train_feedback(self, feedback_path: str) -> Dict[str, Any]:
+        """
+        使用反馈数据训练模型
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            训练统计信息
+        """
+        ...
+
+    def audit_feedback(
+        self, feedback_path: str, output_path: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        审核反馈数据质量
+
+        Args:
+            feedback_path: 反馈文件路径
+            output_path: 审核报告输出路径
+
+        Returns:
+            审核统计信息
+        """
+        ...
+
+
+@runtime_checkable
+class IHealthChecker(Protocol):
+    """
+    健康检查器接口 Protocol
+
+    检测书签链接的可用性。
+
+    现有兼容类:
+    - HealthChecker
+    """
+
+    def check_bookmarks(
+        self, bookmarks: List[Dict[str, Any]], max_workers: int = 10
+    ) -> Dict[str, Any]:
+        """
+        检查书签链接可用性
+
+        Args:
+            bookmarks: 书签列表
+            max_workers: 最大并发数
+
+        Returns:
+            健康检查结果
+        """
+        ...
+
+
+@runtime_checkable
+class IProcessor(Protocol):
+    """
+    书签处理器门面接口 Protocol
+
+    提供书签处理的完整功能入口，保持向后兼容。
+    深度: 高（简单接口，隐藏复杂的处理流程）
+
+    现有兼容类:
+    - BookmarkProcessor
+    """
+
+    def process_files(
+        self,
+        input_files: List[str],
+        output_dir: str = "output",
+        train_models: bool = False,
+        limit: int = 0,
+        review_queue_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        处理多个书签文件
+
+        Args:
+            input_files: HTML 文件路径列表
+            output_dir: 输出目录
+            train_models: 是否训练模型
+            limit: 限制处理的书签数量
+            review_queue_path: 复核队列输出路径
+
+        Returns:
+            处理统计信息
+        """
+        ...
+
+    def health_check(self, bookmarks: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        健康检查
+
+        Args:
+            bookmarks: 书签列表
+
+        Returns:
+            健康检查结果
+        """
+        ...
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """
+        获取处理统计信息
+
+        Returns:
+            统计信息字典
+        """
+        ...
+
+    def export_review_queue(
+        self,
+        classified_bookmarks: List[Dict[str, Any]],
+        output_path: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        导出低置信度复核队列
+
+        Args:
+            classified_bookmarks: 已分类的书签列表
+            output_path: 输出文件路径
+
+        Returns:
+            导出统计信息
+        """
+        ...
+
+    def apply_feedback_file(self, feedback_path: str) -> Dict[str, Any]:
+        """
+        应用反馈数据
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            应用统计信息
+        """
+        ...
+
+    def train_feedback_file(self, feedback_path: str) -> Dict[str, Any]:
+        """
+        使用反馈数据训练模型
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            训练统计信息
+        """
+        ...
+
+    def audit_feedback_file(
+        self, feedback_path: str, output_path: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        审核反馈数据质量
+
+        Args:
+            feedback_path: 反馈文件路径
+            output_path: 审核报告输出路径
+
+        Returns:
+            审核统计信息
+        """
+        ...
+
+
 # 导出所有 Protocol
 __all__ = [
     "IClassifier",
@@ -273,4 +514,7 @@ __all__ = [
     "IConfigProvider",
     "IBookmarkLoader",
     "IFusionEngine",
+    "ICoordinator",
+    "IHealthChecker",
+    "IProcessor",
 ]

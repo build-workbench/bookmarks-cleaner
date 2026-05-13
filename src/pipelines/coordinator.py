@@ -50,6 +50,8 @@ class BookmarkProcessorCoordinator:
         classifier=None,
         max_workers: int = 4,
         confidence_threshold: Optional[float] = None,
+        active_learning_engine=None,
+        incremental_trainer=None,
     ):
         """初始化协调层
 
@@ -59,6 +61,8 @@ class BookmarkProcessorCoordinator:
             classifier: AI 分类器
             max_workers: 最大并行线程数
             confidence_threshold: 置信度阈值
+            active_learning_engine: 主动学习引擎（用于反馈循环）
+            incremental_trainer: 增量训练器（用于反馈训练）
         """
         self.config = config
         self.config_path = config_path
@@ -76,6 +80,8 @@ class BookmarkProcessorCoordinator:
 
         # 延迟初始化的组件
         self._classifier = classifier
+        self._active_learning_engine = active_learning_engine
+        self._incremental_trainer = incremental_trainer
         self._classification_pipeline: Optional[ClassificationPipeline] = None
         self._export_pipeline: Optional[ExportPipeline] = None
         self._feedback_pipeline: Optional[FeedbackPipeline] = None
@@ -124,6 +130,8 @@ class BookmarkProcessorCoordinator:
         if self._feedback_pipeline is None:
             self._feedback_pipeline = FeedbackPipeline(
                 config=self.config,
+                active_learning_engine=self._active_learning_engine,
+                incremental_trainer=self._incremental_trainer,
                 classifier=self._classifier,
             )
         return self._feedback_pipeline
@@ -216,3 +224,59 @@ class BookmarkProcessorCoordinator:
     def get_statistics(self) -> Dict:
         """获取统计信息"""
         return self.stats.copy()
+
+    # ==================== 反馈方法（委托给 FeedbackPipeline） ====================
+
+    def export_review_queue(
+        self,
+        classified_bookmarks: List[Dict],
+        output_path: Optional[str] = None,
+    ) -> Dict:
+        """导出低置信度复核队列
+
+        Args:
+            classified_bookmarks: 已分类的书签列表
+            output_path: 输出文件路径
+
+        Returns:
+            导出统计信息
+        """
+        return self.feedback_pipeline.export_review_queue(
+            classified_bookmarks, output_path
+        )
+
+    def apply_feedback(self, feedback_path: str) -> Dict:
+        """应用反馈数据
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            应用统计信息
+        """
+        return self.feedback_pipeline.apply_feedback(feedback_path)
+
+    def train_feedback(self, feedback_path: str) -> Dict:
+        """使用反馈数据训练模型
+
+        Args:
+            feedback_path: 反馈文件路径
+
+        Returns:
+            训练统计信息
+        """
+        return self.feedback_pipeline.train_feedback(feedback_path)
+
+    def audit_feedback(
+        self, feedback_path: str, output_path: Optional[str] = None
+    ) -> Dict:
+        """审核反馈数据质量
+
+        Args:
+            feedback_path: 反馈文件路径
+            output_path: 审核报告输出路径
+
+        Returns:
+            审核统计信息
+        """
+        return self.feedback_pipeline.audit_feedback(feedback_path, output_path)

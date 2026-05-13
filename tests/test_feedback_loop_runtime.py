@@ -67,8 +67,34 @@ def test_export_review_queue_writes_deterministic_low_confidence_artifact(tmp_pa
 
 
 def test_apply_feedback_file_preserves_bookmark_attribution(tmp_path):
-    processor = _make_processor(tmp_path)
-    processor._classifier = Mock()
+    from unittest.mock import MagicMock
+
+    # 创建 mock 分类器
+    mock_classifier = MagicMock()
+
+    # 创建处理器并注入 mock 分类器
+    config = {
+        "category_rules": {
+            "编程": {
+                "rules": [{"match": "domain", "keywords": ["github.com"], "weight": 15}]
+            }
+        },
+        "ai_settings": {"confidence_threshold": 0.7},
+        "category_order": ["编程"],
+        "feedback_loop": {
+            "enabled": True,
+            "review_queue_path": str(tmp_path / "review_queue.json"),
+            "applied_feedback_path": str(tmp_path / "applied_feedback.json"),
+        },
+    }
+
+    from src.container import ProcessorContainer
+
+    container = ProcessorContainer(config=config, _classifier=mock_classifier)
+
+    with patch("src.bookmark_processor.load_json_config") as mock_load:
+        mock_load.return_value = (config, None, True)
+        processor = BookmarkProcessor(container=container)
 
     feedback_path = tmp_path / "feedback.json"
     feedback_path.write_text(
@@ -96,7 +122,7 @@ def test_apply_feedback_file_preserves_bookmark_attribution(tmp_path):
 
     assert summary["applied_count"] == 1
     assert labeled_samples[0]["bookmark_id"] == "bookmark-1"
-    processor.classifier.learn_from_feedback.assert_called_once_with(
+    mock_classifier.learn_from_feedback.assert_called_once_with(
         "https://example.com/llm",
         "LLM notes",
         "编程",
