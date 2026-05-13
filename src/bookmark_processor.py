@@ -77,7 +77,7 @@ except ImportError:
 
 class BookmarkProcessor:
     """书签处理器主类"""
-    
+
     # 命名常量
     MAX_WORKERS_LIMIT = 32  # 限制最大线程数，避免过度竞争
     DEFAULT_CACHE_SIZE = 10000  # 默认缓存大小，平衡内存和性能
@@ -157,12 +157,10 @@ class BookmarkProcessor:
         # 缓存和性能优化 (使用统一的 CacheManager)
         self._max_cache_size = self.DEFAULT_CACHE_SIZE
         self._classification_cache: CacheManager[Dict] = CacheManager(
-            max_size=self._max_cache_size,
-            strategy='lru'
+            max_size=self._max_cache_size, strategy="lru"
         )
         self._url_validation_cache: CacheManager[bool] = CacheManager(
-            max_size=self._max_cache_size,
-            strategy='lru'
+            max_size=self._max_cache_size, strategy="lru"
         )
         self._stats_lock = threading.Lock()
 

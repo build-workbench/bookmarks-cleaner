@@ -51,8 +51,12 @@ class TestFusionEngine:
         """多个结果加权融合"""
         results = [
             ClassificationResult(category="技术", confidence=0.9, method="rule_engine"),
-            ClassificationResult(category="技术", confidence=0.7, method="machine_learning"),
-            ClassificationResult(category="科学", confidence=0.8, method="semantic_analyzer"),
+            ClassificationResult(
+                category="技术", confidence=0.7, method="machine_learning"
+            ),
+            ClassificationResult(
+                category="科学", confidence=0.8, method="semantic_analyzer"
+            ),
         ]
         result = engine.fuse(results, features)
         # rule_engine 权重最高 (0.5)，技术应该胜出
@@ -101,12 +105,15 @@ class TestFusionEngine:
 
     def test_fuse_with_category_normalizer(self, features):
         """使用分类名称标准化"""
+
         def normalizer(cat: str) -> str:
             return cat.lower().strip()
 
         engine = FusionEngine(category_normalizer=normalizer)
         results = [
-            ClassificationResult(category="  技术  ", confidence=0.9, method="rule_engine"),
+            ClassificationResult(
+                category="  技术  ", confidence=0.9, method="rule_engine"
+            ),
         ]
         result = engine.fuse(results, features)
         assert result.category == "技术"

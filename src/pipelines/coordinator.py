@@ -28,13 +28,13 @@ from src.utils.standardizer import TaxonomyStandardizer
 
 class BookmarkProcessorCoordinator:
     """书签处理器协调层
-    
+
     深度: 高（简单接口，复杂的 Pipeline 协调逻辑）
     接口: process_files(...) -> stats
-    
+
     示例:
         coordinator = BookmarkProcessorCoordinator(config, classifier)
-        
+
         # 处理文件
         stats = coordinator.process_files(
             input_files=["bookmarks.html"],
@@ -42,7 +42,7 @@ class BookmarkProcessorCoordinator:
         )
         print(f"处理了 {stats['processed_bookmarks']} 个书签")
     """
-    
+
     def __init__(
         self,
         config: Dict,
@@ -52,7 +52,7 @@ class BookmarkProcessorCoordinator:
         confidence_threshold: Optional[float] = None,
     ):
         """初始化协调层
-        
+
         Args:
             config: 配置字典
             config_path: 配置文件路径
@@ -65,24 +65,24 @@ class BookmarkProcessorCoordinator:
         self.max_workers = max_workers
         self.confidence_threshold = confidence_threshold
         self.logger = logging.getLogger(__name__)
-        
+
         # 初始化标准化器
         self.standardizer = TaxonomyStandardizer(config)
-        
+
         # 初始化各个 Pipeline
         self.loader = BookmarkLoader(max_workers=min(max_workers, 8))
         self.deduplication = DeduplicationPipeline()
         self.organization = OrganizationPipeline(self.standardizer)
-        
+
         # 延迟初始化的组件
         self._classifier = classifier
         self._classification_pipeline: Optional[ClassificationPipeline] = None
         self._export_pipeline: Optional[ExportPipeline] = None
         self._feedback_pipeline: Optional[FeedbackPipeline] = None
-        
+
         # 统计信息
         self.stats = self._init_stats()
-    
+
     def _init_stats(self) -> Dict:
         """初始化统计信息"""
         return {
@@ -95,7 +95,7 @@ class BookmarkProcessorCoordinator:
             "files_processed": 0,
             "llm_organizer_used": False,
         }
-    
+
     @property
     def classification_pipeline(self) -> ClassificationPipeline:
         """延迟初始化分类管道"""
@@ -109,7 +109,7 @@ class BookmarkProcessorCoordinator:
                 confidence_threshold=self.confidence_threshold,
             )
         return self._classification_pipeline
-    
+
     @property
     def export_pipeline(self) -> ExportPipeline:
         """延迟初始化导出管道"""
@@ -117,7 +117,7 @@ class BookmarkProcessorCoordinator:
             exporter = DataExporter(config=self.config)
             self._export_pipeline = ExportPipeline(exporter=exporter)
         return self._export_pipeline
-    
+
     @property
     def feedback_pipeline(self) -> FeedbackPipeline:
         """延迟初始化反馈管道"""
@@ -127,7 +127,7 @@ class BookmarkProcessorCoordinator:
                 classifier=self._classifier,
             )
         return self._feedback_pipeline
-    
+
     def process_files(
         self,
         input_files: List[str],
@@ -137,45 +137,46 @@ class BookmarkProcessorCoordinator:
         review_queue_path: Optional[str] = None,
     ) -> Dict:
         """处理多个书签文件
-        
+
         Args:
             input_files: HTML 文件路径列表
             output_dir: 输出目录
             train_models: 是否训练模型
             limit: 限制处理的书签数量
             review_queue_path: 复核队列输出路径
-            
+
         Returns:
             处理统计信息
         """
         import time
+
         start_time = time.time()
-        
+
         # 重置统计
         self.stats = self._init_stats()
-        
+
         self.logger.info(f"开始处理 {len(input_files)} 个文件")
-        
+
         # 创建输出目录
         os.makedirs(output_dir, exist_ok=True)
-        
+
         # 阶段 1: 加载书签
         all_bookmarks, load_stats = self.loader.load_from_files(
             input_files, limit=limit
         )
         self.stats["files_processed"] = load_stats["files_loaded"]
         self.stats["total_bookmarks"] = len(all_bookmarks)
-        
+
         if not all_bookmarks:
             self.logger.warning("没有找到有效的书签")
             return self.stats
-        
+
         # 阶段 2: 去重
         unique_bookmarks, duplicates, dedup_stats = self.deduplication.deduplicate(
             all_bookmarks
         )
         self.stats["duplicates_removed"] = dedup_stats["duplicates_removed"]
-        
+
         # 阶段 3: 分类
         self.logger.info(f"开始分类 {len(unique_bookmarks)} 个书签...")
         classified_bookmarks, class_stats = self.classification_pipeline.classify_batch(
@@ -184,36 +185,34 @@ class BookmarkProcessorCoordinator:
         self.stats["processed_bookmarks"] = class_stats["classified_count"]
         self.stats["errors"] += class_stats["errors"]
         self.stats["categories_found"] = class_stats["categories_found"]
-        
+
         # 阶段 3.5: 训练模型（可选）
         if train_models:
             self.classification_pipeline.train_models(classified_bookmarks)
-        
+
         # 阶段 4: 组织
         organized_bookmarks, org_stats = self.organization.organize(
             classified_bookmarks, self.config
         )
-        
+
         # 阶段 5: 导出复核队列（可选）
         if review_queue_path:
             self.feedback_pipeline.export_review_queue(
                 classified_bookmarks, review_queue_path
             )
-        
+
         # 阶段 6: 导出结果
         self.export_pipeline.export_all(
             organized_bookmarks, output_dir, stats=self.stats
         )
-        
+
         # 更新统计
         self.stats["processing_time"] = time.time() - start_time
-        
-        self.logger.info(
-            f"处理完成: {self.stats['processed_bookmarks']} 个书签已分类"
-        )
-        
+
+        self.logger.info(f"处理完成: {self.stats['processed_bookmarks']} 个书签已分类")
+
         return self.stats
-    
+
     def get_statistics(self) -> Dict:
         """获取统计信息"""
         return self.stats.copy()

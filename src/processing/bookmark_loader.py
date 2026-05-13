@@ -129,10 +129,12 @@ class BookmarkLoader:
             if not href or href.startswith("javascript:"):
                 continue
 
-            bookmarks.append({
-                "url": href,
-                "title": title.strip(),
-                "add_date": link.get("add_date", ""),
-            })
+            bookmarks.append(
+                {
+                    "url": href,
+                    "title": title.strip(),
+                    "add_date": link.get("add_date", ""),
+                }
+            )
 
         return bookmarks

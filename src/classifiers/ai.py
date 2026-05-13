@@ -100,15 +100,13 @@ class AIBookmarkClassifier:
         # 从配置读取缓存大小，默认值作为后备
         self._max_cache_size = 5000
         self._max_feature_cache_size = 10000
-        
+
         # 使用统一的缓存管理器
         self.feature_cache: CacheManager[BookmarkFeatures] = CacheManager(
-            max_size=self._max_feature_cache_size,
-            strategy='lru'
+            max_size=self._max_feature_cache_size, strategy="lru"
         )
         self.classification_cache: CacheManager[ClassificationResult] = CacheManager(
-            max_size=self._max_cache_size,
-            strategy='lru'
+            max_size=self._max_cache_size, strategy="lru"
         )
 
         # 统计
@@ -242,7 +240,7 @@ class AIBookmarkClassifier:
 
     def extract_features(self, url: str, title: str) -> BookmarkFeatures:
         cache_key = f"{url}::{title}"
-        
+
         # 使用 CacheManager 的 get_or_compute
         def _extract():
             try:
@@ -280,7 +278,7 @@ class AIBookmarkClassifier:
                     content_type="unknown",
                     language="unknown",
                 )
-        
+
         return self.feature_cache.get_or_compute(cache_key, _extract)
 
     def classify(self, url: str, title: str) -> ClassificationResult:
@@ -339,7 +337,9 @@ class AIBookmarkClassifier:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
         # 融合 - 使用 FusionEngine
-        confidence_threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
+        confidence_threshold = self.config.get("ai_settings", {}).get(
+            "confidence_threshold", 0.7
+        )
         final_result = self.fusion_engine.fuse(
             results,
             features=features,
@@ -398,7 +398,9 @@ class AIBookmarkClassifier:
         self, results: List[ClassificationResult], features: BookmarkFeatures
     ) -> ClassificationResult:
         """向后兼容方法，委托给 FusionEngine"""
-        confidence_threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
+        confidence_threshold = self.config.get("ai_settings", {}).get(
+            "confidence_threshold", 0.7
+        )
         return self.fusion_engine.fuse(
             results,
             features=features,

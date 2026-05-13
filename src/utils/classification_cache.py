@@ -59,16 +59,14 @@ class ClassificationCache:
             enable_stats: 是否启用统计
         """
         self._cache: CacheManager[Dict] = CacheManager(
-            max_size=max_size,
-            strategy='lru',
-            thread_safe=True
+            max_size=max_size, strategy="lru", thread_safe=True
         )
         self._enable_stats = enable_stats
         self._lock = threading.Lock()
         self._stats = {
-            'hits': 0,
-            'misses': 0,
-            'total_requests': 0,
+            "hits": 0,
+            "misses": 0,
+            "total_requests": 0,
         }
         self.logger = logging.getLogger(__name__)
 
@@ -87,7 +85,7 @@ class ClassificationCache:
         """
         # 使用 :: 作为分隔符，避免与 URL 中的 | 冲突
         combined = f"{url}::{title}"
-        return hashlib.sha256(combined.encode('utf-8')).hexdigest()[:32]
+        return hashlib.sha256(combined.encode("utf-8")).hexdigest()[:32]
 
     def get(self, url: str, title: str) -> Optional[Dict]:
         """获取缓存的分类结果
@@ -103,19 +101,19 @@ class ClassificationCache:
 
         if self._enable_stats:
             with self._lock:
-                self._stats['total_requests'] += 1
+                self._stats["total_requests"] += 1
 
         result = self._cache.get(key)
 
         if result is not None:
             if self._enable_stats:
                 with self._lock:
-                    self._stats['hits'] += 1
+                    self._stats["hits"] += 1
             return result
 
         if self._enable_stats:
             with self._lock:
-                self._stats['misses'] += 1
+                self._stats["misses"] += 1
 
         return None
 
@@ -155,9 +153,9 @@ class ClassificationCache:
         self._cache.clear()
         with self._lock:
             self._stats = {
-                'hits': 0,
-                'misses': 0,
-                'total_requests': 0,
+                "hits": 0,
+                "misses": 0,
+                "total_requests": 0,
             }
         self.logger.info("分类缓存已清空")
 
@@ -168,20 +166,20 @@ class ClassificationCache:
             包含 hits, misses, hit_rate, size 等字段的统计字典
         """
         with self._lock:
-            total = self._stats['total_requests']
-            hits = self._stats['hits']
+            total = self._stats["total_requests"]
+            hits = self._stats["hits"]
             hit_rate = hits / total if total > 0 else 0.0
 
         cache_stats = self._cache.get_stats()
 
         return {
-            'hits': hits,
-            'misses': self._stats['misses'],
-            'total_requests': total,
-            'hit_rate': hit_rate,
-            'size': cache_stats.get('size', 0),
-            'max_size': self._cache.max_size,
-            'evictions': cache_stats.get('evictions', 0),
+            "hits": hits,
+            "misses": self._stats["misses"],
+            "total_requests": total,
+            "hit_rate": hit_rate,
+            "size": cache_stats.get("size", 0),
+            "max_size": self._cache.max_size,
+            "evictions": cache_stats.get("evictions", 0),
         }
 
     def get_hit_rate(self) -> float:
@@ -191,7 +189,7 @@ class ClassificationCache:
             命中率 (0.0 - 1.0)
         """
         stats = self.get_stats()
-        return stats['hit_rate']
+        return stats["hit_rate"]
 
     @property
     def max_size(self) -> int:

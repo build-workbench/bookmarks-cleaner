@@ -24,9 +24,9 @@ _CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
 @dataclass
 class BookmarkFeatures:
     """书签特征数据类
-    
+
     封装书签的所有特征信息，用于分类和相似度计算。
-    
+
     Attributes:
         url: 书签URL
         title: 书签标题
@@ -61,7 +61,7 @@ class BookmarkFeatures:
     def is_secure(self) -> bool:
         """是否为HTTPS安全链接"""
         return self.url.startswith("https://")
-    
+
     @property
     def has_chinese(self) -> bool:
         """标题是否包含中文"""

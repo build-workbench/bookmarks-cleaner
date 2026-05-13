@@ -65,17 +65,17 @@ def load_json_config(
     config_path: Optional[str] = None,
 ) -> Tuple[Dict[str, Any], Path, bool]:
     """加载 JSON 配置文件
-    
+
     .. deprecated::
         推荐使用 :class:`~src.config_manager.EnhancedConfigManager`，
         它提供配置验证、动态重载、环境变量覆盖等功能。
-        
+
         迁移示例::
-        
+
             # 旧方式
             from src.utils.resource_loader import load_json_config
             config, path, explicit = load_json_config(config_path)
-            
+
             # 新方式
             from src.config_manager import EnhancedConfigManager
             manager = EnhancedConfigManager(config_path)
@@ -87,7 +87,7 @@ def load_json_config(
         DeprecationWarning,
         stacklevel=2,
     )
-    
+
     path, explicit = resolve_config_path(config_path)
     try:
         with open(path, "r", encoding="utf-8") as f:

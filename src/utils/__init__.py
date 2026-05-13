@@ -20,12 +20,15 @@ from .resource_loader import (
     resolve_taxonomy_path,
 )
 
+
 # ConfigManager 延迟导入以避免循环依赖
 def __getattr__(name: str):
     if name == "ConfigManager":
         from src.config_manager import EnhancedConfigManager
+
         return EnhancedConfigManager
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "ConfigManager",

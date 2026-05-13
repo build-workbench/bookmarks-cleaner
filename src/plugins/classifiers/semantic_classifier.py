@@ -57,6 +57,7 @@ class SemanticClassifierPlugin(ClassifierPlugin):
 
             if self._semantic_analyzer is None:
                 from src.engines.semantic import SemanticAnalyzer
+
                 self._semantic_analyzer = SemanticAnalyzer(config)
 
             self._initialized = True

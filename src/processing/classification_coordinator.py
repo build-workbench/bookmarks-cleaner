@@ -96,6 +96,7 @@ class ClassificationCoordinator:
                     self.logger.error(f"分类失败 (index {index}): {e}")
                     # 创建 fallback 结果
                     from src.plugins.base import ClassificationResult
+
                     results[index] = ClassificationResult(
                         category="未分类",
                         confidence=0.0,
@@ -122,8 +123,7 @@ class ClassificationCoordinator:
         """
         # 提取特征
         features_list = [
-            feature_extractor(b.get("url", ""), b.get("title", ""))
-            for b in bookmarks
+            feature_extractor(b.get("url", ""), b.get("title", "")) for b in bookmarks
         ]
 
         # 批量分类

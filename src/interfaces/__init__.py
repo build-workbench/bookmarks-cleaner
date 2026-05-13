@@ -10,7 +10,16 @@ Classifier Interfaces - 核心分类器接口定义
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    List,
+    Optional,
+    Protocol,
+    Tuple,
+    runtime_checkable,
+)
 
 if TYPE_CHECKING:
     from src.plugins.base import BookmarkFeatures, ClassificationResult

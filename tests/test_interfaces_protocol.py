@@ -38,6 +38,7 @@ class TestIClassifierProtocol:
         """AIBookmarkClassifier 满足 IClassifier Protocol"""
         # 检查方法签名
         import inspect
+
         sig = inspect.signature(AIBookmarkClassifier.classify)
         # 第一个参数是 self，第二个是 features
         params = list(sig.parameters.keys())
@@ -54,6 +55,7 @@ class TestIDeduplicatorProtocol:
     def test_deduplicator_satisfies_protocol(self):
         """BookmarkDeduplicator 满足 IDeduplicator Protocol"""
         import inspect
+
         sig = inspect.signature(BookmarkDeduplicator.remove_duplicates)
         params = list(sig.parameters.keys())
         assert "bookmarks" in params or len(params) >= 2

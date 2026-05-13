@@ -62,7 +62,9 @@ class ClassifierOrchestrator:
         """
         self.registry = registry or PluginRegistry()
         self.method_weights = {**self.DEFAULT_WEIGHTS, **(method_weights or {})}
-        self.fusion_engine = fusion_engine or FusionEngine(method_weights=self.method_weights)
+        self.fusion_engine = fusion_engine or FusionEngine(
+            method_weights=self.method_weights
+        )
         self.logger = logging.getLogger(__name__)
         self._initialized = False
 
@@ -142,9 +144,7 @@ class ClassifierOrchestrator:
                 if result is not None:
                     results.append(result)
             except Exception as e:
-                self.logger.debug(
-                    f"分类器 {plugin.metadata.name} 执行失败: {e}"
-                )
+                self.logger.debug(f"分类器 {plugin.metadata.name} 执行失败: {e}")
 
         # 委托给 FusionEngine 融合结果
         return self.fusion_engine.fuse(results, features, confidence_threshold)
@@ -162,10 +162,7 @@ class ClassifierOrchestrator:
 
     def get_enabled_classifiers(self) -> List[str]:
         """获取已启用的分类器名称列表"""
-        return [
-            p.metadata.name
-            for p in self.registry.get_enabled_plugins()
-        ]
+        return [p.metadata.name for p in self.registry.get_enabled_plugins()]
 
     def enable_classifier(self, name: str) -> bool:
         """启用指定分类器"""

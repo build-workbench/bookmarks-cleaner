@@ -12,6 +12,7 @@ class TestTaxonomyServiceNormalization:
     def taxonomy_service(self):
         """创建 TaxonomyService"""
         from src.services.taxonomy_service import TaxonomyService
+
         return TaxonomyService()
 
     def test_normalize_subject(self, taxonomy_service):
@@ -64,14 +65,18 @@ class TestTaxonomyStandardizerDeprecation:
     def test_import_shows_deprecation_warning(self):
         """导入时显示废弃警告"""
         import warnings
+
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             # 强制重新导入以触发警告
             import importlib
             import src.utils.standardizer
+
             importlib.reload(src.utils.standardizer)
             # 检查是否有废弃警告
-            deprecation_warnings = [x for x in w if issubclass(x.category, DeprecationWarning)]
+            deprecation_warnings = [
+                x for x in w if issubclass(x.category, DeprecationWarning)
+            ]
             assert len(deprecation_warnings) >= 1
             assert "TaxonomyStandardizer" in str(deprecation_warnings[0].message)
 
@@ -90,6 +95,7 @@ class TestTaxonomyServiceBackwardCompatibility:
     def test_old_import_still_works(self):
         """旧的导入路径仍然工作"""
         import warnings
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
             from src.utils.standardizer import TaxonomyStandardizer

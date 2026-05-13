@@ -57,6 +57,7 @@ class UserProfilerPlugin(ClassifierPlugin):
 
             if self._user_profiler is None:
                 from src.utils.profiler import UserProfiler
+
                 self._user_profiler = UserProfiler()
 
             self._initialized = True

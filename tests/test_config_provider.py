@@ -49,7 +49,11 @@ class TestConfigProvider:
         # 配置可能为空（如果验证失败），但应该是字典
         # 如果有内容，检查常见字段
         if config:
-            assert "ai_settings" in config or "category_rules" in config or len(config) >= 0
+            assert (
+                "ai_settings" in config
+                or "category_rules" in config
+                or len(config) >= 0
+            )
 
     def test_get_section_returns_copy(self, config_manager):
         """获取配置节返回副本（修改不影响原配置）"""

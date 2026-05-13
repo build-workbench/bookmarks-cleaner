@@ -49,6 +49,7 @@ class FeedbackService:
         if self._active_learning_engine is None:
             try:
                 from src.services.active_learning import ActiveLearningEngine
+
                 merged_config = {**self.active_learning_config, **self.feedback_config}
                 if merged_config.get("enabled", False):
                     self._active_learning_engine = ActiveLearningEngine(merged_config)
@@ -63,6 +64,7 @@ class FeedbackService:
             try:
                 from src.services.incremental_trainer import IncrementalTrainer
                 from src.services.feedback_model import FeedbackIncrementalModel
+
                 if self.feedback_config.get("enabled", False):
                     self._incremental_trainer = IncrementalTrainer(self.feedback_config)
                     self._incremental_trainer.set_model(FeedbackIncrementalModel())
@@ -104,17 +106,19 @@ class FeedbackService:
             if review_item is None:
                 continue
 
-            export_items.append({
-                "bookmark_id": review_item.bookmark_id,
-                "url": review_item.url,
-                "title": review_item.title,
-                "predicted_category": review_item.predicted_category,
-                "confidence": review_item.confidence,
-                "alternatives": list(review_item.alternatives),
-                "uncertainty_score": review_item.uncertainty_score,
-                "reasoning": bookmark.get("reasoning", []),
-                "method": bookmark.get("method", "unknown"),
-            })
+            export_items.append(
+                {
+                    "bookmark_id": review_item.bookmark_id,
+                    "url": review_item.url,
+                    "title": review_item.title,
+                    "predicted_category": review_item.predicted_category,
+                    "confidence": review_item.confidence,
+                    "alternatives": list(review_item.alternatives),
+                    "uncertainty_score": review_item.uncertainty_score,
+                    "reasoning": bookmark.get("reasoning", []),
+                    "method": bookmark.get("method", "unknown"),
+                }
+            )
 
         # 按不确定度排序
         export_items.sort(

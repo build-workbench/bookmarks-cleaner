@@ -62,7 +62,9 @@ class FusionEngine:
         results: List["ClassificationResult"],
         features: Optional["BookmarkFeatures"] = None,
         confidence_threshold: float = 0.7,
-        subcategory_resolver: Optional[Callable[[str, "BookmarkFeatures"], Optional[str]]] = None,
+        subcategory_resolver: Optional[
+            Callable[[str, "BookmarkFeatures"], Optional[str]]
+        ] = None,
     ) -> "ClassificationResult":
         """
         融合多个分类结果
@@ -186,7 +188,11 @@ class FusionEngine:
                 alternatives=threshold_alternatives[:3],
                 method=final_method,
                 facets=merged_facets,
-                score_breakdown={"calibrated_from": confidence} if self.confidence_calibrator else {},
+                score_breakdown=(
+                    {"calibrated_from": confidence}
+                    if self.confidence_calibrator
+                    else {}
+                ),
             )
 
         return ClassificationResult(
@@ -197,7 +203,9 @@ class FusionEngine:
             alternatives=alternatives[:3],
             method=final_method,
             facets=merged_facets,
-            score_breakdown={"calibrated_from": confidence} if self.confidence_calibrator else {},
+            score_breakdown=(
+                {"calibrated_from": confidence} if self.confidence_calibrator else {}
+            ),
         )
 
     def update_weight(self, method: str, weight: float) -> None:

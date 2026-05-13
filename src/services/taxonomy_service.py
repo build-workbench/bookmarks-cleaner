@@ -581,6 +581,7 @@ class TaxonomyService:
         """移除文本前缀（如 emoji、特殊字符）"""
         # 简单实现：移除常见的非文字前缀
         import re
+
         # 移除 emoji 和特殊字符前缀
         text = re.sub(r"^[\U00010000-\U0010ffff\W_]+", "", text)
         return text.strip()
