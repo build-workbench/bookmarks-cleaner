@@ -1,7 +1,18 @@
 """
 Bookmark Processor - 书签处理器
 
-负责批量处理书签文件，协调各个组件完成整个分类流程
+负责批量处理书签文件，协调各个组件完成整个分类流程。
+
+架构说明:
+    此模块是主要的入口点，内部使用 BookmarkProcessorCoordinator 协调各个 Pipeline。
+    对于简单的处理流程，可以直接使用 BookmarkProcessorCoordinator。
+
+    BookmarkProcessor 提供了额外的功能:
+    - 快速去重优化
+    - 活跃学习引擎
+    - 增量训练器
+    - 健康检查
+    - 复核队列管理
 """
 
 import json
@@ -166,10 +177,6 @@ class BookmarkProcessor:
             "files_processed": 0,
             "llm_organizer_used": False,
         }
-
-    @staticmethod
-    def _strip_category_prefix(text: str) -> str:
-        return strip_category_prefix(text)
 
     def _normalize_category_config(self, config: Dict) -> Dict:
         return normalize_category_config(config)

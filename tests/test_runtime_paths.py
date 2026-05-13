@@ -11,7 +11,7 @@ import pytest
 from src.cli.interface import CLIInterface
 from src.enhanced_cli import main as enhanced_main
 from src.health_checker import run_health_check
-from src.resource_loader import (
+from src.utils.resource_loader import (
     load_json_config,
     resolve_config_path,
     resolve_taxonomy_path,

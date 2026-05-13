@@ -15,7 +15,7 @@ from pathlib import Path
 from src import __version__
 from src.bookmark_processor import BookmarkProcessor
 from src.cli.interface import CLIInterface
-from src.resource_loader import ResourceResolutionError, resolve_config_path
+from src.utils.resource_loader import ResourceResolutionError, resolve_config_path
 
 
 def setup_logging(log_level: str = "INFO", use_file: bool = False):

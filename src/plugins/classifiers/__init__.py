@@ -10,6 +10,8 @@ __all__ = [
     "RuleClassifierPlugin",
     "MLClassifierPlugin",
     "LLMClassifierPlugin",
+    "SemanticClassifierPlugin",
+    "UserProfilerPlugin",
 ]
 
 
@@ -20,6 +22,8 @@ def __getattr__(name: str):
         "RuleClassifierPlugin": ".rule_classifier",
         "MLClassifierPlugin": ".ml_classifier",
         "LLMClassifierPlugin": ".llm_classifier",
+        "SemanticClassifierPlugin": ".semantic_classifier",
+        "UserProfilerPlugin": ".user_profiler_plugin",
     }
     if name in _mapping:
         import importlib

@@ -78,8 +78,8 @@ class EnhancedBookmarkFeatures:
         self.is_secure = self.url.startswith("https://")
 
 
-# Use ClassificationResult from ai_classifier for consistency
-from src.classifiers.ai import ClassificationResult
+# Use ClassificationResult from plugins.base (canonical definition)
+from src.plugins.base import ClassificationResult
 
 
 class EnhancedClassifier:
