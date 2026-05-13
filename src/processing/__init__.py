@@ -5,5 +5,7 @@ processing - 数据处理模块
 """
 
 from .bookmark_organizer import BookmarkOrganizer
+from .bookmark_loader import BookmarkLoader
+from .classification_coordinator import ClassificationCoordinator
 
-__all__ = ["BookmarkOrganizer"]
+__all__ = ["BookmarkOrganizer", "BookmarkLoader", "ClassificationCoordinator"]

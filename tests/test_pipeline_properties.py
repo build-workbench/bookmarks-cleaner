@@ -36,6 +36,8 @@ class MockClassificationResult:
     reasoning: List[str] = field(default_factory=list)
     processing_time: float = 0.0
     method: str = "mock"
+    facets: Dict[str, str] = field(default_factory=dict)
+    alternatives: List[Tuple[str, float]] = field(default_factory=list)
 
 
 # Mock plugin that can fail

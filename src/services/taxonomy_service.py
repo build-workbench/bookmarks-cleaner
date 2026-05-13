@@ -485,3 +485,128 @@ class TaxonomyService:
         if entry is None:
             return []
         return entry.get("variants", [])
+
+    # ========== 标准化方法（从 TaxonomyStandardizer 合并） ==========
+
+    def normalize_subject(self, text: str) -> Optional[str]:
+        """
+        标准化主题分类名称
+
+        Args:
+            text: 输入的分类名称
+
+        Returns:
+            标准化后的名称，如果无法识别则返回原文本
+        """
+        if not text:
+            return None
+
+        # 清理前缀
+        cleaned = self._strip_prefix(text)
+        low = cleaned.lower()
+
+        # 查找匹配的分类
+        entry = self._find_category_entry(cleaned)
+        if entry is not None:
+            return entry.get("preferred", cleaned)
+
+        return cleaned
+
+    def normalize_resource_type(self, text: str) -> Optional[str]:
+        """
+        标准化资源类型
+
+        Args:
+            text: 输入的资源类型
+
+        Returns:
+            标准化后的资源类型
+        """
+        if not text:
+            return None
+
+        # 加载资源类型映射（如果尚未加载）
+        if not hasattr(self, "_resource_types_map"):
+            self._load_resource_types()
+
+        cleaned = self._strip_prefix(text)
+        low = cleaned.lower()
+
+        return self._resource_types_map.get(low)
+
+    def derive_from_category(
+        self, category: str, content_type: Optional[str] = None
+    ) -> tuple:
+        """
+        从分类字符串推导主题和资源类型
+
+        Args:
+            category: 分类字符串，如 "技术/文档"
+            content_type: 可选的内容类型提示
+
+        Returns:
+            元组 (subject, resource_type)
+        """
+        if not category:
+            return None, None
+
+        cat = str(category).strip()
+        main = cat
+        sub = None
+
+        if "/" in cat:
+            parts = cat.split("/", 1)
+            main = parts[0].strip()
+            sub = parts[1].strip()
+
+        subject = self.normalize_subject(main)
+        resource_type = self.normalize_resource_type(sub) if sub else None
+
+        # 如果没有资源类型，尝试从内容类型推断
+        if not resource_type and content_type:
+            ct_map = {
+                "code_repository": "code_repository",
+                "documentation": "documentation",
+                "video": "video",
+                "academic_paper": "paper",
+                "news": "news",
+                "online_tool": "tool",
+                "webpage": "webpage",
+            }
+            resource_type = ct_map.get(content_type)
+
+        return subject, resource_type
+
+    def _strip_prefix(self, text: str) -> str:
+        """移除文本前缀（如 emoji、特殊字符）"""
+        # 简单实现：移除常见的非文字前缀
+        import re
+        # 移除 emoji 和特殊字符前缀
+        text = re.sub(r"^[\U00010000-\U0010ffff\W_]+", "", text)
+        return text.strip()
+
+    def _load_resource_types(self):
+        """加载资源类型映射"""
+        self._resource_types_map: Dict[str, str] = {}
+
+        # 尝试加载 resource_types.yaml
+        try:
+            rt_path = resolve_taxonomy_path(
+                self.config, "resource_types_file", "taxonomy/resource_types.yaml"
+            )
+            if Path(rt_path).exists():
+                with open(rt_path, "r", encoding="utf-8") as f:
+                    data = yaml.safe_load(f) or {}
+
+                rts = data.get("resource_types", {}) or {}
+                for key, meta in rts.items():
+                    key_l = str(key).strip().lower()
+                    if key_l:
+                        self._resource_types_map[key_l] = key
+                    variants = (meta or {}).get("variants", []) or []
+                    for v in variants:
+                        v = str(v).strip()
+                        if v:
+                            self._resource_types_map[v.lower()] = key
+        except Exception as e:
+            self.logger.debug(f"Failed to load resource types: {e}")

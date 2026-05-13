@@ -139,6 +139,37 @@ The bookmark-classifier runtime MUST calibrate final confidence before applying 
 - **WHEN** a classification run completes
 - **THEN** the exported reporting surface MUST reflect calibrated confidence behavior rather than raw uncalibrated ensemble scores alone
 
+### Requirement: Component extraction
+BookmarkProcessor responsibilities are split into focused components.
+
+#### Scenario: BookmarkLoader handles file loading
+- **GIVEN** a BookmarkLoader implementation
+- **WHEN** processor.process_files() is called
+- **THEN** loader.load() is used to read bookmark files
+
+#### Scenario: ClassificationCoordinator handles classification
+- **GIVEN** a ClassificationCoordinator implementation
+- **WHEN** processor processes bookmarks
+- **THEN** coordinator.classify() is used for classification
+
+#### Scenario: FeedbackService handles feedback loop
+- **GIVEN** a FeedbackService implementation
+- **WHEN** processor.apply_feedback_file() is called
+- **THEN** feedback_service.apply() is used
+
+### Requirement: Fusion delegation
+AIBookmarkClassifier delegates fusion to FusionEngine.
+
+#### Scenario: Use injected FusionEngine
+- **GIVEN** an AIBookmarkClassifier with injected FusionEngine
+- **WHEN** classify() is called
+- **THEN** fusion_engine.fuse() is used for result fusion
+
+#### Scenario: No internal fusion implementation
+- **GIVEN** AIBookmarkClassifier code
+- **WHEN** reviewed
+- **THEN** _ensemble_classification() method delegates to FusionEngine
+
 ## Correctness Properties
 
 1. **Classification Confidence**: All classifiers return confidence scores in range [0.0, 1.0]

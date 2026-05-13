@@ -1,100 +1,23 @@
-import re
-from typing import Dict, Optional, Tuple
+"""
+Taxonomy Standardizer - 分类标准化器
 
-import yaml
+注意: 此模块已废弃，请使用 src.services.taxonomy_service.TaxonomyService。
+TaxonomyService 现在包含所有标准化方法。
 
-from src.utils.resource_loader import resolve_taxonomy_path
-from src.utils.text_cleaner import TextCleaner
+此模块仅为向后兼容保留，将在未来版本中移除。
+"""
 
+import warnings
 
-class TaxonomyStandardizer:
-    def __init__(self, config: Dict):
-        self.config = config or {}
-        self._subjects_map: Dict[str, str] = {}
-        self._resource_types_map: Dict[str, str] = {}
-        self._cleaner = TextCleaner()
-        self._load_subjects()
-        self._load_resource_types()
+# 发出废弃警告
+warnings.warn(
+    "TaxonomyStandardizer 已废弃，请使用 src.services.taxonomy_service.TaxonomyService。"
+    "此模块将在未来版本中移除。",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-    def _get_path(self, key: str, default_path: str):
-        return resolve_taxonomy_path(self.config, key, default_path)
+# 为向后兼容，从 TaxonomyService 重新导出
+from src.services.taxonomy_service import TaxonomyService as TaxonomyStandardizer
 
-    def _load_yaml(self, path) -> Dict:
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f) or {}
-        except Exception:
-            return {}
-
-    def _load_subjects(self):
-        path = self._get_path("subjects_file", "taxonomy/subjects.yaml")
-        data = self._load_yaml(path)
-        subjects = data.get("subjects", []) or []
-        for entry in subjects:
-            preferred = str(entry.get("preferred", "")).strip()
-            if not preferred:
-                continue
-            self._subjects_map[preferred.lower()] = preferred
-            for v in entry.get("variants", []) or []:
-                v = str(v).strip()
-                if v:
-                    self._subjects_map[v.lower()] = preferred
-
-    def _load_resource_types(self):
-        path = self._get_path("resource_types_file", "taxonomy/resource_types.yaml")
-        data = self._load_yaml(path)
-        rts = data.get("resource_types", {}) or {}
-        for key, meta in rts.items():
-            key_l = str(key).strip().lower()
-            if key_l:
-                self._resource_types_map[key_l] = key
-            variants = (meta or {}).get("variants", []) or []
-            for v in variants:
-                v = str(v).strip()
-                if v:
-                    self._resource_types_map[v.lower()] = key
-
-    def _strip_prefix(self, text: str) -> str:
-        """使用 TextCleaner 移除非文字前缀"""
-        return self._cleaner.strip_prefix(text)
-
-    def normalize_subject(self, text: str) -> Optional[str]:
-        if not text:
-            return None
-        t = self._strip_prefix(text)
-        low = t.lower()
-        return self._subjects_map.get(low, t)
-
-    def normalize_resource_type(self, text: str) -> Optional[str]:
-        if not text:
-            return None
-        t = self._strip_prefix(text)
-        low = t.lower()
-        return self._resource_types_map.get(low)
-
-    def derive_from_category(
-        self, category: str, content_type: Optional[str] = None
-    ) -> Tuple[Optional[str], Optional[str]]:
-        if not category:
-            return None, None
-        cat = str(category).strip()
-        main = cat
-        sub = None
-        if "/" in cat:
-            parts = cat.split("/", 1)
-            main = parts[0].strip()
-            sub = parts[1].strip()
-        subject = self.normalize_subject(main)
-        resource_type = self.normalize_resource_type(sub) if sub else None
-        if not resource_type and content_type:
-            ct_map = {
-                "code_repository": "code_repository",
-                "documentation": "documentation",
-                "video": "video",
-                "academic_paper": "paper",
-                "news": "news",
-                "online_tool": "tool",
-                "webpage": "webpage",
-            }
-            resource_type = ct_map.get(content_type)
-        return subject, resource_type
+__all__ = ["TaxonomyStandardizer"]

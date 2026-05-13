@@ -490,6 +490,20 @@ class EnhancedConfigManager:
             except (KeyError, TypeError):
                 return default
 
+    def get_section(self, path: str) -> Dict[str, Any]:
+        """获取配置节（支持点分路径）
+
+        Args:
+            path: 点分路径，如 "ai_settings"
+
+        Returns:
+            配置节字典，如果不存在返回空字典
+        """
+        result = self.get(path, {})
+        if isinstance(result, dict):
+            return result
+        return {}
+
     def set(self, path: str, value: Any):
         """设置配置值（支持点分路径）"""
         with self.config_lock:

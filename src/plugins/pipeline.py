@@ -12,6 +12,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple
 
 from .registry import PluginRegistry
+from ..services.fusion_engine import FusionEngine
 
 if TYPE_CHECKING:
     from ..plugins.base import BookmarkFeatures, ClassificationResult
@@ -42,6 +43,7 @@ class ClassifierPipeline:
             config.get("fusion_strategy", "weighted_voting")
         )
         self.method_weights: Dict[str, float] = config.get("method_weights", {})
+        self.fusion_engine = FusionEngine(method_weights=self.method_weights)
         self.method_stats: Dict[str, Dict] = defaultdict(
             lambda: {"calls": 0, "errors": 0, "total_time": 0.0}
         )
@@ -136,104 +138,34 @@ class ClassifierPipeline:
         Returns:
             融合后的分类结果
         """
-        if self.fusion_strategy == FusionStrategy.WEIGHTED_VOTING:
-            return self._weighted_voting(results)
-        elif self.fusion_strategy == FusionStrategy.STACKING:
-            return self._stacking(results)
-        elif self.fusion_strategy == FusionStrategy.BAYESIAN:
-            return self._bayesian_combination(results)
+        # 提取 ClassificationResult 列表
+        result_list = [r[1] for r in results]
 
-        # 默认返回第一个结果
-        return results[0][1]
+        # 委托给 FusionEngine
+        return self.fusion_engine.fuse(result_list)
 
     def _weighted_voting(
         self, results: List[Tuple[str, "ClassificationResult"]]
     ) -> "ClassificationResult":
         """
-        加权投票融合
-
-        Args:
-            results: (插件名, 分类结果) 元组列表
-
-        Returns:
-            融合后的分类结果
+        向后兼容方法，委托给 FusionEngine
         """
-        from ..classifiers.ai import ClassificationResult
-
-        category_scores: Dict[str, float] = defaultdict(float)
-
-        for method_name, result in results:
-            weight = self.method_weights.get(method_name, 1.0)
-            score = result.confidence * weight
-            category_scores[result.category] += score
-
-        # 检查冲突
-        if len(set(r[1].category for r in results)) > 1:
-            category_scores = self._resolve_conflicts(category_scores, results)
-
-        # 选择最高分
-        if not category_scores:
-            return self._default_result()
-
-        best_category = max(category_scores, key=category_scores.get)
-        total_score = sum(category_scores.values())
-        confidence = (
-            category_scores[best_category] / total_score if total_score > 0 else 0
-        )
-
-        # 生成备选分类
-        alternatives = [
-            (cat, score / total_score)
-            for cat, score in category_scores.items()
-            if cat != best_category
-        ]
-        alternatives.sort(key=lambda x: x[1], reverse=True)
-
-        # 生成推理过程
-        reasoning = [f"Weighted voting from {len(results)} methods"]
-        for method_name, result in results:
-            reasoning.append(
-                f"{method_name}: {result.category} ({result.confidence:.2f})"
-            )
-
-        return ClassificationResult(
-            category=best_category,
-            confidence=confidence,
-            subcategory=None,
-            reasoning=reasoning,
-            alternatives=alternatives[:5],
-            method="pipeline_fusion",
-        )
+        result_list = [r[1] for r in results]
+        return self.fusion_engine.fuse(result_list)
 
     def _stacking(
         self, results: List[Tuple[str, "ClassificationResult"]]
     ) -> "ClassificationResult":
-        """
-        堆叠融合（简化实现）
-
-        Args:
-            results: (插件名, 分类结果) 元组列表
-
-        Returns:
-            融合后的分类结果
-        """
-        # 简化实现：使用加权投票
-        return self._weighted_voting(results)
+        """向后兼容方法，委托给 FusionEngine"""
+        result_list = [r[1] for r in results]
+        return self.fusion_engine.fuse(result_list)
 
     def _bayesian_combination(
         self, results: List[Tuple[str, "ClassificationResult"]]
     ) -> "ClassificationResult":
-        """
-        贝叶斯组合（简化实现）
-
-        Args:
-            results: (插件名, 分类结果) 元组列表
-
-        Returns:
-            融合后的分类结果
-        """
-        # 简化实现：使用加权投票
-        return self._weighted_voting(results)
+        """向后兼容方法，委托给 FusionEngine"""
+        result_list = [r[1] for r in results]
+        return self.fusion_engine.fuse(result_list)
 
     def _resolve_conflicts(
         self, scores: Dict[str, float], results: List

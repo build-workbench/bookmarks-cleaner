@@ -16,8 +16,8 @@ from hypothesis import strategies as st
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from plugins.base import ClassifierPlugin, PluginMetadata
-from plugins.registry import PluginRegistry
+from src.plugins.base import ClassifierPlugin, PluginMetadata
+from src.plugins.registry import PluginRegistry
 
 
 # Mock BookmarkFeatures and ClassificationResult for testing

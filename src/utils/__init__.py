@@ -11,9 +11,6 @@ from .category import (
     strip_category_prefix,
 )
 
-# 从 config_manager 导入（替代已删除的 utils/config.py）
-from src.config_manager import EnhancedConfigManager as ConfigManager
-
 # 从 resource_loader 导入函数和异常
 from .resource_loader import (
     ResourceResolutionError,
@@ -22,6 +19,13 @@ from .resource_loader import (
     resolve_config_path,
     resolve_taxonomy_path,
 )
+
+# ConfigManager 延迟导入以避免循环依赖
+def __getattr__(name: str):
+    if name == "ConfigManager":
+        from src.config_manager import EnhancedConfigManager
+        return EnhancedConfigManager
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 __all__ = [
     "ConfigManager",

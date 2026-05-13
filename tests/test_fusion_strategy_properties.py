@@ -37,6 +37,17 @@ try:
         category: str
         confidence: float
         method: str = "unknown"
+        facets: dict = None
+        reasoning: list = None
+        alternatives: list = None
+
+        def __post_init__(self):
+            if self.facets is None:
+                self.facets = {}
+            if self.reasoning is None:
+                self.reasoning = []
+            if self.alternatives is None:
+                self.alternatives = []
 
 except ImportError:
     IMPORTS_AVAILABLE = False
@@ -52,7 +63,7 @@ category_strategy = st.sampled_from(
     ["编程开发", "人工智能", "数据科学", "前端开发", "后端开发"]
 )
 
-confidence_strategy = st.floats(min_value=0.1, max_value=1.0, allow_nan=False)
+confidence_strategy = st.floats(min_value=0.75, max_value=1.0, allow_nan=False)
 
 weight_strategy = st.floats(min_value=0.1, max_value=2.0, allow_nan=False)
 

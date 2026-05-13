@@ -62,31 +62,10 @@ try:
 except ImportError:
     PerformanceMonitor = None  # type: ignore[misc,assignment]
 
+# FusionEngine - 统一的融合引擎
+from src.services.fusion_engine import FusionEngine
 
-@dataclass
-class ClassificationResult:
-    """
-    分类结果
-
-    注意：此定义与 src.plugins.base.ClassificationResult 保持一致。
-    如需修改，请同步更新两处。
-    """
-
-    category: str
-    confidence: float
-    subcategory: Optional[str] = None
-    reasoning: List[str] = field(default_factory=list)
-    alternatives: List[Tuple[str, float]] = field(default_factory=list)
-    processing_time: float = 0.0
-    method: str = "unknown"
-    facets: Dict[str, str] = field(default_factory=dict)
-    score_breakdown: Dict[str, float] = field(default_factory=dict)
-    features_used: List[str] = field(default_factory=list)
-
-    @property
-    def alternative_categories(self) -> List[Tuple[str, float]]:
-        """兼容旧接口的属性别名"""
-        return self.alternatives
+# ClassificationResult 从 src.plugins.base 导入，不再在此重复定义
 
 
 class AIBookmarkClassifier:
@@ -116,6 +95,7 @@ class AIBookmarkClassifier:
         self._ml_classifier: Optional[MLClassifierWrapper] = None
         self._llm_classifier: Optional[LLMClassifier] = None
         self._confidence_calibrator: Optional["ConfidenceCalibrator"] = None
+        self._fusion_engine: Optional[FusionEngine] = None
 
         # 从配置读取缓存大小，默认值作为后备
         self._max_cache_size = 5000
@@ -218,6 +198,18 @@ class AIBookmarkClassifier:
             self.logger.warning(f"置信度校准器初始化失败: {e}")
         return self._confidence_calibrator
 
+    @property
+    def fusion_engine(self) -> FusionEngine:
+        """融合引擎"""
+        if self._fusion_engine is None:
+            calibrator = self.confidence_calibrator
+            self._fusion_engine = FusionEngine(
+                method_weights=self.config.get("method_weights"),
+                confidence_calibrator=calibrator.calibrate if calibrator else None,
+                category_normalizer=self._normalize_category_string,
+            )
+        return self._fusion_engine
+
     def _load_config(self) -> Dict:
         config, _, explicit = load_json_config(self.config_path)
 
@@ -237,10 +229,6 @@ class AIBookmarkClassifier:
             source = "显式配置" if explicit else "默认配置"
             raise ValueError(f"{source}缺少有效的 category_rules: {self.config_path}")
         return normalized
-
-    @staticmethod
-    def _strip_category_prefix(text: str) -> str:
-        return strip_category_prefix(text)
 
     def _normalize_category_string(self, category: str) -> str:
         return normalize_category_string(category)
@@ -350,8 +338,14 @@ class AIBookmarkClassifier:
             except Exception as e:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
-        # 融合
-        final_result = self._ensemble_classification(results, features)
+        # 融合 - 使用 FusionEngine
+        confidence_threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
+        final_result = self.fusion_engine.fuse(
+            results,
+            features=features,
+            confidence_threshold=float(confidence_threshold),
+            subcategory_resolver=self._determine_subcategory,
+        )
 
         # 方法统计
         final_method = final_result.method
@@ -398,146 +392,19 @@ class AIBookmarkClassifier:
         # 使用 CacheManager 的 put 方法，自动处理淘汰
         self.classification_cache.put(cache_key, result)
 
+    # _ensemble_classification 已移至 FusionEngine
+    # 保留此方法作为向后兼容的委托
     def _ensemble_classification(
         self, results: List[ClassificationResult], features: BookmarkFeatures
     ) -> ClassificationResult:
-        if not results:
-            return ClassificationResult(
-                category="未分类",
-                confidence=0.0,
-                reasoning=["没有找到合适的分类方法"],
-                method="fallback",
-            )
-
-        # 加权投票
-        category_scores = defaultdict(float)
-        category_raw_confidences: Dict[str, float] = {}  # 保存每个类别的原始置信度
-        all_reasoning: List[str] = []
-        methods_used: List[str] = []
-        merged_facets: Dict[str, str] = {}
-
-        method_weights = {
-            "rule_engine": 0.50,  # 提高规则引擎权重
-            "machine_learning": 0.15,  # 降低 ML 权重（因为模型可能过时）
-            "semantic_analyzer": 0.10,
-            "user_profiler": 0.10,
-            "llm": 0.50,
-        }
-
-        for res in results:
-            method = res.method
-            category = self._normalize_category_string(res.category) or "未分类"
-            confidence = res.confidence
-            reasoning = res.reasoning
-            facets = res.facets or {}
-
-            weight = method_weights.get(method, 0.1)
-            category_scores[category] += confidence * weight
-
-            # 保存最高原始置信度
-            if (
-                category not in category_raw_confidences
-                or confidence > category_raw_confidences[category]
-            ):
-                category_raw_confidences[category] = confidence
-
-            all_reasoning.extend(reasoning)
-            methods_used.append(method)
-            # 合并分面提示（保留先到先得，避免覆盖更强信号）
-            for k, v in facets.items():
-                if v and k not in merged_facets:
-                    merged_facets[k] = v
-
-        if not category_scores:
-            return ClassificationResult(
-                category="未分类",
-                confidence=0.0,
-                reasoning=["所有分类方法都失败"],
-                method="error",
-            )
-
-        best_category = max(category_scores, key=category_scores.get)
-        top_score = category_scores[best_category]
-        total_score = sum(category_scores.values())
-
-        # 使用原始置信度而不是加权后的
-        confidence = category_raw_confidences.get(best_category, 0.0)
-
-        # 置信度校准
-        calibrated_confidence = confidence
-        calibrator = self.confidence_calibrator
-        if calibrator:
-            calibrated_confidence = calibrator.calibrate(confidence)
-
-        alternatives = [
-            (cat, score / total_score)
-            for cat, score in category_scores.items()
-            if cat != best_category and total_score > 0
-        ]
-        alternatives.sort(key=lambda x: x[1], reverse=True)
-
-        subcategory = self._determine_subcategory(best_category, features)
-
-        final_method = "+".join(set(methods_used)) if methods_used else "unknown"
-
-        threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
-        try:
-            threshold = float(threshold)
-        except Exception:
-            threshold = 0.7
-        if threshold < 0:
-            threshold = 0.0
-        if threshold > 1:
-            threshold = 1.0
-
-        if best_category != "未分类" and calibrated_confidence < threshold:
-            threshold_reasoning = list(all_reasoning)
-            threshold_reasoning.append(
-                f"最终置信度 {calibrated_confidence:.2f} 低于阈值 {threshold:.2f}，标记为未分类"
-            )
-
-            threshold_alternatives = [(best_category, calibrated_confidence)]
-            for alt in alternatives:
-                if alt[0] != best_category:
-                    threshold_alternatives.append(alt)
-
-            result = ClassificationResult(
-                category="未分类",
-                subcategory=None,
-                confidence=calibrated_confidence,
-                reasoning=threshold_reasoning,
-                alternatives=threshold_alternatives[:3],
-                method=final_method,
-                facets=merged_facets,
-                score_breakdown={"calibrated_from": confidence} if calibrator else {},
-            )
-
-            # 更新统计（即使低于阈值）
-            if calibrator:
-                self.stats["calibrated_predictions"] = (
-                    self.stats.get("calibrated_predictions", 0) + 1
-                )
-
-            return result
-
-        result = ClassificationResult(
-            category=best_category,
-            subcategory=subcategory,
-            confidence=calibrated_confidence,
-            reasoning=all_reasoning,
-            alternatives=alternatives[:3],
-            method=final_method,
-            facets=merged_facets,
-            score_breakdown={"calibrated_from": confidence} if calibrator else {},
+        """向后兼容方法，委托给 FusionEngine"""
+        confidence_threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
+        return self.fusion_engine.fuse(
+            results,
+            features=features,
+            confidence_threshold=float(confidence_threshold),
+            subcategory_resolver=self._determine_subcategory,
         )
-
-        # 更新统计
-        if calibrator:
-            self.stats["calibrated_predictions"] = (
-                self.stats.get("calibrated_predictions", 0) + 1
-            )
-
-        return result
 
     def _determine_subcategory(
         self, category: str, features: BookmarkFeatures
