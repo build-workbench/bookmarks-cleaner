@@ -184,6 +184,6 @@ cleanbook --train-feedback reviewed.json
 
 ## 下一步
 
-- [快速开始](/zh/quickstart) — 5 分钟上手指南
+- [安装指南](/zh/guide/installation) — 详细了解安装选项
 - [配置详解](/zh/reference/config) — 深度定制分类规则
-- [词表格式](/zh/reference/taxonomy) — YAML 词表配置
+- [进阶用法](/zh/guide/advanced) — ML、批量处理和反馈管道

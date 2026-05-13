@@ -167,8 +167,27 @@ rm -rf ~/.config/cleanbook
 rm -rf ~/.cache/cleanbook
 ```
 
+### Q: Out of memory when processing large bookmark files?
+
+```bash
+# Limit parallel workers
+cleanbook -i bookmarks.html --workers 1 --no-ml
+```
+
+### Q: How to improve classification accuracy?
+
+1. Customize `category_rules` for your domain
+2. Enable ML (`--train`)
+3. Adjust `confidence_threshold` (default 0.7, lower for more classifications)
+
+### Q: How do I choose the most stable execution path?
+
+```bash
+cleanbook -i bookmarks.html -o output/ --no-ml
+```
+
 ## Next Steps
 
-- [Quick Start](../quickstart) — Get started in 5 minutes
+- [Advanced Usage](/en/guide/advanced) — ML, batch processing, and feedback pipeline
 - [Configuration](/en/reference/config) — Learn about config.json
 - [Configuration Guide](/en/guide/configuration) — Learn how to override config safely

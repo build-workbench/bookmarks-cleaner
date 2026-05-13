@@ -184,6 +184,6 @@ After processing, the output directory contains:
 
 ## Next Steps
 
-- [Quick Start](/en/quickstart) — 5-minute guide
+- [Installation Guide](/en/guide/installation) — Detailed installation options
 - [Configuration Reference](/en/reference/config) — Deep customization
-- [Taxonomy Format](/en/reference/taxonomy) — YAML vocabulary config
+- [Advanced Usage](/en/guide/advanced) — ML, batch processing, and feedback pipeline

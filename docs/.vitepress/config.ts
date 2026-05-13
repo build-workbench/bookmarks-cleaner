@@ -46,9 +46,22 @@ export default withMermaid(defineConfig({
       head: meta('zh'),
       themeConfig: {
         nav: [
-          { text: '快速开始', link: '/zh/quickstart' },
-          { text: '安装', link: '/zh/guide/installation' },
-          { text: '配置', link: '/zh/reference/config' },
+          {
+            text: '使用指南',
+            items: [
+              { text: '安装', link: '/zh/guide/installation' },
+              { text: '配置', link: '/zh/guide/configuration' },
+              { text: '进阶用法', link: '/zh/guide/advanced' },
+            ]
+          },
+          {
+            text: '参考',
+            items: [
+              { text: 'CLI', link: '/zh/reference/cli' },
+              { text: '配置项', link: '/zh/reference/config' },
+              { text: '词表格式', link: '/zh/reference/taxonomy' },
+            ]
+          },
           { text: 'GitHub', link: REPO },
         ],
         sidebar: {
@@ -58,6 +71,7 @@ export default withMermaid(defineConfig({
               items: [
                 { text: '安装', link: '/zh/guide/installation' },
                 { text: '配置', link: '/zh/guide/configuration' },
+                { text: '进阶用法', link: '/zh/guide/advanced' },
               ],
             },
           ],
@@ -97,9 +111,22 @@ export default withMermaid(defineConfig({
       head: meta('en'),
       themeConfig: {
         nav: [
-          { text: 'Quick Start', link: '/en/quickstart' },
-          { text: 'Installation', link: '/en/guide/installation' },
-          { text: 'Configuration', link: '/en/reference/config' },
+          {
+            text: 'Guide',
+            items: [
+              { text: 'Installation', link: '/en/guide/installation' },
+              { text: 'Configuration', link: '/en/guide/configuration' },
+              { text: 'Advanced', link: '/en/guide/advanced' },
+            ]
+          },
+          {
+            text: 'Reference',
+            items: [
+              { text: 'CLI', link: '/en/reference/cli' },
+              { text: 'Configuration', link: '/en/reference/config' },
+              { text: 'Taxonomy', link: '/en/reference/taxonomy' },
+            ]
+          },
           { text: 'GitHub', link: REPO },
         ],
         sidebar: {
@@ -109,6 +136,7 @@ export default withMermaid(defineConfig({
               items: [
                 { text: 'Installation', link: '/en/guide/installation' },
                 { text: 'Configuration', link: '/en/guide/configuration' },
+                { text: 'Advanced', link: '/en/guide/advanced' },
               ],
             },
           ],

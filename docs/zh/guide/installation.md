@@ -167,8 +167,27 @@ rm -rf ~/.config/cleanbook
 rm -rf ~/.cache/cleanbook
 ```
 
+### Q: 处理大量书签时内存不足？
+
+```bash
+# 限制并行处理数量
+cleanbook -i bookmarks.html --workers 1 --no-ml
+```
+
+### Q: 如何提高分类准确率？
+
+1. 根据你的书签领域自定义 `category_rules`
+2. 启用 ML（`--train`）
+3. 调整 `confidence_threshold`（默认 0.7，降低可获得更多分类）
+
+### Q: 如何切到更稳定的运行模式？
+
+```bash
+cleanbook -i bookmarks.html -o output/ --no-ml
+```
+
 ## 下一步
 
-- [快速开始](../quickstart) — 5 分钟上手
+- [进阶用法](/zh/guide/advanced) — ML、批量处理和反馈管道
 - [配置详解](/zh/reference/config) — 了解 config.json 配置
 - [配置指南](/zh/guide/configuration) — 理解配置文件覆盖方式

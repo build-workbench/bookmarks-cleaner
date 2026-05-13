@@ -2,14 +2,12 @@
 layout: home
 hero:
   name: Bookmarks Cleaner
-  text: ' '
-  actions:
-    - theme: brand
-      text: 简体中文
-      link: /zh/
-    - theme: alt
-      text: English
-      link: /en/
+  text: 加载中...
 ---
 
-<!-- 语言自动检测跳转逻辑已移至 .vitepress/theme/index.ts -->
+<script setup>
+import { onMounted } from 'vue'
+onMounted(() => {
+  // 语言跳转逻辑已在 .vitepress/theme/index.ts 中实现
+})
+</script>
