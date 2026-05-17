@@ -28,6 +28,9 @@ function meta(lang: 'zh' | 'en'): any[] {
     ['meta', { property: 'og:description', content: description }],
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
     ['link', { rel: 'manifest', href: '/manifest.json' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
+    ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
+    ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap' }],
   ]
 }
 
@@ -35,6 +38,11 @@ export default withMermaid(defineConfig({
   base,
   title: 'Bookmarks Cleaner',
   description: 'Offline-first bookmark cleaner for developers',
+
+  head: [
+    ['meta', { name: 'theme-color', content: '#0066FF' }],
+    ['meta', { name: 'theme-color', content: '#4D94FF', media: '(prefers-color-scheme: dark)' }],
+  ],
 
   locales: {
     zh: {
@@ -55,11 +63,29 @@ export default withMermaid(defineConfig({
             ]
           },
           {
+            text: '架构设计',
+            items: [
+              { text: 'Pipeline 架构', link: '/zh/architecture/pipeline' },
+              { text: '依赖注入容器', link: '/zh/architecture/container' },
+              { text: 'Protocol 接口', link: '/zh/architecture/protocols' },
+            ]
+          },
+          {
+            text: '算法原理',
+            items: [
+              { text: '规则引擎', link: '/zh/algorithms/rule-engine' },
+              { text: 'ML 分类器', link: '/zh/algorithms/ml-classifier' },
+              { text: '融合算法', link: '/zh/algorithms/fusion' },
+              { text: 'LLM 集成', link: '/zh/algorithms/llm-integration' },
+            ]
+          },
+          {
             text: '参考',
             items: [
               { text: 'CLI', link: '/zh/reference/cli' },
               { text: '配置项', link: '/zh/reference/config' },
               { text: '词表格式', link: '/zh/reference/taxonomy' },
+              { text: 'Python API', link: '/zh/reference/api' },
             ]
           },
           { text: 'GitHub', link: REPO },
@@ -67,7 +93,8 @@ export default withMermaid(defineConfig({
         sidebar: {
           '/zh/guide/': [
             {
-              text: '使用指南',
+              text: '🚀 使用指南',
+              collapsed: false,
               items: [
                 { text: '安装', link: '/zh/guide/installation' },
                 { text: '配置', link: '/zh/guide/configuration' },
@@ -75,13 +102,60 @@ export default withMermaid(defineConfig({
               ],
             },
           ],
+          '/zh/architecture/': [
+            {
+              text: '🏛️ 架构设计',
+              collapsed: false,
+              items: [
+                { text: 'Pipeline 架构', link: '/zh/architecture/pipeline' },
+                { text: '依赖注入容器', link: '/zh/architecture/container' },
+                { text: 'Protocol 接口', link: '/zh/architecture/protocols' },
+              ],
+            },
+          ],
+          '/zh/algorithms/': [
+            {
+              text: '🧠 算法原理',
+              collapsed: false,
+              items: [
+                { text: '规则引擎', link: '/zh/algorithms/rule-engine' },
+                { text: 'ML 分类器', link: '/zh/algorithms/ml-classifier' },
+                { text: '语义分析器', link: '/zh/algorithms/semantic-analyzer' },
+                { text: 'LLM 集成', link: '/zh/algorithms/llm-integration' },
+                { text: '融合算法', link: '/zh/algorithms/fusion' },
+              ],
+            },
+          ],
+          '/zh/performance/': [
+            {
+              text: '⚡ 性能特性',
+              collapsed: false,
+              items: [
+                { text: '并发处理', link: '/zh/performance/concurrency' },
+                { text: '缓存策略', link: '/zh/performance/caching' },
+                { text: '优化技巧', link: '/zh/performance/optimization' },
+              ],
+            },
+          ],
           '/zh/reference/': [
             {
-              text: '参考',
+              text: '📚 API 参考',
+              collapsed: false,
               items: [
-                { text: 'CLI', link: '/zh/reference/cli' },
+                { text: 'CLI 命令', link: '/zh/reference/cli' },
                 { text: '配置项', link: '/zh/reference/config' },
                 { text: '词表格式', link: '/zh/reference/taxonomy' },
+                { text: 'Python API', link: '/zh/reference/api' },
+              ],
+            },
+          ],
+          '/zh/resources/': [
+            {
+              text: '📖 学术资源',
+              collapsed: false,
+              items: [
+                { text: '参考文献', link: '/zh/resources/references' },
+                { text: '相关项目', link: '/zh/resources/related-projects' },
               ],
             },
           ],
@@ -120,11 +194,29 @@ export default withMermaid(defineConfig({
             ]
           },
           {
+            text: 'Architecture',
+            items: [
+              { text: 'Pipeline', link: '/en/architecture/pipeline' },
+              { text: 'DI Container', link: '/en/architecture/container' },
+              { text: 'Protocols', link: '/en/architecture/protocols' },
+            ]
+          },
+          {
+            text: 'Algorithms',
+            items: [
+              { text: 'Rule Engine', link: '/en/algorithms/rule-engine' },
+              { text: 'ML Classifier', link: '/en/algorithms/ml-classifier' },
+              { text: 'Fusion', link: '/en/algorithms/fusion' },
+              { text: 'LLM Integration', link: '/en/algorithms/llm-integration' },
+            ]
+          },
+          {
             text: 'Reference',
             items: [
               { text: 'CLI', link: '/en/reference/cli' },
               { text: 'Configuration', link: '/en/reference/config' },
               { text: 'Taxonomy', link: '/en/reference/taxonomy' },
+              { text: 'Python API', link: '/en/reference/api' },
             ]
           },
           { text: 'GitHub', link: REPO },
@@ -132,7 +224,8 @@ export default withMermaid(defineConfig({
         sidebar: {
           '/en/guide/': [
             {
-              text: 'Guide',
+              text: '🚀 Guide',
+              collapsed: false,
               items: [
                 { text: 'Installation', link: '/en/guide/installation' },
                 { text: 'Configuration', link: '/en/guide/configuration' },
@@ -140,13 +233,60 @@ export default withMermaid(defineConfig({
               ],
             },
           ],
+          '/en/architecture/': [
+            {
+              text: '🏛️ Architecture',
+              collapsed: false,
+              items: [
+                { text: 'Pipeline', link: '/en/architecture/pipeline' },
+                { text: 'DI Container', link: '/en/architecture/container' },
+                { text: 'Protocols', link: '/en/architecture/protocols' },
+              ],
+            },
+          ],
+          '/en/algorithms/': [
+            {
+              text: '🧠 Algorithms',
+              collapsed: false,
+              items: [
+                { text: 'Rule Engine', link: '/en/algorithms/rule-engine' },
+                { text: 'ML Classifier', link: '/en/algorithms/ml-classifier' },
+                { text: 'Semantic Analyzer', link: '/en/algorithms/semantic-analyzer' },
+                { text: 'LLM Integration', link: '/en/algorithms/llm-integration' },
+                { text: 'Fusion', link: '/en/algorithms/fusion' },
+              ],
+            },
+          ],
+          '/en/performance/': [
+            {
+              text: '⚡ Performance',
+              collapsed: false,
+              items: [
+                { text: 'Concurrency', link: '/en/performance/concurrency' },
+                { text: 'Caching', link: '/en/performance/caching' },
+                { text: 'Optimization', link: '/en/performance/optimization' },
+              ],
+            },
+          ],
           '/en/reference/': [
             {
-              text: 'Reference',
+              text: '📚 API Reference',
+              collapsed: false,
               items: [
                 { text: 'CLI', link: '/en/reference/cli' },
                 { text: 'Configuration', link: '/en/reference/config' },
                 { text: 'Taxonomy', link: '/en/reference/taxonomy' },
+                { text: 'Python API', link: '/en/reference/api' },
+              ],
+            },
+          ],
+          '/en/resources/': [
+            {
+              text: '📖 Resources',
+              collapsed: false,
+              items: [
+                { text: 'References', link: '/en/resources/references' },
+                { text: 'Related Projects', link: '/en/resources/related-projects' },
               ],
             },
           ],
@@ -174,6 +314,24 @@ export default withMermaid(defineConfig({
     socialLinks: [
       { icon: 'github', link: REPO },
     ],
+    logo: '/logo.svg',
+    siteTitle: 'Bookmarks Cleaner',
+  },
+
+  mermaid: {
+    theme: 'default',
+    flowchart: {
+      curve: 'basis',
+      padding: 20,
+    },
+  },
+
+  markdown: {
+    theme: {
+      light: 'github-light',
+      dark: 'one-dark-pro',
+    },
+    lineNumbers: false,
   },
 
   vite: {
