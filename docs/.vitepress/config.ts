@@ -38,7 +38,6 @@ export default withMermaid(defineConfig({
   base,
   title: 'Bookmarks Cleaner',
   description: 'Offline-first bookmark cleaner for developers',
-  cleanUrls: true,
   lastUpdated: true,
 
   head: [
