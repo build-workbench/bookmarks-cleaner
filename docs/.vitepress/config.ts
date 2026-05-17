@@ -17,8 +17,8 @@ function meta(lang: 'zh' | 'en'): any[] {
     ? '开发者的离线优先书签清理与分类工具：规则优先，ML 辅助，LLM 可选。'
     : 'Offline-first bookmark cleaner for developers: rules-first, ML-assisted, LLM-optional.'
   const keywords = isZh
-    ? '书签清理,书签分类,离线工具,Python CLI,规则引擎,机器学习'
-    : 'bookmark cleaner,bookmark classification,offline tool,Python CLI,rules engine,machine learning'
+    ? '书签清理,书签分类,离线工具,Python CLI,规则引擎,机器学习,文本分类,集成学习'
+    : 'bookmark cleaner,bookmark classification,offline tool,Python CLI,rules engine,machine learning,text classification,ensemble learning'
 
   return [
     ['meta', { name: 'description', content: description }],
@@ -38,10 +38,26 @@ export default withMermaid(defineConfig({
   base,
   title: 'Bookmarks Cleaner',
   description: 'Offline-first bookmark cleaner for developers',
+  cleanUrls: true,
+  lastUpdated: true,
 
   head: [
     ['meta', { name: 'theme-color', content: '#0066FF' }],
     ['meta', { name: 'theme-color', content: '#4D94FF', media: '(prefers-color-scheme: dark)' }],
+    ['script', {}, `
+      (function() {
+        const key = 'bookmarks-cleaner-lang';
+        const base = document.querySelector('base')?.getAttribute('href') || '/';
+        const path = location.pathname;
+        const isRoot = path === base || path === base + 'index.html' || path === '/' || path === '/index.html';
+        if (isRoot) {
+          const stored = localStorage.getItem(key);
+          const targetLang = stored || (navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en';
+          if (!stored) localStorage.setItem(key, targetLang);
+          location.replace(base + targetLang + '/');
+        }
+      })();
+    `],
   ],
 
   locales: {
@@ -55,11 +71,11 @@ export default withMermaid(defineConfig({
       themeConfig: {
         nav: [
           {
-            text: '使用指南',
+            text: '白皮书',
             items: [
-              { text: '安装', link: '/zh/guide/installation' },
-              { text: '配置', link: '/zh/guide/configuration' },
-              { text: '进阶用法', link: '/zh/guide/advanced' },
+              { text: '技术白皮书', link: '/zh/whitepaper' },
+              { text: '架构决策记录', link: '/zh/adr' },
+              { text: '演进思考', link: '/zh/evolution' },
             ]
           },
           {
@@ -91,9 +107,18 @@ export default withMermaid(defineConfig({
           { text: 'GitHub', link: REPO },
         ],
         sidebar: {
+          '/zh/whitepaper': [
+            { text: '技术白皮书', link: '/zh/whitepaper' },
+          ],
+          '/zh/adr': [
+            { text: '架构决策记录', link: '/zh/adr' },
+          ],
+          '/zh/evolution': [
+            { text: '演进思考', link: '/zh/evolution' },
+          ],
           '/zh/guide/': [
             {
-              text: '🚀 使用指南',
+              text: '使用指南',
               collapsed: false,
               items: [
                 { text: '安装', link: '/zh/guide/installation' },
@@ -104,7 +129,7 @@ export default withMermaid(defineConfig({
           ],
           '/zh/architecture/': [
             {
-              text: '🏛️ 架构设计',
+              text: '架构设计',
               collapsed: false,
               items: [
                 { text: 'Pipeline 架构', link: '/zh/architecture/pipeline' },
@@ -115,7 +140,7 @@ export default withMermaid(defineConfig({
           ],
           '/zh/algorithms/': [
             {
-              text: '🧠 算法原理',
+              text: '算法原理',
               collapsed: false,
               items: [
                 { text: '规则引擎', link: '/zh/algorithms/rule-engine' },
@@ -128,7 +153,7 @@ export default withMermaid(defineConfig({
           ],
           '/zh/performance/': [
             {
-              text: '⚡ 性能特性',
+              text: '性能工程',
               collapsed: false,
               items: [
                 { text: '并发处理', link: '/zh/performance/concurrency' },
@@ -139,7 +164,7 @@ export default withMermaid(defineConfig({
           ],
           '/zh/reference/': [
             {
-              text: '📚 API 参考',
+              text: 'API 参考',
               collapsed: false,
               items: [
                 { text: 'CLI 命令', link: '/zh/reference/cli' },
@@ -151,7 +176,7 @@ export default withMermaid(defineConfig({
           ],
           '/zh/resources/': [
             {
-              text: '📖 学术资源',
+              text: '学术资源',
               collapsed: false,
               items: [
                 { text: '参考文献', link: '/zh/resources/references' },
@@ -172,7 +197,7 @@ export default withMermaid(defineConfig({
         darkModeSwitchLabel: '切换主题',
         footer: {
           message: 'Bookmarks Cleaner · Offline-first bookmark cleanup',
-          copyright: `Copyright © 2025-${new Date().getFullYear()} LessUp`,
+          copyright: `Copyright \u00A9 2025-${new Date().getFullYear()} LessUp`,
         },
       },
     },
@@ -186,11 +211,11 @@ export default withMermaid(defineConfig({
       themeConfig: {
         nav: [
           {
-            text: 'Guide',
+            text: 'Whitepaper',
             items: [
-              { text: 'Installation', link: '/en/guide/installation' },
-              { text: 'Configuration', link: '/en/guide/configuration' },
-              { text: 'Advanced', link: '/en/guide/advanced' },
+              { text: 'Technical Whitepaper', link: '/en/whitepaper' },
+              { text: 'Architecture Decisions', link: '/en/adr' },
+              { text: 'Evolution', link: '/en/evolution' },
             ]
           },
           {
@@ -222,9 +247,18 @@ export default withMermaid(defineConfig({
           { text: 'GitHub', link: REPO },
         ],
         sidebar: {
+          '/en/whitepaper': [
+            { text: 'Technical Whitepaper', link: '/en/whitepaper' },
+          ],
+          '/en/adr': [
+            { text: 'Architecture Decisions', link: '/en/adr' },
+          ],
+          '/en/evolution': [
+            { text: 'Evolution', link: '/en/evolution' },
+          ],
           '/en/guide/': [
             {
-              text: '🚀 Guide',
+              text: 'Guide',
               collapsed: false,
               items: [
                 { text: 'Installation', link: '/en/guide/installation' },
@@ -235,7 +269,7 @@ export default withMermaid(defineConfig({
           ],
           '/en/architecture/': [
             {
-              text: '🏛️ Architecture',
+              text: 'Architecture',
               collapsed: false,
               items: [
                 { text: 'Pipeline', link: '/en/architecture/pipeline' },
@@ -246,7 +280,7 @@ export default withMermaid(defineConfig({
           ],
           '/en/algorithms/': [
             {
-              text: '🧠 Algorithms',
+              text: 'Algorithms',
               collapsed: false,
               items: [
                 { text: 'Rule Engine', link: '/en/algorithms/rule-engine' },
@@ -259,7 +293,7 @@ export default withMermaid(defineConfig({
           ],
           '/en/performance/': [
             {
-              text: '⚡ Performance',
+              text: 'Performance Engineering',
               collapsed: false,
               items: [
                 { text: 'Concurrency', link: '/en/performance/concurrency' },
@@ -270,7 +304,7 @@ export default withMermaid(defineConfig({
           ],
           '/en/reference/': [
             {
-              text: '📚 API Reference',
+              text: 'API Reference',
               collapsed: false,
               items: [
                 { text: 'CLI', link: '/en/reference/cli' },
@@ -282,7 +316,7 @@ export default withMermaid(defineConfig({
           ],
           '/en/resources/': [
             {
-              text: '📖 Resources',
+              text: 'Academic Resources',
               collapsed: false,
               items: [
                 { text: 'References', link: '/en/resources/references' },
@@ -302,8 +336,8 @@ export default withMermaid(defineConfig({
         sidebarMenuLabel: 'Menu',
         darkModeSwitchLabel: 'Appearance',
         footer: {
-          message: 'Bookmarks Cleaner · Offline-first bookmark cleanup',
-          copyright: `Copyright © 2025-${new Date().getFullYear()} LessUp`,
+          message: 'Bookmarks Cleaner \u00B7 Offline-first bookmark cleanup',
+          copyright: `Copyright \u00A9 2025-${new Date().getFullYear()} LessUp`,
         },
       },
     },
@@ -332,6 +366,7 @@ export default withMermaid(defineConfig({
       dark: 'one-dark-pro',
     },
     lineNumbers: false,
+    math: true,
   },
 
   vite: {

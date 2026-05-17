@@ -14,17 +14,17 @@ const props = withDefaults(defineProps<{
 }>(), {
   command: 'cleanbook -i bookmarks.html -o output/',
   outputs: () => [
-    '✓ 加载书签文件: 1,247 个条目',
-    '✓ 去重完成: 移除 89 个重复项',
-    '✓ 分类完成: 12 个类别',
-    '✓ 导出完成: output/bookmarks_cleaned.html',
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    '处理统计:',
-    '  • 总耗时: 2.3s',
-    '  • 处理速度: 542 书签/秒',
-    '  • 准确率: 96.8%',
+    '\u2713 加载书签文件: 1,247 个条目',
+    '\u2713 去重完成: 移除 89 个重复项',
+    '\u2713 分类完成: 12 个类别',
+    '\u2713 导出完成: output/bookmarks_cleaned.html',
+    '\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501',
+    '\u5904\u7406\u7edf\u8ba1:',
+    '  \u2022 总耗时: 2.3s',
+    '  \u2022 处理速度: 542 书签/秒',
+    '  \u2022 准确率: 96.8%',
   ],
-  typingSpeed: 50
+  typingSpeed: 45
 })
 
 const displayedCommand = ref('')
@@ -38,7 +38,6 @@ let outputInterval: ReturnType<typeof setInterval> | null = null
 let cursorInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-  // Typing effect for command
   let charIndex = 0
   commandInterval = setInterval(() => {
     if (charIndex < props.command.length) {
@@ -51,7 +50,6 @@ onMounted(() => {
     }
   }, props.typingSpeed)
 
-  // Cursor blink
   cursorInterval = setInterval(() => {
     showCursor.value = !showCursor.value
   }, 530)
@@ -62,8 +60,8 @@ function startOutput() {
     if (currentOutputIndex.value < props.outputs.length) {
       const line = props.outputs[currentOutputIndex.value]
       let type: OutputLine['type'] = 'normal'
-      if (line.startsWith('✓')) type = 'success'
-      else if (line.startsWith('处理') || line.startsWith('━━')) type = 'info'
+      if (line.startsWith('\u2713')) type = 'success'
+      else if (line.startsWith('\u5904\u7406') || line.startsWith('\u2501')) type = 'info'
 
       outputLines.value.push({
         id: currentOutputIndex.value,
@@ -74,7 +72,7 @@ function startOutput() {
     } else {
       if (outputInterval) clearInterval(outputInterval)
     }
-  }, 200)
+  }, 180)
 }
 
 onUnmounted(() => {
@@ -85,24 +83,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="terminal-container">
-    <div class="terminal">
-      <div class="terminal-header">
-        <span class="dot red"></span>
-        <span class="dot yellow"></span>
-        <span class="dot green"></span>
-        <span class="title">Terminal — cleanbook</span>
+  <div class="cb-terminal-container">
+    <div class="cb-terminal">
+      <div class="cb-terminal-header">
+        <span class="cb-dot cb-dot-red"></span>
+        <span class="cb-dot cb-dot-yellow"></span>
+        <span class="cb-dot cb-dot-green"></span>
+        <span class="cb-terminal-title">cleanbook</span>
+        <span class="cb-terminal-badge">v1.0</span>
       </div>
-      <div class="terminal-body">
-        <span class="prompt">$</span>
-        <span class="command">{{ displayedCommand }}</span>
-        <span v-if="isTyping" class="cursor">▌</span>
+      <div class="cb-terminal-body">
+        <span class="cb-prompt">$</span>
+        <span class="cb-command">{{ displayedCommand }}</span>
+        <span v-if="isTyping" class="cb-cursor">\u258C</span>
       </div>
-      <div v-if="outputLines.length > 0" class="terminal-output">
+      <div v-if="outputLines.length > 0" class="cb-terminal-output">
         <p
           v-for="line in outputLines"
           :key="line.id"
-          :class="['line', line.type]"
+          :class="['cb-line', `cb-line-${line.type}`]"
         >
           {{ line.text }}
         </p>
@@ -112,100 +111,123 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.terminal-container {
+.cb-terminal-container {
   margin: 32px 0;
 }
 
-.terminal {
-  background: var(--vp-c-bg-elv);
+.cb-terminal {
+  background: var(--cb-bg-elevated);
   border-radius: 14px;
-  border: 1px solid var(--vp-c-border);
+  border: 1px solid var(--cb-border);
   overflow: hidden;
-  box-shadow: var(--cb-glow);
-  font-family: var(--vp-font-family-mono);
+  box-shadow: var(--cb-shadow-lg), var(--cb-glow);
+  font-family: var(--cb-font-mono);
+  transition: box-shadow var(--cb-motion-slow);
 }
 
-.terminal-header {
+.cb-terminal:hover {
+  box-shadow: var(--cb-shadow-lg), 0 0 60px rgba(0, 102, 255, 0.20);
+}
+
+.dark .cb-terminal:hover {
+  box-shadow: var(--cb-shadow-lg), 0 0 60px rgba(77, 148, 255, 0.25);
+}
+
+.cb-terminal-header {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 16px;
-  background: var(--vp-c-bg-alt);
-  border-bottom: 1px solid var(--vp-c-border);
+  background: var(--cb-bg-alt);
+  border-bottom: 1px solid var(--cb-border);
 }
 
-.terminal-header .dot {
+.cb-dot {
   width: 12px;
   height: 12px;
   border-radius: 50%;
+  box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.1);
 }
 
-.terminal-header .dot.red { background: #FF5F56; }
-.terminal-header .dot.yellow { background: #FFBD2E; }
-.terminal-header .dot.green { background: #27CA40; }
+.cb-dot-red { background: #FF5F56; }
+.cb-dot-yellow { background: #FFBD2E; }
+.cb-dot-green { background: #27CA40; }
 
-.terminal-header .title {
-  margin-left: 12px;
-  font-size: 13px;
-  color: var(--vp-c-text-3);
+.cb-terminal-title {
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--cb-text-3);
+  font-weight: 500;
 }
 
-.terminal-body {
+.cb-terminal-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--cb-brand-soft);
+  color: var(--cb-brand);
+  font-weight: 600;
+}
+
+.cb-terminal-body {
   padding: 20px;
   font-size: 15px;
   line-height: 1.6;
   min-height: 60px;
 }
 
-.terminal-body .prompt {
-  color: var(--vp-c-accent);
+.cb-prompt {
+  color: var(--cb-accent);
   margin-right: 10px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
-.terminal-body .command {
-  color: var(--vp-c-text-1);
+.cb-command {
+  color: var(--cb-text);
 }
 
-.terminal-body .cursor {
-  color: var(--vp-c-brand-1);
-  animation: blink 1s infinite;
+.cb-cursor {
+  color: var(--cb-brand);
+  animation: cb-blink 1s infinite;
   margin-left: 2px;
 }
 
-@keyframes blink {
+@keyframes cb-blink {
   0%, 50% { opacity: 1; }
   51%, 100% { opacity: 0; }
 }
 
-.terminal-output {
+.cb-terminal-output {
   padding: 0 20px 20px;
   font-size: 13px;
-  color: var(--vp-c-text-2);
+  color: var(--cb-text-2);
   line-height: 1.7;
 }
 
-.terminal-output .line {
+.cb-line {
   margin: 6px 0;
   white-space: pre;
+  transition: color var(--cb-motion-fast);
 }
 
-.terminal-output .line.success {
-  color: var(--vp-c-accent);
-}
-
-.terminal-output .line.info {
-  color: var(--vp-c-brand-1);
+.cb-line-success {
+  color: var(--cb-accent);
   font-weight: 500;
 }
 
+.cb-line-info {
+  color: var(--cb-brand);
+  font-weight: 600;
+}
+
 @media (max-width: 640px) {
-  .terminal-body {
+  .cb-terminal-body {
     padding: 16px;
     font-size: 13px;
   }
 
-  .terminal-output {
+  .cb-terminal-output {
     padding: 0 16px 16px;
     font-size: 12px;
   }

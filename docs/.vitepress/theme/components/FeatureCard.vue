@@ -17,16 +17,16 @@ function navigate() {
 
 <template>
   <div
-    class="feature-card"
-    :class="{ clickable: link }"
+    class="cb-feature-card"
+    :class="{ 'cb-clickable': link }"
     @click="navigate"
   >
-    <div class="icon-wrapper">
-      <span class="icon">{{ icon }}</span>
+    <div class="cb-card-icon-wrapper">
+      <span class="cb-card-icon" v-html="icon"></span>
     </div>
-    <h3 class="card-title">{{ title }}</h3>
-    <p class="card-description">{{ description }}</p>
-    <div v-if="link" class="card-link">
+    <h3 class="cb-card-title">{{ title }}</h3>
+    <p class="cb-card-description">{{ description }}</p>
+    <div v-if="link" class="cb-card-link">
       <span>了解更多</span>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M7 17L17 7M17 7H7M17 7V17"/>
@@ -36,101 +36,121 @@ function navigate() {
 </template>
 
 <style scoped>
-.feature-card {
-  padding: 24px;
-  border-radius: 14px;
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-border);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.cb-feature-card {
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--cb-bg);
+  border: 1px solid var(--cb-border);
+  transition: all var(--cb-motion-normal);
   position: relative;
   overflow: hidden;
 }
 
-.feature-card::before {
+.cb-feature-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--cb-gradient-hero);
+  height: 2px;
+  background: var(--cb-grad-brand);
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--cb-motion-fast);
 }
 
-.feature-card.clickable {
+.cb-feature-card.cb-clickable {
   cursor: pointer;
 }
 
-.feature-card:hover {
-  border-color: var(--vp-c-brand-1);
+.cb-feature-card:hover {
+  border-color: var(--cb-brand);
   transform: translateY(-4px);
-  box-shadow: var(--cb-glow);
+  box-shadow: var(--cb-shadow-lg);
 }
 
-.feature-card:hover::before {
+.cb-feature-card:hover::before {
   opacity: 1;
 }
 
-.icon-wrapper {
+.cb-card-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 52px;
   height: 52px;
-  margin-bottom: 16px;
-  background: var(--cb-gradient-card);
-  border-radius: 10px;
+  margin-bottom: 18px;
+  background: var(--cb-grad-card);
+  border: 1px solid var(--cb-border);
+  border-radius: 12px;
+  transition: all var(--cb-motion-normal);
 }
 
-.icon {
-  font-size: 26px;
+.cb-feature-card:hover .cb-card-icon-wrapper {
+  background: var(--cb-brand-soft);
+  transform: scale(1.05);
+  border-color: var(--cb-brand);
 }
 
-.card-title {
-  font-size: 18px;
+.cb-card-icon {
+  color: var(--cb-brand);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cb-card-icon :deep(svg) {
+  width: 24px;
+  height: 24px;
+}
+
+.cb-card-title {
+  font-size: 17px;
   font-weight: 600;
   margin: 0 0 8px;
-  color: var(--vp-c-text-1);
+  color: var(--cb-text);
+  letter-spacing: -0.2px;
 }
 
-.card-description {
+.cb-card-description {
   font-size: 14px;
   line-height: 1.7;
-  color: var(--vp-c-text-2);
+  color: var(--cb-text-3);
   margin: 0;
 }
 
-.card-link {
+.cb-card-link {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-top: 16px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--vp-c-brand-1);
+  color: var(--cb-brand);
 }
 
-.card-link svg {
-  transition: transform 0.2s ease;
+.cb-card-link svg {
+  transition: transform var(--cb-motion-fast);
 }
 
-.feature-card:hover .card-link svg {
+.cb-feature-card:hover .cb-card-link svg {
   transform: translate(2px, -2px);
 }
 
 @media (max-width: 640px) {
-  .feature-card {
-    padding: 20px;
+  .cb-feature-card {
+    padding: 22px;
   }
 
-  .icon-wrapper {
+  .cb-card-icon-wrapper {
     width: 44px;
     height: 44px;
   }
 
-  .icon {
-    font-size: 22px;
+  .cb-card-icon :deep(svg) {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>

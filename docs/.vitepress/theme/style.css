@@ -1,219 +1,366 @@
 /**
- * Bookmarks Cleaner Docs - Cyberpunk Geeks Theme
+ * Bookmarks Cleaner Docs — Sovereign Technical Aesthetic
  *
  * Design Philosophy:
- * - 极客美学 + 技术优雅 + 深度可读
- * - 浅色模式：科技蓝 + 青绿
- * - 深色模式：Cyberpunk 霓虹风
+ * - Sovereign: self-contained, opinionated, zero-compromise readability
+ * - Light: cold steel + electric cyan on glacier white
+ * - Dark: deep void + neon cyan + violet accent
+ * - Typography: Inter + JetBrains Mono, maximum information density
  */
 
-/* === CSS Variables === */
+/* ============================================================
+   Layer 1: Design Tokens (isolated from VitePress defaults)
+   ============================================================ */
+
 :root {
-  /* Brand Colors - Cyberpunk Light */
-  --vp-c-brand-1: #0066FF;
-  --vp-c-brand-2: #0052CC;
-  --vp-c-brand-3: #3385FF;
-  --vp-c-brand-soft: rgba(0, 102, 255, 0.14);
+  /* --- Brand --- */
+  --cb-brand: #0066FF;
+  --cb-brand-2: #0052CC;
+  --cb-brand-3: #3385FF;
+  --cb-brand-soft: rgba(0, 102, 255, 0.12);
 
-  /* Accent Colors - Neon Cyan */
-  --vp-c-accent: #00D4AA;
-  --vp-c-accent-soft: rgba(0, 212, 170, 0.1);
-  --vp-c-accent-1: #00D4AA;
-  --vp-c-accent-2: #00B894;
+  /* --- Accent (Electric Cyan) --- */
+  --cb-accent: #00C8A0;
+  --cb-accent-2: #00A884;
+  --cb-accent-soft: rgba(0, 200, 160, 0.10);
 
-  /* Background Colors */
-  --vp-c-bg: #F8FAFC;
-  --vp-c-bg-alt: #F1F5F9;
-  --vp-c-bg-elv: #FFFFFF;
-  --vp-c-bg-soft: #EEF2F6;
+  /* --- Violet accent for variety --- */
+  --cb-violet: #7C3AED;
+  --cb-violet-soft: rgba(124, 58, 237, 0.10);
 
-  /* Text Colors */
-  --vp-c-text-1: #0F172A;
-  --vp-c-text-2: #475569;
-  --vp-c-text-3: #64748B;
+  /* --- Backgrounds --- */
+  --cb-bg: #FFFFFF;
+  --cb-bg-alt: #F8FAFC;
+  --cb-bg-elevated: #FFFFFF;
+  --cb-bg-soft: #F1F5F9;
+  --cb-bg-code: #F6F8FA;
 
-  /* Border Colors */
-  --vp-c-border: #E2E8F0;
-  --vp-c-divider: #E2E8F0;
-  --vp-c-gutter: #E2E8F0;
+  /* --- Text --- */
+  --cb-text: #0F172A;
+  --cb-text-2: #334155;
+  --cb-text-3: #64748B;
+  --cb-text-muted: #94A3B8;
 
-  /* Hero Section */
-  --vp-home-hero-name-color: #0066FF;
-  --vp-home-hero-name-background: linear-gradient(135deg, #0066FF 0%, #00D4AA 100%);
-  --vp-home-hero-image-background-image: radial-gradient(circle at 50% 50%, rgba(0, 102, 255, 0.15) 0%, transparent 70%);
-  --vp-home-hero-image-filter: none;
+  /* --- Borders --- */
+  --cb-border: #E2E8F0;
+  --cb-border-light: #F1F5F9;
 
-  /* Custom Properties */
-  --cb-gradient-hero: linear-gradient(135deg, #0066FF 0%, #00D4AA 100%);
-  --cb-gradient-card: linear-gradient(145deg, rgba(0, 102, 255, 0.05) 0%, rgba(0, 212, 170, 0.05) 100%);
-  --cb-glow: 0 0 40px rgba(0, 102, 255, 0.15);
-  --cb-code-bg: #F6F8FA;
+  /* --- Gradients --- */
+  --cb-grad-brand: linear-gradient(135deg, #0066FF 0%, #00C8A0 100%);
+  --cb-grad-violet: linear-gradient(135deg, #7C3AED 0%, #0066FF 100%);
+  --cb-grad-card: linear-gradient(145deg, rgba(0,102,255,0.04) 0%, rgba(0,200,160,0.04) 100%);
 
-  /* Font Families */
-  --vp-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  --vp-font-family-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
+  /* --- Glow & Shadow --- */
+  --cb-glow: 0 0 40px rgba(0, 102, 255, 0.12);
+  --cb-glow-accent: 0 0 40px rgba(0, 200, 160, 0.12);
+  --cb-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --cb-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
+  --cb-shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.10);
 
-  /* Spacing */
-  --spacing-xs: 8px;
-  --spacing-sm: 12px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-2xl: 48px;
+  /* --- Typography --- */
+  --cb-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  --cb-font-mono: 'JetBrains Mono', 'Fira Code', Menlo, Monaco, Consolas, monospace;
 
-  /* Border Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  /* --- Spacing Scale --- */
+  --cb-space-1: 4px;
+  --cb-space-2: 8px;
+  --cb-space-3: 12px;
+  --cb-space-4: 16px;
+  --cb-space-5: 20px;
+  --cb-space-6: 24px;
+  --cb-space-8: 32px;
+  --cb-space-10: 40px;
+  --cb-space-12: 48px;
+  --cb-space-16: 64px;
 
-  /* Transitions */
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* --- Radius --- */
+  --cb-radius-sm: 6px;
+  --cb-radius-md: 10px;
+  --cb-radius-lg: 14px;
+  --cb-radius-xl: 20px;
+
+  /* --- Motion --- */
+  --cb-motion-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --cb-motion-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --cb-motion-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* --- Mermaid overrides (light) --- */
+  --cb-mermaid-bg: var(--cb-bg-soft);
+  --cb-mermaid-border: var(--cb-border);
 }
 
-/* === Dark Mode Variables === */
+/* ============================================================
+   Dark Mode Tokens
+   ============================================================ */
 .dark {
-  --vp-c-brand-1: #4D94FF;
-  --vp-c-brand-2: #3385FF;
-  --vp-c-brand-3: #66A3FF;
-  --vp-c-brand-soft: rgba(77, 148, 255, 0.16);
+  --cb-brand: #4D94FF;
+  --cb-brand-2: #3385FF;
+  --cb-brand-3: #66A3FF;
+  --cb-brand-soft: rgba(77, 148, 255, 0.16);
 
-  --vp-c-accent: #00FFB3;
-  --vp-c-accent-soft: rgba(0, 255, 179, 0.1);
-  --vp-c-accent-1: #00FFB3;
-  --vp-c-accent-2: #00E6A0;
+  --cb-accent: #00FFB3;
+  --cb-accent-2: #00E6A0;
+  --cb-accent-soft: rgba(0, 255, 179, 0.12);
 
-  --vp-c-bg: #0A0E14;
-  --vp-c-bg-alt: #0F1419;
-  --vp-c-bg-elv: #151B23;
-  --vp-c-bg-soft: #1A2029;
+  --cb-violet: #A78BFA;
+  --cb-violet-soft: rgba(167, 139, 250, 0.12);
 
-  --vp-c-text-1: #E6EDF3;
-  --vp-c-text-2: #8B949E;
-  --vp-c-text-3: #6E7681;
+  --cb-bg: #0B0F17;
+  --cb-bg-alt: #0F141C;
+  --cb-bg-elevated: #141B25;
+  --cb-bg-soft: #1A202C;
+  --cb-bg-code: #111620;
 
-  --vp-c-border: #21262D;
-  --vp-c-divider: #21262D;
-  --vp-c-gutter: #21262D;
+  --cb-text: #E2E8F0;
+  --cb-text-2: #94A3B8;
+  --cb-text-3: #64748B;
+  --cb-text-muted: #475569;
 
-  --vp-home-hero-name-color: #4D94FF;
-  --vp-home-hero-name-background: linear-gradient(135deg, #4D94FF 0%, #00FFB3 100%);
-  --vp-home-hero-image-background-image: radial-gradient(circle at 50% 50%, rgba(77, 148, 255, 0.2) 0%, transparent 70%);
+  --cb-border: #1E293B;
+  --cb-border-light: #0F172A;
 
-  --cb-gradient-hero: linear-gradient(135deg, #4D94FF 0%, #00FFB3 100%);
-  --cb-gradient-card: linear-gradient(145deg, rgba(77, 148, 255, 0.08) 0%, rgba(0, 255, 179, 0.08) 100%);
-  --cb-glow: 0 0 60px rgba(77, 148, 255, 0.25);
-  --cb-code-bg: #161B22;
+  --cb-grad-brand: linear-gradient(135deg, #4D94FF 0%, #00FFB3 100%);
+  --cb-grad-violet: linear-gradient(135deg, #A78BFA 0%, #4D94FF 100%);
+  --cb-grad-card: linear-gradient(145deg, rgba(77,148,255,0.06) 0%, rgba(0,255,179,0.06) 100%);
+
+  --cb-glow: 0 0 50px rgba(77, 148, 255, 0.20);
+  --cb-glow-accent: 0 0 50px rgba(0, 255, 179, 0.20);
+  --cb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --cb-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --cb-shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  --cb-mermaid-bg: var(--cb-bg-elevated);
+  --cb-mermaid-border: var(--cb-border);
 }
 
-/* === Global Styles === */
-* {
-  font-family: var(--vp-font-family-base);
+/* ============================================================
+   Layer 2: VitePress Variable Mapping (bridge)
+   ============================================================ */
+
+:root {
+  --vp-c-brand-1: var(--cb-brand);
+  --vp-c-brand-2: var(--cb-brand-2);
+  --vp-c-brand-3: var(--cb-brand-3);
+  --vp-c-brand-soft: var(--cb-brand-soft);
+
+  --vp-c-bg: var(--cb-bg);
+  --vp-c-bg-alt: var(--cb-bg-alt);
+  --vp-c-bg-elv: var(--cb-bg-elevated);
+  --vp-c-bg-soft: var(--cb-bg-soft);
+
+  --vp-c-text-1: var(--cb-text);
+  --vp-c-text-2: var(--cb-text-2);
+  --vp-c-text-3: var(--cb-text-3);
+
+  --vp-c-border: var(--cb-border);
+  --vp-c-divider: var(--cb-border);
+  --vp-c-gutter: var(--cb-border);
+
+  --vp-home-hero-name-color: var(--cb-brand);
+  --vp-home-hero-name-background: var(--cb-grad-brand);
+
+  --vp-font-family-base: var(--cb-font);
+  --vp-font-family-mono: var(--cb-font-mono);
+
+  --vp-code-color: var(--cb-brand);
+  --vp-code-bg: var(--cb-brand-soft);
+  --vp-code-block-bg: var(--cb-bg-code);
+
+  --vp-custom-block-info-bg: var(--cb-brand-soft);
+  --vp-custom-block-info-border: var(--cb-brand);
+  --vp-custom-block-tip-bg: var(--cb-accent-soft);
+  --vp-custom-block-tip-border: var(--cb-accent);
 }
+
+/* ============================================================
+   Layer 3: Global Base Styles (NO * selector font override)
+   ============================================================ */
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
+  font-family: var(--cb-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--cb-text);
+  background: var(--cb-bg);
+  transition: background-color var(--cb-motion-slow), color var(--cb-motion-slow);
 }
 
-/* === Hero Section === */
+/* Code blocks preserve mono font */
+code, kbd, samp, pre, .vp-code {
+  font-family: var(--cb-font-mono) !important;
+}
+
+/* Selection */
+::selection {
+  background: var(--cb-brand-soft);
+  color: var(--cb-brand);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--cb-text-muted);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--cb-text-3);
+}
+
+/* ============================================================
+   Layer 4: Hero Section
+   ============================================================ */
+
 .VPHero {
-  padding: calc(var(--vp-nav-height) + 64px) var(--spacing-lg) 64px;
+  padding: calc(var(--vp-nav-height) + 80px) var(--cb-space-6) 64px;
+  position: relative;
+}
+
+/* Subtle grid background */
+.VPHero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 102, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 102, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, black 30%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 40%, black 30%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dark .VPHero::before {
+  background-image:
+    linear-gradient(rgba(77, 148, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(77, 148, 255, 0.04) 1px, transparent 1px);
+}
+
+.VPHero .container {
+  position: relative;
+  z-index: 1;
 }
 
 .VPHero .name {
-  font-size: 56px;
+  font-size: 58px;
   font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -2px;
-  background: var(--cb-gradient-hero);
+  line-height: 1.05;
+  letter-spacing: -2.5px;
+  background: var(--cb-grad-brand);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 8px rgba(0, 102, 255, 0.15));
+}
+
+.dark .VPHero .name {
+  filter: drop-shadow(0 2px 8px rgba(77, 148, 255, 0.25));
 }
 
 .VPHero .text {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--vp-c-text-1);
-  margin-top: var(--spacing-md);
+  color: var(--cb-text);
+  margin-top: var(--cb-space-4);
+  letter-spacing: -0.3px;
 }
 
 .VPHero .tagline {
   font-size: 16px;
-  line-height: 1.6;
-  color: var(--vp-c-text-2);
-  margin-top: var(--spacing-sm);
-  max-width: 640px;
+  line-height: 1.7;
+  color: var(--cb-text-3);
+  margin-top: var(--cb-space-3);
+  max-width: 560px;
 }
 
 .VPHero .image {
   display: none;
 }
 
-/* Hero Background Glow */
-.VPHero::before {
-  content: '';
-  position: absolute;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  height: 400px;
-  background: var(--vp-home-hero-image-background-image);
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: -1;
-}
-
-/* === Buttons === */
+/* Hero actions */
 .VPHero .actions {
-  margin-top: var(--spacing-xl);
-  gap: var(--spacing-md);
+  margin-top: var(--cb-space-8);
+  gap: var(--cb-space-4);
 }
 
 .VPHero .VPButton {
-  border-radius: var(--radius-md);
-  padding: 12px 24px;
+  border-radius: var(--cb-radius-md);
+  padding: 14px 28px;
   font-size: 15px;
   font-weight: 600;
-  transition: all var(--transition-bounce);
+  letter-spacing: -0.2px;
+  transition: all var(--cb-motion-normal);
 }
 
 .VPHero .VPButton.medium.brand {
-  background: var(--cb-gradient-hero);
+  background: var(--cb-grad-brand);
   border: none;
   color: #FFFFFF;
   box-shadow: var(--cb-glow);
 }
 
 .VPHero .VPButton.medium.brand:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 60px rgba(0, 102, 255, 0.4);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 0 60px rgba(0, 102, 255, 0.30);
+}
+
+.dark .VPHero .VPButton.medium.brand:hover {
+  box-shadow: 0 0 60px rgba(77, 148, 255, 0.35);
 }
 
 .VPHero .VPButton.medium.alt {
-  border: 2px solid var(--vp-c-brand-1);
+  border: 1.5px solid var(--cb-brand);
   background: transparent;
-  color: var(--vp-c-brand-1);
+  color: var(--cb-brand);
+  position: relative;
+  overflow: hidden;
+}
+
+.VPHero .VPButton.medium.alt::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cb-grad-brand);
+  opacity: 0;
+  transition: opacity var(--cb-motion-normal);
 }
 
 .VPHero .VPButton.medium.alt:hover {
-  background: var(--vp-c-brand-soft);
+  border-color: transparent;
+  color: #FFFFFF;
   transform: translateY(-2px);
 }
 
-/* === Features Section === */
+.VPHero .VPButton.medium.alt:hover::before {
+  opacity: 1;
+}
+
+.VPHero .VPButton.medium.alt span {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   Layer 5: Features Section
+   ============================================================ */
+
 .VPFeatures {
-  padding: var(--spacing-2xl) var(--spacing-lg);
-  background: var(--vp-c-bg-alt);
+  padding: var(--cb-space-12) var(--cb-space-6);
+  background: var(--cb-bg-alt);
+  border-top: 1px solid var(--cb-border);
+  border-bottom: 1px solid var(--cb-border);
+  position: relative;
 }
 
 .VPFeatures .container {
@@ -221,11 +368,11 @@ body {
 }
 
 .VPFeatures .VPFeature {
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-border);
-  transition: all var(--transition-normal);
+  padding: var(--cb-space-6);
+  border-radius: var(--cb-radius-lg);
+  background: var(--cb-bg);
+  border: 1px solid var(--cb-border);
+  transition: all var(--cb-motion-normal);
   position: relative;
   overflow: hidden;
 }
@@ -236,16 +383,16 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--cb-gradient-hero);
+  height: 2px;
+  background: var(--cb-grad-brand);
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition: opacity var(--cb-motion-fast);
 }
 
 .VPFeatures .VPFeature:hover {
-  border-color: var(--vp-c-brand-1);
+  border-color: var(--cb-brand);
   transform: translateY(-4px);
-  box-shadow: var(--cb-glow);
+  box-shadow: var(--cb-shadow-lg);
 }
 
 .VPFeatures .VPFeature:hover::before {
@@ -258,234 +405,295 @@ body {
   justify-content: center;
   width: 48px;
   height: 48px;
-  font-size: 24px;
-  margin-bottom: var(--spacing-md);
-  background: var(--cb-gradient-card);
-  border-radius: var(--radius-md);
+  margin-bottom: var(--cb-space-4);
+  background: var(--cb-grad-card);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-md);
+  color: var(--cb-brand);
+  transition: all var(--cb-motion-normal);
+}
+
+.VPFeatures .VPFeature:hover .icon {
+  background: var(--cb-brand-soft);
+  transform: scale(1.05);
 }
 
 .VPFeature .title {
   font-size: 18px;
   font-weight: 600;
-  margin-bottom: var(--spacing-xs);
-  color: var(--vp-c-text-1);
+  margin-bottom: var(--cb-space-2);
+  color: var(--cb-text);
+  letter-spacing: -0.2px;
 }
 
 .VPFeature .details {
   font-size: 14px;
   line-height: 1.7;
-  color: var(--vp-c-text-2);
+  color: var(--cb-text-3);
 }
 
-/* === Navigation === */
+/* ============================================================
+   Layer 6: Navigation
+   ============================================================ */
+
 .VPNav {
-  background: var(--vp-c-bg);
-  border-bottom: 1px solid var(--vp-c-border);
-  backdrop-filter: blur(12px);
+  background: rgba(var(--cb-bg), 0.85);
+  border-bottom: 1px solid var(--cb-border);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+}
+
+.dark .VPNav {
+  background: rgba(11, 15, 23, 0.85);
 }
 
 .VPNavBar {
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--cb-space-6);
 }
 
 .VPNavBarMenuLink,
 .VPNavBarMenuGroup .button {
   font-weight: 500;
   font-size: 14px;
-  transition: color var(--transition-fast);
+  color: var(--cb-text-2);
+  transition: color var(--cb-motion-fast);
 }
 
 .VPNavBarMenuLink:hover,
 .VPNavBarMenuGroup:hover .button {
-  color: var(--vp-c-brand-1);
+  color: var(--cb-brand);
 }
 
 .VPNavBarMenuLink.active,
 .VPNavBarMenuGroup.open .button {
-  color: var(--vp-c-brand-1);
+  color: var(--cb-brand);
 }
 
-/* === Sidebar === */
+.VPNavBarMenuGroup .button::after {
+  border-color: var(--cb-text-3);
+}
+
+/* ============================================================
+   Layer 7: Sidebar
+   ============================================================ */
+
 .VPSidebar {
-  padding: var(--spacing-lg) var(--spacing-md) 96px;
+  padding: var(--cb-space-6) var(--cb-space-4) 96px;
+  background: var(--cb-bg-alt);
+  border-right: 1px solid var(--cb-border);
 }
 
 .VPSidebarGroup {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--cb-space-6);
 }
 
 .VPSidebarGroup .title {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--vp-c-text-3);
-  padding: var(--spacing-sm) 14px;
+  letter-spacing: 0.8px;
+  color: var(--cb-text-muted);
+  padding: var(--cb-space-3) 14px;
 }
 
 .VPSidebarItem .text {
   font-size: 14px;
-  padding: var(--spacing-xs) 14px;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
+  padding: var(--cb-space-2) 14px;
+  border-radius: var(--cb-radius-md);
+  transition: all var(--cb-motion-fast);
+  color: var(--cb-text-2);
 }
 
 .VPSidebarItem .text:hover {
-  background: var(--vp-c-bg-soft);
-  color: var(--vp-c-brand-1);
+  background: var(--cb-bg-soft);
+  color: var(--cb-brand);
 }
 
 .VPSidebarItem.is-active .text {
-  background: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
+  background: var(--cb-brand-soft);
+  color: var(--cb-brand);
   font-weight: 500;
 }
 
-/* === Content === */
+/* ============================================================
+   Layer 8: Content / Doc Pages
+   ============================================================ */
+
 .VPDoc {
-  padding: var(--spacing-2xl) var(--spacing-lg) 96px;
+  padding: var(--cb-space-10) var(--cb-space-6) 96px;
 }
 
 .VPDoc .content {
-  max-width: 780px;
+  max-width: 800px;
 }
 
 .VPDoc h1 {
-  font-size: 44px;
+  font-size: 42px;
   font-weight: 700;
   letter-spacing: -1.5px;
-  margin-bottom: var(--spacing-lg);
-  background: var(--cb-gradient-hero);
+  margin-bottom: var(--cb-space-6);
+  color: var(--cb-text);
+  line-height: 1.15;
+}
+
+/* Only first h1 gets gradient treatment */
+.VPDoc .content > h1:first-child {
+  background: var(--cb-grad-violet);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .VPDoc h2 {
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 600;
   margin-top: 56px;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--vp-c-divider);
-  color: var(--vp-c-text-1);
+  margin-bottom: var(--cb-space-5);
+  padding-bottom: var(--cb-space-3);
+  border-bottom: 1px solid var(--cb-border);
+  color: var(--cb-text);
+  letter-spacing: -0.5px;
 }
 
 .VPDoc h3 {
   font-size: 22px;
   font-weight: 600;
-  margin-top: var(--spacing-xl);
-  margin-bottom: var(--spacing-md);
-  color: var(--vp-c-text-1);
+  margin-top: var(--cb-space-8);
+  margin-bottom: var(--cb-space-4);
+  color: var(--cb-text);
+  letter-spacing: -0.3px;
 }
 
 .VPDoc h4 {
   font-size: 18px;
   font-weight: 600;
-  margin-top: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  color: var(--vp-c-text-1);
+  margin-top: var(--cb-space-6);
+  margin-bottom: var(--cb-space-3);
+  color: var(--cb-text-2);
 }
 
 .VPDoc p {
   font-size: 16px;
   line-height: 1.8;
-  margin-bottom: var(--spacing-md);
-  color: var(--vp-c-text-2);
+  margin-bottom: var(--cb-space-4);
+  color: var(--cb-text-2);
 }
 
 .VPDoc a {
-  color: var(--vp-c-brand-1);
+  color: var(--cb-brand);
   text-decoration: none;
   border-bottom: 1px solid transparent;
-  transition: all var(--transition-fast);
+  transition: all var(--cb-motion-fast);
+  font-weight: 500;
 }
 
 .VPDoc a:hover {
-  border-bottom-color: var(--vp-c-brand-1);
+  border-bottom-color: var(--cb-brand);
 }
 
-/* === Code Blocks === */
+/* ============================================================
+   Layer 9: Code Blocks
+   ============================================================ */
+
 .VPDoc code {
-  font-family: var(--vp-font-family-mono);
-  font-size: 14px;
-  padding: 3px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--cb-code-bg);
-  color: var(--vp-c-brand-1);
+  font-family: var(--cb-font-mono);
+  font-size: 13px;
+  padding: 3px 7px;
+  border-radius: var(--cb-radius-sm);
+  background: var(--cb-brand-soft);
+  color: var(--cb-brand);
+  font-weight: 500;
 }
 
 .VPDoc pre code {
-  font-size: 14px;
+  font-size: 13.5px;
   padding: 0;
   background: transparent;
-  color: var(--vp-c-text-1);
+  color: var(--cb-text);
+  font-weight: 400;
 }
 
 .vp-code-group .tabs label {
-  font-family: var(--vp-font-family-mono);
-  font-size: 13px;
+  font-family: var(--cb-font-mono);
+  font-size: 12.5px;
+  font-weight: 500;
 }
 
-/* === Custom Blocks === */
+.vp-adaptive-theme {
+  background: var(--cb-bg-code);
+  border: 1px solid var(--cb-border);
+  border-radius: var(--cb-radius-lg);
+}
+
+/* ============================================================
+   Layer 10: Custom Blocks
+   ============================================================ */
+
 .VPDoc .custom-block {
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin: var(--spacing-lg) 0;
+  border-radius: var(--cb-radius-lg);
+  padding: var(--cb-space-5) var(--cb-space-6);
+  margin: var(--cb-space-6) 0;
+  border: 1px solid var(--cb-border);
 }
 
 .VPDoc .custom-block.info {
-  background: var(--vp-c-brand-soft);
-  border-left: 4px solid var(--vp-c-brand-1);
+  background: var(--cb-brand-soft);
+  border-left: 3px solid var(--cb-brand);
 }
 
 .VPDoc .custom-block.tip {
-  background: var(--vp-c-accent-soft);
-  border-left: 4px solid var(--vp-c-accent);
+  background: var(--cb-accent-soft);
+  border-left: 3px solid var(--cb-accent);
 }
 
 .VPDoc .custom-block.warning {
-  background: rgba(255, 193, 7, 0.12);
-  border-left: 4px solid #FFC107;
+  background: rgba(255, 193, 7, 0.08);
+  border-left: 3px solid #FFC107;
 }
 
 .VPDoc .custom-block.danger {
-  background: rgba(255, 82, 82, 0.12);
-  border-left: 4px solid #FF5252;
+  background: rgba(255, 82, 82, 0.08);
+  border-left: 3px solid #FF5252;
 }
 
 .VPDoc .custom-block .custom-block-title {
   font-weight: 600;
-  font-size: 16px;
-  margin-bottom: var(--spacing-sm);
+  font-size: 15px;
+  margin-bottom: var(--cb-space-3);
 }
 
-/* === Tables === */
+/* ============================================================
+   Layer 11: Tables
+   ============================================================ */
+
 .VPDoc table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  margin: var(--spacing-lg) 0;
-  border-radius: var(--radius-lg);
+  margin: var(--cb-space-6) 0;
+  border-radius: var(--cb-radius-lg);
   overflow: hidden;
-  border: 1px solid var(--vp-c-border);
+  border: 1px solid var(--cb-border);
+  font-size: 14px;
 }
 
 .VPDoc th {
-  background: var(--vp-c-bg-soft);
+  background: var(--cb-bg-soft);
   font-weight: 600;
   text-align: left;
-  padding: 14px 20px;
-  font-size: 14px;
-  border-bottom: 1px solid var(--vp-c-border);
-  color: var(--vp-c-text-1);
+  padding: 12px 18px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--cb-border);
+  color: var(--cb-text);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
 
 .VPDoc td {
-  padding: var(--spacing-sm) 20px;
-  font-size: 14px;
-  border-bottom: 1px solid var(--vp-c-border);
-  color: var(--vp-c-text-2);
+  padding: 10px 18px;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--cb-border-light);
+  color: var(--cb-text-2);
 }
 
 .VPDoc tr:last-child td {
@@ -493,185 +701,149 @@ body {
 }
 
 .VPDoc tr:hover td {
-  background: var(--vp-c-bg-soft);
+  background: var(--cb-bg-soft);
 }
 
-/* === Mermaid Diagrams === */
+/* ============================================================
+   Layer 12: Mermaid Diagrams
+   ============================================================ */
+
 .mermaid {
-  margin: var(--spacing-xl) 0;
-  padding: var(--spacing-lg);
-  background: var(--vp-c-bg-soft);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--vp-c-border);
+  margin: var(--cb-space-8) 0;
+  padding: var(--cb-space-6);
+  background: var(--cb-mermaid-bg);
+  border-radius: var(--cb-radius-lg);
+  border: 1px solid var(--cb-mermaid-border);
   overflow-x: auto;
+  transition: background var(--cb-motion-slow), border-color var(--cb-motion-slow);
 }
 
-.dark .mermaid {
-  background: var(--vp-c-bg-elv);
+.mermaid svg {
+  max-width: 100%;
+  height: auto;
 }
 
-/* === Search Modal === */
+/* Ensure mermaid text has sufficient contrast in dark mode */
+.dark .mermaid .node rect,
+.dark .mermaid .node circle,
+.dark .mermaid .node ellipse,
+.dark .mermaid .node polygon {
+  stroke: var(--cb-brand) !important;
+}
+
+.dark .mermaid .edgePath .path {
+  stroke: var(--cb-text-3) !important;
+}
+
+.dark .mermaid .arrowheadPath {
+  fill: var(--cb-text-3) !important;
+}
+
+/* ============================================================
+   Layer 13: Search
+   ============================================================ */
+
 .VPLocalSearchBox {
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px) saturate(1.3);
 }
 
 .VPLocalSearchBox .backdrop {
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
 }
 
 .VPLocalSearchBox .shell {
-  border-radius: var(--radius-xl);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  border-radius: var(--cb-radius-xl);
+  box-shadow: var(--cb-shadow-lg);
+  border: 1px solid var(--cb-border);
 }
 
-/* === Footer === */
+/* ============================================================
+   Layer 14: Footer
+   ============================================================ */
+
 .VPFooter {
-  padding: var(--spacing-2xl) var(--spacing-lg);
-  background: var(--vp-c-bg-alt);
-  border-top: 1px solid var(--vp-c-border);
+  padding: var(--cb-space-10) var(--cb-space-6);
+  background: var(--cb-bg-alt);
+  border-top: 1px solid var(--cb-border);
 }
 
 .VPFooter .message,
 .VPFooter .copyright {
-  font-size: 14px;
-  color: var(--vp-c-text-3);
-}
-
-/* === Terminal Component Styles === */
-.terminal-container {
-  margin: var(--spacing-xl) 0;
-}
-
-.terminal {
-  background: var(--vp-c-bg-elv);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--vp-c-border);
-  overflow: hidden;
-  box-shadow: var(--cb-glow);
-}
-
-.terminal-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px;
-  background: var(--vp-c-bg-alt);
-  border-bottom: 1px solid var(--vp-c-border);
-}
-
-.terminal-header .dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.terminal-header .dot.red { background: #FF5F56; }
-.terminal-header .dot.yellow { background: #FFBD2E; }
-.terminal-header .dot.green { background: #27CA40; }
-
-.terminal-body {
-  padding: 20px;
-  font-family: var(--vp-font-family-mono);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-.terminal-body .prompt {
-  color: var(--vp-c-accent);
-  margin-right: 8px;
-}
-
-.terminal-body .command {
-  color: var(--vp-c-text-1);
-}
-
-.terminal-body .cursor {
-  color: var(--vp-c-brand-1);
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.terminal-output {
-  padding: 0 20px 20px;
-  font-family: var(--vp-font-family-mono);
   font-size: 13px;
-  color: var(--vp-c-text-2);
+  color: var(--cb-text-muted);
 }
 
-.terminal-output .line {
-  margin: 4px 0;
+/* ============================================================
+   Layer 15: Component Utility Styles
+   ============================================================ */
+
+.cb-terminal-container {
+  margin: var(--cb-space-8) 0;
 }
 
-.terminal-output .line.success {
-  color: var(--vp-c-accent);
-}
-
-.terminal-output .line.info {
-  color: var(--vp-c-brand-1);
-}
-
-/* === Feature Card Component === */
-.feature-card {
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-lg);
-  background: var(--vp-c-bg);
-  border: 1px solid var(--vp-c-border);
-  transition: all var(--transition-normal);
+.cb-feature-card {
+  padding: var(--cb-space-6);
+  border-radius: var(--cb-radius-lg);
+  background: var(--cb-bg);
+  border: 1px solid var(--cb-border);
+  transition: all var(--cb-motion-normal);
   position: relative;
   overflow: hidden;
 }
 
-.feature-card::before {
+.cb-feature-card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: var(--cb-gradient-hero);
+  height: 2px;
+  background: var(--cb-grad-brand);
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transition: opacity var(--cb-motion-fast);
 }
 
-.feature-card:hover {
-  border-color: var(--vp-c-brand-1);
+.cb-feature-card:hover {
+  border-color: var(--cb-brand);
   transform: translateY(-4px);
-  box-shadow: var(--cb-glow);
+  box-shadow: var(--cb-shadow-lg);
 }
 
-.feature-card:hover::before {
+.cb-feature-card:hover::before {
   opacity: 1;
 }
 
-/* === Citation Reference Component === */
-.citation {
-  font-size: 13px;
-  padding: 2px 6px;
-  background: var(--vp-c-bg-soft);
-  border-radius: var(--radius-sm);
-  color: var(--vp-c-text-3);
+.cb-citation {
+  font-size: 12px;
+  padding: 1px 5px;
+  background: var(--cb-bg-soft);
+  border-radius: var(--cb-radius-sm);
+  color: var(--cb-text-3);
   vertical-align: super;
+  border: 1px solid var(--cb-border);
+  cursor: pointer;
+  transition: all var(--cb-motion-fast);
 }
 
-.citation a {
-  color: var(--vp-c-brand-1);
-  text-decoration: none;
+.cb-citation:hover {
+  background: var(--cb-brand-soft);
+  color: var(--cb-brand);
+  border-color: var(--cb-brand);
 }
 
-/* === Responsive Design === */
+/* ============================================================
+   Layer 16: Responsive
+   ============================================================ */
+
 @media (max-width: 960px) {
   .VPHero {
-    padding: calc(var(--vp-nav-height) + 48px) var(--spacing-lg) 48px;
+    padding: calc(var(--vp-nav-height) + 48px) var(--cb-space-6) 48px;
   }
 
   .VPHero .name {
     font-size: 40px;
-    letter-spacing: -1px;
+    letter-spacing: -1.5px;
   }
 
   .VPHero .text {
@@ -679,18 +851,22 @@ body {
   }
 
   .VPDoc h1 {
-    font-size: 36px;
+    font-size: 32px;
   }
 
   .VPDoc h2 {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .VPDoc h3 {
+    font-size: 20px;
   }
 }
 
 @media (max-width: 640px) {
   .VPHero .name {
-    font-size: 32px;
-    letter-spacing: -0.5px;
+    font-size: 30px;
+    letter-spacing: -1px;
   }
 
   .VPHero .text {
@@ -698,28 +874,37 @@ body {
   }
 
   .VPHero .VPButton {
-    padding: 10px 20px;
+    padding: 12px 20px;
     font-size: 14px;
   }
 
   .VPFeatures .VPFeature {
-    padding: var(--spacing-md);
+    padding: var(--cb-space-5);
+  }
+
+  .VPDoc {
+    padding: var(--cb-space-8) var(--cb-space-4) 64px;
   }
 
   .VPDoc h1 {
-    font-size: 28px;
+    font-size: 26px;
   }
 
   .VPDoc h2 {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .mermaid {
+    padding: var(--cb-space-4);
   }
 }
 
-/* === Print Styles === */
+/* ============================================================
+   Layer 17: Print
+   ============================================================ */
+
 @media print {
-  .VPSidebar,
-  .VPNav,
-  .VPFooter {
+  .VPSidebar, .VPNav, .VPFooter {
     display: none;
   }
 
@@ -733,70 +918,51 @@ body {
   }
 }
 
-/* === Scrollbar === */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ============================================================
+   Layer 18: Animations
+   ============================================================ */
+
+@keyframes cb-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-::-webkit-scrollbar-track {
-  background: var(--vp-c-bg-alt);
+@keyframes cb-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--vp-c-border);
-  border-radius: 4px;
+@keyframes cb-glow-pulse {
+  0%, 100% { box-shadow: var(--cb-glow); }
+  50%      { box-shadow: 0 0 80px rgba(0, 102, 255, 0.25); }
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--vp-c-text-3);
+@keyframes cb-glow-pulse-dark {
+  0%, 100% { box-shadow: var(--cb-glow); }
+  50%      { box-shadow: 0 0 80px rgba(77, 148, 255, 0.30); }
 }
 
-/* === Selection === */
-::selection {
-  background: var(--vp-c-brand-soft);
-  color: var(--vp-c-brand-1);
+.cb-animate-fade-up {
+  animation: cb-fade-up 0.5s ease-out forwards;
 }
 
-/* === Animation Keyframes === */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.cb-animate-pulse {
+  animation: cb-pulse 2s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
+.cb-animate-glow {
+  animation: cb-glow-pulse 3s infinite;
 }
 
-@keyframes glow {
-  0%, 100% {
-    box-shadow: var(--cb-glow);
-  }
-  50% {
-    box-shadow: 0 0 80px rgba(0, 102, 255, 0.35);
-  }
+/* Staggered children animation */
+.cb-stagger > * {
+  opacity: 0;
+  animation: cb-fade-up 0.5s ease-out forwards;
 }
 
-/* === Utility Classes === */
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.animate-pulse {
-  animation: pulse 2s infinite;
-}
-
-.animate-glow {
-  animation: glow 3s infinite;
-}
+.cb-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.cb-stagger > *:nth-child(2) { animation-delay: 0.10s; }
+.cb-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.cb-stagger > *:nth-child(4) { animation-delay: 0.20s; }
+.cb-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+.cb-stagger > *:nth-child(6) { animation-delay: 0.30s; }

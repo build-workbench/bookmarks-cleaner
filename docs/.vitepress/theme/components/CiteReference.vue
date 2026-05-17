@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// CiteReference - 学术引用组件
-// 用于在文档中添加学术引用标记
+import { ref } from 'vue'
 
 const props = defineProps<{
   id: string | number
@@ -10,90 +9,169 @@ const props = defineProps<{
   year?: number
   url?: string
 }>()
+
+const showTooltip = ref(false)
+
+function toggleTooltip() {
+  showTooltip.value = !showTooltip.value
+}
+
+function closeTooltip() {
+  showTooltip.value = false
+}
 </script>
 
 <template>
-  <span class="citation-wrapper">
-    <sup class="citation-ref">
-      <a v-if="url" :href="url" target="_blank" rel="noopener">[{{ id }}]</a>
-      <span v-else>[{{ id }}]</span>
+  <span class="cb-cite-wrapper">
+    <sup class="cb-cite-ref">
+      <a
+        v-if="url"
+        :href="url"
+        target="_blank"
+        rel="noopener noreferrer"
+        @click.stop
+      >[{{ id }}]</a>
+      <span v-else @click.stop="toggleTooltip" class="cb-cite-clickable">[{{ id }}]</span>
     </sup>
-    <span class="citation-tooltip">
-      <span class="citation-authors">{{ authors }}</span>
-      <span class="citation-title">"{{ title }}"</span>
-      <span v-if="venue" class="citation-venue">{{ venue }}</span>
-      <span v-if="year" class="citation-year">({{ year }})</span>
+    <span
+      v-if="showTooltip || url"
+      class="cb-cite-tooltip"
+      :class="{ 'cb-cite-tooltip-active': showTooltip }"
+      @click.stop
+    >
+      <span class="cb-cite-authors">{{ authors }}</span>
+      <span class="cb-cite-title">"{{ title }}"</span>
+      <span v-if="venue" class="cb-cite-venue">{{ venue }}</span>
+      <span v-if="year" class="cb-cite-year">({{ year }})</span>
+      <button v-if="!url" class="cb-cite-close" @click.stop="closeTooltip">&times;</button>
     </span>
   </span>
 </template>
 
 <style scoped>
-.citation-wrapper {
+.cb-cite-wrapper {
   position: relative;
   display: inline;
 }
 
-.citation-ref {
+.cb-cite-ref {
   font-size: 11px;
   vertical-align: super;
   line-height: 0;
 }
 
-.citation-ref a {
-  color: var(--vp-c-brand-1);
+.cb-cite-ref a,
+.cb-cite-clickable {
+  color: var(--cb-brand);
   text-decoration: none;
-  font-weight: 500;
-  padding: 0 2px;
-  border-radius: 3px;
-  transition: all 0.15s ease;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 4px;
+  transition: all var(--cb-motion-fast);
+  cursor: pointer;
 }
 
-.citation-ref a:hover {
-  background: var(--vp-c-brand-soft);
+.cb-cite-ref a:hover,
+.cb-cite-clickable:hover {
+  background: var(--cb-brand-soft);
 }
 
-.citation-tooltip {
+.cb-cite-tooltip {
   position: absolute;
-  bottom: 100%;
+  bottom: 130%;
   left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 12px;
-  background: var(--vp-c-bg-elv);
-  border: 1px solid var(--vp-c-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateX(-50%) translateY(4px);
+  padding: 10px 14px;
+  background: var(--cb-bg-elevated);
+  border: 1px solid var(--cb-border);
+  border-radius: 10px;
+  box-shadow: var(--cb-shadow-lg);
   font-size: 12px;
-  white-space: nowrap;
+  line-height: 1.5;
+  max-width: 320px;
+  white-space: normal;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.2s ease;
+  transition: all var(--cb-motion-normal);
   z-index: 100;
   pointer-events: none;
+  text-align: left;
 }
 
-.citation-wrapper:hover .citation-tooltip {
+.cb-cite-tooltip-active {
   opacity: 1;
   visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
-.citation-authors {
-  color: var(--vp-c-text-1);
-  font-weight: 500;
+.cb-cite-wrapper:hover .cb-cite-tooltip:not(.cb-cite-tooltip-active) {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
 }
 
-.citation-title {
-  color: var(--vp-c-text-2);
-  margin-left: 4px;
+.cb-cite-authors {
+  color: var(--cb-text);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
 }
 
-.citation-venue {
-  color: var(--vp-c-brand-1);
+.cb-cite-title {
+  color: var(--cb-text-2);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.cb-cite-venue {
+  color: var(--cb-brand);
   font-style: italic;
+}
+
+.cb-cite-year {
+  color: var(--cb-text-3);
   margin-left: 4px;
 }
 
-.citation-year {
-  color: var(--vp-c-text-3);
-  margin-left: 4px;
+.cb-cite-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  background: none;
+  border: none;
+  color: var(--cb-text-muted);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.cb-cite-close:hover {
+  color: var(--cb-text);
+  background: var(--cb-bg-soft);
+}
+
+@media (max-width: 640px) {
+  .cb-cite-tooltip {
+    position: fixed;
+    bottom: auto;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90vw;
+    width: 280px;
+  }
+
+  .cb-cite-tooltip-active {
+    transform: translate(-50%, -50%);
+  }
+
+  .cb-cite-wrapper:hover .cb-cite-tooltip:not(.cb-cite-tooltip-active) {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 </style>

@@ -1,16 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <defs>
-    <linearGradient id="gradient-dark" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#60a5fa;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:1" />
+    <linearGradient id="cb-logo-grad-dark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4D94FF" />
+      <stop offset="100%" stop-color="#00FFB3" />
     </linearGradient>
+    <filter id="cb-logo-glow-dark" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
   </defs>
-  <!-- Background circle -->
-  <circle cx="128" cy="128" r="120" fill="url(#gradient-dark)"/>
-  <!-- Bookmark shape -->
-  <path d="M80 60 h96 a10 10 0 0 1 10 10 v136 a8 8 0 0 1 -13 6l-45 -35 -45 35 a8 8 0 0 1 -13 -6v-136 a10 10 0 0 1 10 -10z" fill="#0f172a"/>
-  <!-- Folder/Clean indicator lines -->
-  <rect x="96" y="92" width="64" height="8" rx="4" fill="#60a5fa"/>
-  <rect x="96" y="112" width="48" height="8" rx="4" fill="#a78bfa"/>
-  <rect x="96" y="132" width="56" height="8" rx="4" fill="#34d399"/>
+  <!-- Background shape with rounded corners -->
+  <rect x="16" y="16" width="224" height="224" rx="48" fill="url(#cb-logo-grad-dark)" filter="url(#cb-logo-glow-dark)"/>
+  <!-- Bookmark body -->
+  <path d="M82 72 h92 a12 12 0 0 1 12 12 v120 a10 10 0 0 1 -16 7l-42 -33 -42 33 a10 10 0 0 1 -16 -7V84 a12 12 0 0 1 12 -12z" fill="#0B0F17"/>
+  <!-- Internal accent lines -->
+  <rect x="104" y="108" width="60" height="6" rx="3" fill="#4D94FF" opacity="0.9"/>
+  <rect x="104" y="124" width="44" height="6" rx="3" fill="#00FFB3" opacity="0.9"/>
+  <rect x="104" y="140" width="52" height="6" rx="3" fill="#A78BFA" opacity="0.9"/>
 </svg>
