@@ -15,6 +15,8 @@ import ReadingPathGrid from './components/ReadingPathGrid.vue'
 import CitationCluster from './components/CitationCluster.vue'
 import CiteReference from './components/CiteReference.vue'
 import PipelineVisualizer from './components/PipelineVisualizer.vue'
+import PerformanceChart from './components/PerformanceChart.vue'
+import ArchitectureMatrix from './components/ArchitectureMatrix.vue'
 
 // Import styles
 import './style.css'
@@ -36,6 +38,8 @@ const theme: Theme = {
     app.component('CitationCluster', CitationCluster)
     app.component('CiteReference', CiteReference)
     app.component('PipelineVisualizer', PipelineVisualizer)
+    app.component('PerformanceChart', PerformanceChart)
+    app.component('ArchitectureMatrix', ArchitectureMatrix)
   },
 }
 

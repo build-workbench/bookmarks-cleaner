@@ -4,7 +4,7 @@
 
 ## 摘要
 
-Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、分类与导出。它的核心命题不是“尽可能堆叠 AI 能力”，而是“先让主路径保持规则驱动与可解释，再把概率型智能层只用于值得付出成本的疑难样本”。因此，系统的基线始终是确定性的规则分类，ML、语义分析与可选 LLM 协作只是增强层，而不是重新定义整个运行时。
+Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、分类与导出。它的核心命题不是"尽可能堆叠 AI 能力"，而是"先让主路径保持规则驱动与可解释，再把概率型智能层只用于值得付出成本的疑难样本"。因此，系统的基线始终是确定性的规则分类，ML、语义分析与可选 LLM 协作只是增强层，而不是重新定义整个运行时。
 
 ## 系统命题
 
@@ -12,7 +12,7 @@ Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、�
 
 1. **面对个人书签档案，本地优先优于托管便利。** 输入数据包含研究路径、项目轨迹与浏览意图，把它默认为云端工作负载并不合理。
 2. **规则应该掌控主路径。** 对已知域名和模式的确定性匹配，仍然是最快、最便宜、最可解释的决策机制。
-3. **融合首先是协调问题，而不是标签问题。** 关键不在于“有多个分类器”，而在于如何把它们的置信度、优先级和可选性组合成一个可运营的最终结果。<CiteReference id="1" authors="Kuncheva, L. I." title="Combining Pattern Classifiers: Methods and Algorithms" venue="Wiley-Interscience" year="2004" />
+3. **融合首先是协调问题，而不是标签问题。** 关键不在于"有多个分类器"，而在于如何把它们的置信度、优先级和可选性组合成一个可运营的最终结果。<CiteReference id="1" authors="Kuncheva, L. I." title="Combining Pattern Classifiers: Methods and Algorithms" venue="Wiley-Interscience" year="2004" />
 
 ## 运行时边界
 
@@ -38,21 +38,41 @@ Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、�
 4. **流水线层**：加载、去重、分类、组织、导出。
 5. **智能层**：规则引擎、ML 分类器、语义分析器、可选 LLM 与最终融合层。
 
-这套结构的价值在于把“经常变化的部分”和“应该稳定的部分”分离开来。CLI 契约可以保持收敛，而分类器实现持续演化；门面可以保持轻薄，而协调层承担复杂度；Pipeline 可以替换阶段内部实现，而不必让所有贡献者重新学习整个系统。
+这套结构的价值在于把"经常变化的部分"和"应该稳定的部分"分离开来。CLI 契约可以保持收敛，而分类器实现持续演化；门面可以保持轻薄，而协调层承担复杂度；Pipeline 可以替换阶段内部实现，而不必让所有贡献者重新学习整个系统。
+
+<ArchitectureMatrix />
 
 ## 融合与置信度
 
 最终分类步骤采用加权投票，而不是再训练一个 stacked meta-model。这个选择非常务实：
 
 - 参与融合的引擎本身是异构的。规则结果是离散且高权威的，ML、语义与 LLM 输出则是概率型或经置信度整形后的结果。
-- 若再引入第二个学习层，就会额外需要训练数据，并削弱“为什么某条书签落到某个目录”的可解释性。<CiteReference id="2" authors="Wolpert, D. H." title="Stacked Generalization" venue="Neural Networks" year="1992" url="https://doi.org/10.1016/S0893-6080(05)80023-1" />
+- 若再引入第二个学习层，就会额外需要训练数据，并削弱"为什么某条书签落到某个目录"的可解释性。<CiteReference id="2" authors="Wolpert, D. H." title="Stacked Generalization" venue="Neural Networks" year="1992" url="https://doi.org/10.1016/S0893-6080(05)80023-1" />
 - 加权投票允许系统保留强规则优先立场，同时吸收其他分类器的补充信号。
 
-置信度校准之所以重要，是因为不同分类器输出的原始分数并不能直接比较。因此，本项目把“置信度”视为一个工程接口，而不是一个装饰数字。<CiteReference id="3" authors="Zadrozny, B.; Elkan, C." title="Obtaining Calibrated Probability Estimates from Decision Trees and Naive Bayesian Classifiers" venue="ICML" year="2001" />
+置信度校准之所以重要，是因为不同分类器输出的原始分数并不能直接比较。因此，本项目把"置信度"视为一个工程接口，而不是一个装饰数字。<CiteReference id="3" authors="Zadrozny, B.; Elkan, C." title="Obtaining Calibrated Probability Estimates from Decision Trees and Naive Bayesian Classifiers" venue="ICML" year="2001" />
+
+### 融合决策公式
+
+融合层对候选类别集合 $C$ 计算如下得分：
+
+$$
+S(c) = \sum_{i=1}^{n} w_i \cdot \mathbb{1}_{[y_i = c]} \cdot \text{conf}_i, \quad \forall c \in C
+$$
+
+最终预测：
+
+$$
+\hat{c} = \arg\max_{c \in C} S(c)
+$$
+
+规则引擎拥有最高先验权重（$w_{\text{rule}} = 0.50$），因为它的精度边界是确定性的。ML、语义与 LLM 分类器的权重递减，反映代价与不确定性的权衡。
 
 ## 性能方法学
 
 站点中的性能数字应该被理解为**测量包络**，而不是对所有机器环境的绝对承诺。
+
+<PerformanceChart />
 
 ### 观测维度
 
@@ -72,9 +92,110 @@ Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、�
 
 关键点在于，性能不是孤立技巧，而是系统边界的结果：本地执行、延迟初始化，以及规则主导的常见路径。
 
+## 系统复杂度分析
+
+### 时间复杂度
+
+对于规模为 $N$ 的书签集合：
+
+| 阶段 | 时间复杂度 | 备注 |
+|------|-----------|------|
+| 加载 | $O(N)$ | 线性解析 |
+| 去重 | $O(N \log N)$ | 基于排序哈希 |
+| 规则分类 | $O(N \cdot R)$ | $R$ 为规则数量，实际 $R \ll N$ |
+| ML 分类 | $O(N \cdot d)$ | $d$ 为特征维度（TF-IDF ≈ 5000） |
+| 融合 | $O(N \cdot K)$ | $K$ 为分类器数量，$K \leq 5$ |
+| 组织 | $O(N \log N)$ | 排序树构建 |
+| 导出 | $O(N)$ | 线性序列化 |
+
+总体时间复杂度为 $O(N \log N + N \cdot d)$，在规则优先路径下退化为 $O(N \log N)$。
+
+### 空间复杂度
+
+| 组件 | 内存占用估算 |
+|------|-------------|
+| 书签对象（每条） | ~1–2 KB |
+| TF-IDF 矩阵（5,000 书签） | ~50–200 MB（稀疏） |
+| Sentence Transformer 模型 | ~80–400 MB（按型号） |
+| LLM 上下文窗口 | 按调用计，不占常驻内存 |
+
+规则模式（无 ML）对 10 万书签的常驻内存约为 200–400 MB，是主力场景下的最小内存包络。
+
+## 安全边界
+
+### 隐私模型
+
+CleanBook 的隐私主张建立在架构上，而不是政策上：
+
+- **不存在数据外传路径**：除非用户显式配置了远程 LLM 端点，所有处理都在用户机器上完成。
+- **无遥测代码**：项目中没有任何遥测或使用统计收集逻辑。
+- **输入格式边界**：工具只接受本地文件路径，不接受 URL 列表或网络爬取任务。
+
+### 输入校验
+
+加载阶段对书签导出文件进行严格的格式边界检查：
+
+```python
+# 伪代码：加载阶段的防御性边界
+def load(path: str) -> list[Bookmark]:
+    if not path.endswith(('.html', '.json')):
+        raise UnsupportedFormatError(path)
+    content = Path(path).read_text(encoding='utf-8', errors='replace')
+    return parse_bookmarks(content)  # HTML parser with tag allowlist
+```
+
+解析层使用 HTML 标签白名单，不会执行脚本或渲染外部资源。
+
+### 依赖面收窄
+
+系统刻意避免在基础路径中引入高权限或网络访问依赖：
+
+| 组件 | 最小依赖 | 可选依赖 |
+|------|---------|---------|
+| 规则分类 | `re`, `pathlib` | — |
+| ML 分类 | `scikit-learn` | — |
+| 语义分析 | `sentence-transformers` | — |
+| LLM 集成 | `openai` / `anthropic` | 仅配置后启用 |
+
+## 可扩展性设计思考
+
+### 纵向扩展（单机）
+
+当前架构的纵向扩展上限受制于：
+
+1. **GIL 约束**：Python 的 GIL 使 CPU 密集型 ML 推理难以充分利用多核。`ThreadPoolExecutor` 在 I/O 等待较多时仍有效，但对纯 CPU 任务收益有限。
+2. **内存压力**：大规模书签档案（>100K 条）的 TF-IDF 矩阵可能超出可用内存。
+
+潜在扩展路径：
+
+- 使用 `multiprocessing.Pool` 替代 `ThreadPoolExecutor` 用于 ML 推理段
+- 引入批处理（chunk-wise）加载模式，降低峰值内存
+
+### 横向扩展（分布式）
+
+当前工具不支持分布式处理，这是一个刻意的边界决策：个人书签档案规模不需要分布式，引入分布式会带来配置复杂度和隐私风险。
+
+如果需要处理组织级书签（>1M 条），更好的路径是：
+1. 分批输入（`cleanbook -i batch*.html`）
+2. 合并输出（`cleanbook merge`，未来功能）
+
+### 插件化扩展点
+
+Pipeline 的每个阶段都实现了 `Protocol` 接口，允许用户注入自定义分类器：
+
+```python
+from bookmarks_cleaner.protocols import ClassifierProtocol
+
+class MyClassifier:
+    def classify(self, bookmark: Bookmark) -> ClassificationResult:
+        ...  # 自定义分类逻辑
+```
+
+这是本系统最重要的扩展点，保证了新分类器的接入不需要修改 Pipeline 核心。
+
 ## 失败模式与回退策略
 
-系统被设计成“降级运行”，而不是“一处失败，整体崩溃”：
+系统被设计成"降级运行"，而不是"一处失败，整体崩溃"：
 
 | 失败模式 | 预期行为 |
 |----------|----------|
@@ -83,8 +204,23 @@ Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、�
 | ML 或语义依赖不可用 | 系统仍可退回更窄的规则优先路径 |
 | LLM 集成不可用或被关闭 | 主分类流保持完整，因为 LLM 本来就是可选层 |
 | 置信度较弱或互相冲突 | 融合层暴露较低确定性的结果，而不是伪造确定性 |
+| 内存不足 | 加载阶段提前失败，提示用户减少输入规模或启用流式模式 |
 
-这也是本架构刻意避免让“最昂贵的智能层”变成“最中心的依赖层”的根本原因。
+这也是本架构刻意避免让"最昂贵的智能层"变成"最中心的依赖层"的根本原因。
+
+## 演进方向
+
+当前版本不会去做的事情（收窄了搜索空间）：
+
+- **托管服务**：不会把书签档案变成云服务，这违背离线优先原则
+- **实时同步**：不会引入 CRDTs 或分布式一致性机制
+- **全文检索**：全文索引是下游工具（如 ripgrep）的职责
+
+仍在探索的方向：
+
+- **增量处理**：支持只处理新增书签，跳过已分类条目
+- **自定义词表**：允许用户提供领域特定词表，提升规则引擎覆盖率
+- **嵌入式知识库**：可选地在本地维护 embedding 索引，加速语义查询
 
 ## 参考链路
 

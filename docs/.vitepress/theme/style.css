@@ -1,37 +1,71 @@
+/* ============================================================
+   CleanBook Docs — Design System v3
+   极客美学 · 白皮书级排版 · 深浅双端完美适配
+   ============================================================ */
+
+/* ─── Color Tokens ──────────────────────────────────────────── */
 :root {
-  --cb-accent: oklch(0.57 0.15 258);
-  --cb-accent-strong: oklch(0.5 0.16 258);
-  --cb-accent-soft: color-mix(in srgb, var(--cb-accent) 11%, transparent);
-  --cb-support: oklch(0.58 0.1 205);
-  --cb-highlight: oklch(0.72 0.12 82);
+  /* Primary accent: electric blue */
+  --cb-accent: oklch(0.52 0.19 258);
+  --cb-accent-strong: oklch(0.44 0.20 262);
+  --cb-accent-soft: color-mix(in srgb, var(--cb-accent) 10%, transparent);
+  --cb-accent-glow: color-mix(in srgb, var(--cb-accent) 22%, transparent);
 
-  --cb-bg: oklch(0.985 0.004 255);
-  --cb-bg-alt: oklch(0.968 0.006 255);
-  --cb-bg-elevated: oklch(0.994 0.003 255);
-  --cb-bg-soft: oklch(0.955 0.008 255);
-  --cb-bg-code: oklch(0.965 0.009 255);
-  --cb-surface-rgb: 248, 250, 252;
+  /* Support: cyan-teal */
+  --cb-support: oklch(0.56 0.12 200);
+  --cb-support-soft: color-mix(in srgb, var(--cb-support) 10%, transparent);
 
-  --cb-text: oklch(0.25 0.02 255);
-  --cb-text-2: oklch(0.38 0.018 255);
-  --cb-text-3: oklch(0.54 0.014 255);
-  --cb-text-muted: oklch(0.69 0.01 255);
+  /* Highlight: amber-signal */
+  --cb-highlight: oklch(0.70 0.15 78);
+  --cb-highlight-soft: color-mix(in srgb, var(--cb-highlight) 12%, transparent);
 
-  --cb-border: oklch(0.9 0.008 255);
-  --cb-border-strong: oklch(0.82 0.016 255);
+  /* Danger */
+  --cb-danger: oklch(0.58 0.18 22);
 
-  --cb-shadow-sm: 0 10px 24px color-mix(in srgb, oklch(0.2 0.02 255) 5%, transparent);
-  --cb-shadow-md: 0 18px 40px color-mix(in srgb, oklch(0.2 0.02 255) 9%, transparent);
-  --cb-shadow-lg: 0 28px 60px color-mix(in srgb, oklch(0.2 0.02 255) 13%, transparent);
+  /* Background stack */
+  --cb-bg: oklch(0.984 0.004 252);
+  --cb-bg-alt: oklch(0.970 0.005 252);
+  --cb-bg-elevated: oklch(1.000 0.002 252);
+  --cb-bg-soft: oklch(0.958 0.007 252);
+  --cb-bg-code: oklch(0.962 0.008 252);
+  --cb-surface-rgb: 248, 249, 252;
 
-  --cb-font: 'Manrope', 'Segoe UI', sans-serif;
-  --cb-font-mono: 'JetBrains Mono', 'SFMono-Regular', monospace;
+  /* Text hierarchy */
+  --cb-text: oklch(0.20 0.022 258);
+  --cb-text-2: oklch(0.34 0.018 258);
+  --cb-text-3: oklch(0.50 0.014 258);
+  --cb-text-muted: oklch(0.66 0.010 258);
 
-  --cb-radius-sm: 8px;
-  --cb-radius-md: 12px;
+  /* Borders */
+  --cb-border: oklch(0.88 0.008 258);
+  --cb-border-strong: oklch(0.79 0.014 258);
+  --cb-border-accent: color-mix(in srgb, var(--cb-accent) 30%, var(--cb-border));
+
+  /* Shadows */
+  --cb-shadow-sm: 0 2px 8px color-mix(in srgb, oklch(0.18 0.02 258) 6%, transparent),
+                  0 8px 24px color-mix(in srgb, oklch(0.18 0.02 258) 4%, transparent);
+  --cb-shadow-md: 0 4px 16px color-mix(in srgb, oklch(0.18 0.02 258) 8%, transparent),
+                  0 16px 40px color-mix(in srgb, oklch(0.18 0.02 258) 6%, transparent);
+  --cb-shadow-lg: 0 8px 32px color-mix(in srgb, oklch(0.18 0.02 258) 12%, transparent),
+                  0 24px 64px color-mix(in srgb, oklch(0.18 0.02 258) 9%, transparent);
+  --cb-shadow-accent: 0 0 0 1px var(--cb-border-accent),
+                      0 8px 24px color-mix(in srgb, var(--cb-accent) 12%, transparent);
+
+  /* Typography */
+  --cb-font: 'Geist', 'Manrope', 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --cb-font-mono: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', monospace;
+  --cb-font-display: 'Geist', 'Manrope', system-ui, sans-serif;
+
+  /* Radii */
+  --cb-radius-xs: 6px;
+  --cb-radius-sm: 10px;
+  --cb-radius-md: 14px;
   --cb-radius-lg: 20px;
   --cb-radius-xl: 28px;
+  --cb-radius-2xl: 36px;
 
+  /* Spacing scale */
+  --cb-space-1: 0.25rem;
   --cb-space-2: 0.5rem;
   --cb-space-3: 0.75rem;
   --cb-space-4: 1rem;
@@ -42,37 +76,53 @@
   --cb-space-12: 3rem;
   --cb-space-16: 4rem;
 
-  --cb-motion-fast: 180ms cubic-bezier(0.22, 1, 0.36, 1);
-  --cb-motion-normal: 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion */
+  --cb-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --cb-ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --cb-motion-fast: 160ms var(--cb-ease-spring);
+  --cb-motion-normal: 240ms var(--cb-ease-spring);
+  --cb-motion-slow: 400ms var(--cb-ease-smooth);
 }
 
+/* ─── Dark Mode Tokens ───────────────────────────────────────── */
 .dark {
-  --cb-accent: oklch(0.7 0.12 250);
-  --cb-accent-strong: oklch(0.76 0.11 202);
-  --cb-accent-soft: color-mix(in srgb, var(--cb-accent) 16%, transparent);
-  --cb-support: oklch(0.74 0.09 203);
-  --cb-highlight: oklch(0.8 0.1 85);
+  --cb-accent: oklch(0.68 0.16 248);
+  --cb-accent-strong: oklch(0.76 0.14 196);
+  --cb-accent-soft: color-mix(in srgb, var(--cb-accent) 14%, transparent);
+  --cb-accent-glow: color-mix(in srgb, var(--cb-accent) 20%, transparent);
 
-  --cb-bg: oklch(0.18 0.012 255);
-  --cb-bg-alt: oklch(0.205 0.012 255);
-  --cb-bg-elevated: oklch(0.23 0.014 255);
-  --cb-bg-soft: oklch(0.28 0.014 255);
-  --cb-bg-code: oklch(0.23 0.012 255);
-  --cb-surface-rgb: 20, 24, 31;
+  --cb-support: oklch(0.72 0.10 200);
+  --cb-support-soft: color-mix(in srgb, var(--cb-support) 13%, transparent);
 
-  --cb-text: oklch(0.93 0.008 255);
-  --cb-text-2: oklch(0.83 0.008 255);
-  --cb-text-3: oklch(0.71 0.01 255);
-  --cb-text-muted: oklch(0.58 0.01 255);
+  --cb-highlight: oklch(0.78 0.12 82);
+  --cb-highlight-soft: color-mix(in srgb, var(--cb-highlight) 14%, transparent);
 
-  --cb-border: oklch(0.32 0.012 255);
-  --cb-border-strong: oklch(0.42 0.016 255);
+  --cb-danger: oklch(0.70 0.16 22);
 
-  --cb-shadow-sm: 0 10px 24px color-mix(in srgb, black 25%, transparent);
-  --cb-shadow-md: 0 18px 40px color-mix(in srgb, black 38%, transparent);
-  --cb-shadow-lg: 0 28px 60px color-mix(in srgb, black 46%, transparent);
+  --cb-bg: oklch(0.155 0.014 258);
+  --cb-bg-alt: oklch(0.178 0.013 258);
+  --cb-bg-elevated: oklch(0.200 0.015 258);
+  --cb-bg-soft: oklch(0.240 0.014 258);
+  --cb-bg-code: oklch(0.195 0.013 258);
+  --cb-surface-rgb: 18, 21, 30;
+
+  --cb-text: oklch(0.940 0.007 258);
+  --cb-text-2: oklch(0.840 0.008 258);
+  --cb-text-3: oklch(0.700 0.010 258);
+  --cb-text-muted: oklch(0.560 0.010 258);
+
+  --cb-border: oklch(0.280 0.013 258);
+  --cb-border-strong: oklch(0.380 0.016 258);
+  --cb-border-accent: color-mix(in srgb, var(--cb-accent) 35%, var(--cb-border));
+
+  --cb-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.28), 0 8px 24px rgba(0, 0, 0, 0.20);
+  --cb-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.36), 0 16px 40px rgba(0, 0, 0, 0.26);
+  --cb-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.46), 0 24px 64px rgba(0, 0, 0, 0.34);
+  --cb-shadow-accent: 0 0 0 1px var(--cb-border-accent),
+                      0 8px 24px color-mix(in srgb, var(--cb-accent) 20%, transparent);
 }
 
+/* ─── VitePress Token Bridge ─────────────────────────────────── */
 :root {
   --vp-c-brand-1: var(--cb-accent);
   --vp-c-brand-2: var(--cb-accent-strong);
@@ -95,14 +145,22 @@
   --vp-font-family-mono: var(--cb-font-mono);
   --vp-code-color: var(--cb-accent-strong);
   --vp-code-block-bg: var(--cb-bg-code);
+
   --vp-custom-block-info-bg: color-mix(in srgb, var(--cb-accent) 7%, transparent);
-  --vp-custom-block-info-border: color-mix(in srgb, var(--cb-accent) 24%, var(--cb-border));
-  --vp-custom-block-tip-bg: color-mix(in srgb, var(--cb-support) 8%, transparent);
-  --vp-custom-block-tip-border: color-mix(in srgb, var(--cb-support) 28%, var(--cb-border));
+  --vp-custom-block-info-border: color-mix(in srgb, var(--cb-accent) 22%, var(--cb-border));
+  --vp-custom-block-tip-bg: color-mix(in srgb, var(--cb-support) 7%, transparent);
+  --vp-custom-block-tip-border: color-mix(in srgb, var(--cb-support) 26%, var(--cb-border));
+  --vp-custom-block-warning-bg: color-mix(in srgb, var(--cb-highlight) 7%, transparent);
+  --vp-custom-block-warning-border: color-mix(in srgb, var(--cb-highlight) 26%, var(--cb-border));
+  --vp-custom-block-danger-bg: color-mix(in srgb, var(--cb-danger) 7%, transparent);
+  --vp-custom-block-danger-border: color-mix(in srgb, var(--cb-danger) 26%, var(--cb-border));
 }
 
+/* ─── Base ───────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
 }
 
 body {
@@ -119,305 +177,444 @@ pre,
 samp,
 .vp-code {
   font-family: var(--cb-font-mono) !important;
+  font-feature-settings: 'calt' 1, 'ss01' 1;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--cb-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--cb-accent) 20%, transparent);
   color: var(--cb-text);
 }
 
+/* ─── Navigation ─────────────────────────────────────────────── */
 .VPNav {
-  background: rgba(var(--cb-surface-rgb), 0.94);
-  border-bottom: 1px solid var(--cb-border);
-  backdrop-filter: none;
+  background: rgba(var(--cb-surface-rgb), 0.92) !important;
+  border-bottom: 1px solid var(--cb-border) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
 }
 
 .VPNavBar {
-  padding-inline: clamp(1rem, 3vw, 2rem);
+  padding-inline: clamp(1rem, 3vw, 2.5rem) !important;
 }
 
 .VPNavBarMenuLink,
 .VPNavBarMenuGroup .button {
-  color: var(--cb-text-2);
-  font-size: 0.94rem;
-  font-weight: 600;
+  color: var(--cb-text-2) !important;
+  font-size: 0.91rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.01em !important;
+  transition: color var(--cb-motion-fast) !important;
 }
 
 .VPNavBarMenuLink:hover,
 .VPNavBarMenuGroup:hover .button,
 .VPNavBarMenuLink.active,
 .VPNavBarMenuGroup.open .button {
-  color: var(--cb-accent);
+  color: var(--cb-accent) !important;
 }
 
+/* ─── Sidebar ────────────────────────────────────────────────── */
 .VPSidebar {
-  background: var(--cb-bg-alt);
-  border-right: 1px solid var(--cb-border);
+  background: var(--cb-bg-alt) !important;
+  border-right: 1px solid var(--cb-border) !important;
 }
 
 .VPSidebarGroup .title {
-  color: var(--cb-text-muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 800;
+  color: var(--cb-text-muted) !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+  font-family: var(--cb-font-mono) !important;
 }
 
 .VPSidebarItem .text {
-  color: var(--cb-text-2);
-  border-radius: 10px;
-  transition: background-color var(--cb-motion-fast), color var(--cb-motion-fast);
+  color: var(--cb-text-2) !important;
+  border-radius: var(--cb-radius-sm) !important;
+  font-size: 0.9rem !important;
+  transition: background-color var(--cb-motion-fast), color var(--cb-motion-fast) !important;
 }
 
 .VPSidebarItem .text:hover {
-  color: var(--cb-accent);
-  background: color-mix(in srgb, var(--cb-accent) 7%, transparent);
+  color: var(--cb-accent) !important;
+  background: var(--cb-accent-soft) !important;
 }
 
 .VPSidebarItem.is-active .text {
-  color: var(--cb-accent);
-  background: color-mix(in srgb, var(--cb-accent) 10%, transparent);
+  color: var(--cb-accent) !important;
+  background: color-mix(in srgb, var(--cb-accent) 12%, transparent) !important;
+  font-weight: 700 !important;
 }
 
+/* ─── Hero Section ───────────────────────────────────────────── */
 .VPHero {
-  padding: calc(var(--vp-nav-height) + 3.5rem) clamp(1rem, 4vw, 3rem) 3.5rem;
-  border-bottom: 1px solid var(--cb-border);
+  padding: calc(var(--vp-nav-height) + 4rem) clamp(1rem, 4vw, 3rem) 4rem !important;
+  border-bottom: 1px solid var(--cb-border) !important;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--cb-accent) 10%, transparent), transparent 32%),
-    radial-gradient(circle at top right, color-mix(in srgb, var(--cb-support) 10%, transparent), transparent 34%),
-    var(--cb-bg);
+    radial-gradient(ellipse 80% 60% at 10% 0%, color-mix(in srgb, var(--cb-accent) 9%, transparent), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 10%, color-mix(in srgb, var(--cb-support) 8%, transparent), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, color-mix(in srgb, var(--cb-highlight) 5%, transparent), transparent 60%),
+    var(--cb-bg) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Subtle grid overlay for hero */
+.VPHero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--cb-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cb-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.35;
+  pointer-events: none;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 20%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 20%, transparent 80%);
 }
 
 .VPHero .container {
-  max-width: 1180px;
+  max-width: 1200px !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .VPHero .name {
-  color: var(--cb-text);
-  font-size: clamp(2.8rem, 6vw, 5rem);
-  line-height: 0.95;
-  letter-spacing: -0.06em;
-  font-weight: 800;
-  max-width: 13ch;
+  font-family: var(--cb-font-display) !important;
+  font-size: clamp(2.8rem, 7vw, 5.5rem) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 0.95 !important;
+  background: linear-gradient(135deg, var(--cb-text) 30%, var(--cb-accent) 80%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .VPHero .text {
-  color: var(--cb-text-2);
-  font-size: clamp(1.15rem, 2vw, 1.55rem);
-  line-height: 1.3;
-  font-weight: 700;
-  max-width: 34ch;
-  margin-top: 1.2rem;
+  color: var(--cb-text-2) !important;
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem) !important;
+  line-height: 1.35 !important;
+  font-weight: 700 !important;
+  max-width: 38ch !important;
+  margin-top: 1.25rem !important;
+  letter-spacing: -0.02em !important;
 }
 
 .VPHero .tagline {
-  color: var(--cb-text-3);
-  font-size: 1rem;
-  line-height: 1.8;
-  max-width: 62ch;
-  margin-top: 1rem;
+  color: var(--cb-text-3) !important;
+  font-size: 1rem !important;
+  line-height: 1.85 !important;
+  max-width: 58ch !important;
+  margin-top: 1rem !important;
 }
 
 .VPHero .image {
-  display: none;
+  display: none !important;
 }
 
 .VPHero .actions {
-  gap: 0.9rem;
-  margin-top: 1.75rem;
+  gap: 0.85rem !important;
+  margin-top: 2rem !important;
 }
 
 .VPHero .VPButton {
-  min-height: 46px;
-  border-radius: 999px;
-  font-weight: 700;
-  transition: transform var(--cb-motion-fast), background-color var(--cb-motion-fast), border-color var(--cb-motion-fast), color var(--cb-motion-fast);
+  min-height: 48px !important;
+  padding-inline: 1.5rem !important;
+  border-radius: 999px !important;
+  font-weight: 700 !important;
+  font-size: 0.94rem !important;
+  letter-spacing: -0.01em !important;
+  transition: transform var(--cb-motion-fast), background-color var(--cb-motion-fast),
+              border-color var(--cb-motion-fast), color var(--cb-motion-fast),
+              box-shadow var(--cb-motion-fast) !important;
 }
 
 .VPHero .VPButton.medium.brand {
-  background: var(--cb-accent);
-  color: oklch(0.985 0.004 255);
-  border: 1px solid color-mix(in srgb, var(--cb-accent) 75%, var(--cb-border));
+  background: var(--cb-accent) !important;
+  color: oklch(0.985 0.004 252) !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--cb-accent) 35%, transparent) !important;
 }
 
 .VPHero .VPButton.medium.brand:hover {
-  transform: translateY(-1px);
-  background: var(--cb-accent-strong);
+  transform: translateY(-2px) !important;
+  background: var(--cb-accent-strong) !important;
+  box-shadow: 0 6px 24px color-mix(in srgb, var(--cb-accent) 45%, transparent) !important;
 }
 
 .VPHero .VPButton.medium.alt {
-  background: transparent;
-  border: 1px solid var(--cb-border-strong);
-  color: var(--cb-text);
+  background: transparent !important;
+  border: 1px solid var(--cb-border-strong) !important;
+  color: var(--cb-text) !important;
 }
 
 .VPHero .VPButton.medium.alt:hover {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--cb-accent) 40%, var(--cb-border-strong));
-  color: var(--cb-accent);
+  transform: translateY(-2px) !important;
+  border-color: var(--cb-border-accent) !important;
+  color: var(--cb-accent) !important;
+  background: var(--cb-accent-soft) !important;
 }
 
+/* ─── Features Section ───────────────────────────────────────── */
 .VPFeatures {
-  padding: clamp(2rem, 4vw, 4rem) clamp(1rem, 4vw, 3rem);
-  background: var(--cb-bg-alt);
-  border-top: 1px solid var(--cb-border);
-  border-bottom: 1px solid var(--cb-border);
+  padding: clamp(2.5rem, 5vw, 4.5rem) clamp(1rem, 4vw, 3rem) !important;
+  background: var(--cb-bg-alt) !important;
+  border-top: 1px solid var(--cb-border) !important;
+  border-bottom: 1px solid var(--cb-border) !important;
 }
 
 .VPFeatures .container {
-  max-width: 1180px;
+  max-width: 1200px !important;
 }
 
 .VPFeatures .items {
-  gap: 1rem;
+  gap: 1rem !important;
 }
 
 .VPFeatures .VPFeature {
-  min-height: 100%;
-  padding: 1.4rem;
-  border-radius: 20px;
-  border: 1px solid var(--cb-border);
-  background: var(--cb-bg-elevated);
-  box-shadow: var(--cb-shadow-sm);
-  transition: transform var(--cb-motion-fast), border-color var(--cb-motion-fast), box-shadow var(--cb-motion-fast);
+  min-height: 100% !important;
+  padding: 1.5rem !important;
+  border-radius: var(--cb-radius-lg) !important;
+  border: 1px solid var(--cb-border) !important;
+  background: var(--cb-bg-elevated) !important;
+  box-shadow: var(--cb-shadow-sm) !important;
+  transition: transform var(--cb-motion-normal), border-color var(--cb-motion-normal),
+              box-shadow var(--cb-motion-normal) !important;
 }
 
 .VPFeatures .VPFeature:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--cb-accent) 24%, var(--cb-border));
-  box-shadow: var(--cb-shadow-md);
+  transform: translateY(-3px) !important;
+  border-color: var(--cb-border-accent) !important;
+  box-shadow: var(--cb-shadow-accent) !important;
 }
 
 .VPFeature .icon {
-  width: 2.75rem;
-  height: 2.75rem;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--cb-accent) 8%, transparent);
-  color: var(--cb-accent);
-  border: 1px solid color-mix(in srgb, var(--cb-accent) 14%, var(--cb-border));
+  width: 2.75rem !important;
+  height: 2.75rem !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: var(--cb-radius-md) !important;
+  background: color-mix(in srgb, var(--cb-accent) 9%, transparent) !important;
+  color: var(--cb-accent) !important;
+  border: 1px solid color-mix(in srgb, var(--cb-accent) 18%, var(--cb-border)) !important;
 }
 
 .VPFeature .title {
-  color: var(--cb-text);
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  color: var(--cb-text) !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
 }
 
 .VPFeature .details {
-  color: var(--cb-text-3);
-  font-size: 0.92rem;
-  line-height: 1.7;
+  color: var(--cb-text-3) !important;
+  font-size: 0.91rem !important;
+  line-height: 1.75 !important;
 }
 
+/* ─── Doc Content ────────────────────────────────────────────── */
 .VPDoc.has-sidebar .content-container,
 .VPDoc .content-container {
-  max-width: 78ch;
+  max-width: 82ch !important;
 }
 
 .vp-doc {
   color: var(--cb-text-2);
   font-size: 1rem;
-  line-height: 1.85;
+  line-height: 1.88;
 }
 
+/* Headings */
 .vp-doc h1,
 .vp-doc h2,
 .vp-doc h3,
 .vp-doc h4 {
   color: var(--cb-text);
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   font-weight: 800;
+  font-family: var(--cb-font-display);
 }
 
 .vp-doc h1 {
-  font-size: clamp(2.2rem, 5vw, 3.7rem);
+  font-size: clamp(2.4rem, 5.5vw, 4rem);
   line-height: 1;
+  margin-bottom: 0.5em;
 }
 
 .vp-doc h2 {
-  margin-top: 3rem;
-  padding-top: 0.2rem;
+  margin-top: 3.25rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.75rem;
   border-top: 1px solid var(--cb-border);
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.55rem, 3.2vw, 2.1rem);
+  position: relative;
 }
 
+/* h2 accent left rule */
+.vp-doc h2::before {
+  content: '';
+  position: absolute;
+  left: -1.25rem;
+  top: 1.5rem;
+  width: 3px;
+  height: 1.4em;
+  background: linear-gradient(180deg, var(--cb-accent), var(--cb-support));
+  border-radius: 2px;
+  opacity: 0.8;
+}
+
+.vp-doc h3 {
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  margin-top: 2.25rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--cb-border);
+}
+
+.vp-doc h4 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--cb-text-3);
+  font-size: 0.85rem;
+  margin-top: 1.75rem;
+}
+
+/* Links */
 .vp-doc a {
   color: var(--cb-accent);
-  text-decoration-thickness: 0.08em;
-  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.07em;
+  text-underline-offset: 0.2em;
+  transition: color var(--cb-motion-fast), text-decoration-color var(--cb-motion-fast);
 }
 
+.vp-doc a:hover {
+  color: var(--cb-accent-strong);
+}
+
+/* Blockquote — styled as research callout */
 .vp-doc blockquote {
-  padding: 1rem 1.2rem;
-  border: 1px solid var(--cb-border);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--cb-accent) 4%, var(--cb-bg-elevated));
+  padding: 1.1rem 1.4rem;
+  border: 1px solid var(--cb-border-accent);
+  border-radius: var(--cb-radius-md);
+  background: color-mix(in srgb, var(--cb-accent) 5%, var(--cb-bg-elevated));
   color: var(--cb-text-2);
+  border-left: 3px solid var(--cb-accent);
+  font-style: italic;
 }
 
+.vp-doc blockquote > p {
+  margin: 0;
+}
+
+/* Tables */
 .vp-doc table {
   display: table;
   width: 100%;
-  margin: 1.5rem 0;
+  margin: 1.75rem 0;
   border-collapse: separate;
   border-spacing: 0;
   overflow: hidden;
   border: 1px solid var(--cb-border);
-  border-radius: 18px;
+  border-radius: var(--cb-radius-lg);
   background: var(--cb-bg-elevated);
+  box-shadow: var(--cb-shadow-sm);
+  font-size: 0.93rem;
 }
 
 .vp-doc tr:nth-child(2n) {
-  background: color-mix(in srgb, var(--cb-bg-soft) 62%, transparent);
+  background: color-mix(in srgb, var(--cb-bg-soft) 55%, transparent);
 }
 
 .vp-doc th,
 .vp-doc td {
   border: 0;
   border-bottom: 1px solid var(--cb-border);
-  padding: 0.85rem 1rem;
+  padding: 0.9rem 1.1rem;
+  line-height: 1.6;
 }
 
 .vp-doc th {
   color: var(--cb-text);
   font-weight: 800;
-  background: color-mix(in srgb, var(--cb-bg-soft) 65%, var(--cb-bg-elevated));
+  background: color-mix(in srgb, var(--cb-bg-soft) 70%, var(--cb-bg-elevated));
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-family: var(--cb-font-mono);
 }
 
 .vp-doc tr:last-child td {
   border-bottom: 0;
 }
 
+/* Code blocks */
 .vp-doc div[class*='language-'] {
   border: 1px solid var(--cb-border);
-  border-radius: 20px;
+  border-radius: var(--cb-radius-lg);
   box-shadow: var(--cb-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Language label for code blocks */
+.vp-doc div[class*='language-']::before {
+  content: attr(class);
+  position: absolute;
+  top: 0.6rem;
+  right: 3.5rem;
+  font-family: var(--cb-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--cb-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  pointer-events: none;
 }
 
 .vp-doc .custom-block {
-  border-radius: 18px;
+  border-radius: var(--cb-radius-md);
   border-width: 1px;
+  font-size: 0.95rem;
 }
 
+/* Inline code */
+.vp-doc :not(pre) > code {
+  padding: 0.15em 0.45em;
+  border-radius: var(--cb-radius-xs);
+  background: color-mix(in srgb, var(--cb-accent) 9%, var(--cb-bg-code));
+  border: 1px solid color-mix(in srgb, var(--cb-accent) 16%, var(--cb-border));
+  font-size: 0.88em;
+  color: var(--cb-accent-strong);
+  font-weight: 500;
+}
+
+/* Strong emphasis */
+.vp-doc strong {
+  color: var(--cb-text);
+  font-weight: 800;
+}
+
+/* Mermaid diagrams */
 .vp-doc .mermaid,
 .vp-doc .mermaid svg {
   max-width: 100%;
 }
 
 .vp-doc .mermaid {
-  margin: 1.75rem 0;
-  padding: 1rem;
+  margin: 2rem 0;
+  padding: 1.25rem;
   border: 1px solid var(--cb-border);
-  border-radius: 22px;
+  border-radius: var(--cb-radius-xl);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--cb-accent) 4%, transparent), transparent 20%),
+    radial-gradient(ellipse 80% 50% at 50% -10%, color-mix(in srgb, var(--cb-accent) 6%, transparent), transparent),
     var(--cb-bg-elevated);
   box-shadow: var(--cb-shadow-sm);
+  overflow: hidden;
 }
 
+/* ─── Custom utility classes ─────────────────────────────────── */
 .cb-stagger {
   display: grid;
   gap: 0.75rem;
@@ -427,26 +624,88 @@ samp,
   margin: 0;
 }
 
-.cb-figure + .cb-figure {
-  margin-top: 1rem;
+/* Section separator */
+.cb-section-divider {
+  margin: 3rem 0;
+  border: none;
+  border-top: 1px solid var(--cb-border);
 }
 
+/* Mono tag badge */
+.cb-mono-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2em 0.6em;
+  font-family: var(--cb-font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: var(--cb-radius-xs);
+  background: color-mix(in srgb, var(--cb-accent) 10%, var(--cb-bg-code));
+  border: 1px solid color-mix(in srgb, var(--cb-accent) 20%, var(--cb-border));
+  color: var(--cb-accent-strong);
+}
+
+/* ─── Outline / TOC ──────────────────────────────────────────── */
+.VPDocOutline .outline-link {
+  font-size: 0.85rem;
+  color: var(--cb-text-3);
+  transition: color var(--cb-motion-fast);
+}
+
+.VPDocOutline .outline-link:hover,
+.VPDocOutline .outline-link.active {
+  color: var(--cb-accent);
+}
+
+/* ─── Footer ─────────────────────────────────────────────────── */
+.VPFooter {
+  border-top: 1px solid var(--cb-border) !important;
+  background: var(--cb-bg-alt) !important;
+}
+
+/* ─── Responsive ─────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .VPHero {
-    padding-top: calc(var(--vp-nav-height) + 2.5rem);
+    padding-top: calc(var(--vp-nav-height) + 2.5rem) !important;
   }
 
   .VPFeatures {
-    padding-inline: 1rem;
+    padding-inline: 1rem !important;
+  }
+
+  .vp-doc h2::before {
+    display: none;
   }
 }
 
+@media (max-width: 640px) {
+  .VPHero .name {
+    font-size: clamp(2.2rem, 9vw, 3rem) !important;
+  }
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation: none !important;
-    transition: none !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Print ──────────────────────────────────────────────────── */
+@media print {
+  .VPNav,
+  .VPSidebar,
+  .VPDocAside {
+    display: none !important;
+  }
+
+  .VPDoc .content-container {
+    max-width: 100% !important;
   }
 }
