@@ -44,9 +44,6 @@ export default withMermaid(defineConfig({
   lastUpdated: true,
   sitemap: {
     hostname: `${SITE_URL}${base}`,
-    exclude: [
-      '/superpowers/**',
-    ],
   },
 
   head: [
@@ -81,7 +78,10 @@ export default withMermaid(defineConfig({
     socialLinks: [
       { icon: 'github', link: REPO },
     ],
-    logo: '/logo.svg',
+    logo: {
+      light: '/logo.svg',
+      dark: '/logo-dark.svg',
+    },
     siteTitle: 'Bookmarks Cleaner',
   },
 

@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /superpowers/
 
 Sitemap: https://lessup.github.io/bookmarks-cleaner/sitemap.xml

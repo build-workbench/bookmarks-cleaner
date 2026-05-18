@@ -125,23 +125,23 @@ self.addEventListener('sync', (event) => {
   }
 })
 
-// Push notifications (if needed)
-self.addEventListener('push', (event) => {
-  const options = {
-    body: event.data?.text() || 'New content available!',
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
-  }
-  
-  event.waitUntil(
-    self.registration.showNotification('CleanBook Docs', options)
-  )
-})
+// Note: Push notifications removed - icons directory does not exist
+// If push notifications are needed, create icons and uncomment:
+// self.addEventListener('push', (event) => {
+//   const options = {
+//     body: event.data?.text() || 'New content available!',
+//     icon: BASE_PATH + 'icons/icon-192x192.png',
+//     badge: BASE_PATH + 'icons/icon-72x72.png',
+//   }
+//   event.waitUntil(
+//     self.registration.showNotification('CleanBook Docs', options)
+//   )
+// })
 
-// Notification click handler
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close()
-  event.waitUntil(
-    clients.openWindow(BASE_PATH)
-  )
-})
+// Notification click handler (for future use if push is enabled)
+// self.addEventListener('notificationclick', (event) => {
+//   event.notification.close()
+//   event.waitUntil(
+//     clients.openWindow(BASE_PATH)
+//   )
+// })
