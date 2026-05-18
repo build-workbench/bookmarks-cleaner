@@ -402,6 +402,22 @@ samp,
   border-width: 1px;
 }
 
+.vp-doc .mermaid,
+.vp-doc .mermaid svg {
+  max-width: 100%;
+}
+
+.vp-doc .mermaid {
+  margin: 1.75rem 0;
+  padding: 1rem;
+  border: 1px solid var(--cb-border);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cb-accent) 4%, transparent), transparent 20%),
+    var(--cb-bg-elevated);
+  box-shadow: var(--cb-shadow-sm);
+}
+
 .cb-stagger {
   display: grid;
   gap: 0.75rem;

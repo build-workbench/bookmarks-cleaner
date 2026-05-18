@@ -1,216 +1,95 @@
 # Technical Whitepaper
 
-> **Bookmarks Cleaner: An Offline-first, Multi-classifier Fusion Approach to Bookmark Organization**
->
-> Version: 1.0 | Last Updated: 2025-05
+> **Bookmarks Cleaner** is presented here as a local-first systems artifact: a bookmark cleanup CLI whose value comes from architecture shape, classifier cooperation, and evidence-backed trade-offs.
 
 ## Abstract
 
-Bookmarks Cleaner is an offline-first bookmark cleanup and intelligent classification CLI tool for developers. Unlike existing tools, it adopts a **rules-first, ML-assisted, LLM-optional** layered classification strategy, integrating multi-classifier results through a weighted voting fusion engine to achieve high-accuracy automatic bookmark organization in a fully offline environment. This document describes its system architecture, core algorithms, performance characteristics, and design philosophy.
+Bookmarks Cleaner is an offline-first CLI for bookmark cleanup, deduplication, classification, and export. Its design thesis is not "add as much AI as possible", but "keep the dominant path deterministic, then layer probabilistic intelligence only where it earns its cost". The result is a system whose baseline remains rules-driven and inspectable, while ML, semantic search, and optional LLM assistance enrich the hard cases rather than redefine the whole runtime.
 
-## 1. Problem Definition
+## System Thesis
 
-### 1.1 The Bookmark Management Problem
+Three claims define the project:
 
-Modern developers typically accumulate over 1,000 browser bookmarks, facing these challenges:
+1. **Local-first beats hosted convenience for personal bookmark archives.** The input contains browsing intent, project history, and research trails. Treating that corpus as a cloud-default workload would violate the user's trust boundary.
+2. **Rules should own the common path.** Deterministic matches for known domains remain the fastest, cheapest, and most interpretable decision mechanism. They also establish a stable backbone for fallback behavior.
+3. **Fusion is a coordination problem, not a branding label.** The interesting part is not that multiple classifiers exist, but how their confidence, ordering, and optionality are combined into one operational result.<CiteReference id="1" authors="Kuncheva, L. I." title="Combining Pattern Classifiers: Methods and Algorithms" venue="Wiley-Interscience" year="2004" />
 
-- **Entropy growth**: Long-term accumulation leads to chaotic hierarchies and exponentially degraded lookup efficiency
-- **Duplication redundancy**: Same pages saved multiple times create substantial duplicate entries
-- **Classification difficulty**: Manual classification is time-consuming and subjective, lacking consistency
-- **Privacy risks**: Online bookmark services require uploading complete browsing history
-- **Format lock-in**: Browser native export formats are difficult to migrate and analyze cross-platform
+## Runtime Boundary
 
-### 1.2 Limitations of Existing Solutions
+The maintained system boundary is intentionally narrow:
 
-| Solution Type | Representative | Limitation |
-|--------------|----------------|------------|
-| Browser Native | Chrome/Edge | No intelligent classification; high manual maintenance cost |
-| Online Service | Raindrop, Pocket | Requires data upload; privacy not controllable |
-| Self-hosted Web | linkding, Shaarli | Requires server maintenance; no ML capability |
-| Script Tools | Various Python scripts | No architecture; hard to maintain and extend |
+| Surface | In scope | Why it matters |
+|---------|----------|----------------|
+| Input | Browser bookmark exports, primarily HTML and related local formats | The tool starts from files the user already controls |
+| Processing | Deduplication, classification, organization, export | Everything important happens inside the local runtime |
+| Output | Cleaned bookmark HTML, JSON data, Markdown reports | Outputs must remain portable and auditable |
+| Optional integrations | ML models, semantic analysis, local or remote LLM providers | Intelligence is additive, not a prerequisite |
+| Out of scope | Hosted account sync, central database, telemetry pipeline | These would enlarge operational burden and privacy risk |
 
-**Core insight**: Developers need a **zero-config, zero-dependency, zero-upload** local tool that maintains extensibility and high accuracy.
+This boundary explains many later choices. The project can support richer intelligence, but not at the cost of turning the bookmark archive into a service-shaped problem.
 
-## 2. System Architecture
+## Architecture Model
 
-### 2.1 Overall Architecture
+The runtime is organized as a sequence of explicitly named layers:
 
-Bookmarks Cleaner adopts a hybrid **Facade + Pipeline** architecture:
+1. **Entry surfaces**: CLI and thin Python entry points.
+2. **Facade and composition root**: `BookmarkProcessor` plus the container that wires dependencies.
+3. **Coordinator**: the runtime control layer that sequences each stage.
+4. **Pipelines**: load, deduplicate, classify, organize, export.
+5. **Intelligence modules**: rule engine, ML classifier, semantic analyzer, optional LLM, then fusion.
 
-```mermaid
-flowchart TB
-    subgraph Entry["Entry Layer"]
-        CLI[CLI Parser]
-        API[Python API]
-    end
+This structure is valuable because it separates *what changes often* from *what should remain stable*. The CLI contract can stay narrow while classifier internals evolve. The facade can stay shallow while orchestration changes. The pipeline can change stage internals without re-teaching the entire repository to new contributors.
 
-    subgraph Facade["Facade Layer"]
-        BP[BookmarkProcessor]
-    end
+## Fusion and Confidence
 
-    subgraph DI["DI Container"]
-        PC[ProcessorContainer]
-    end
+The project uses weighted voting rather than a stacked meta-model for the final classification step. That choice is pragmatic:
 
-    subgraph Coord["Coordination Layer"]
-        BPC[BookmarkProcessorCoordinator]
-    end
+- The participating engines are heterogeneous. Rule matches are discrete and authoritative, while ML, semantic, and LLM outputs are probabilistic or confidence-shaped.
+- A second learned layer would require extra calibration data and would reduce the transparency of why one bookmark landed in one folder rather than another.<CiteReference id="2" authors="Wolpert, D. H." title="Stacked Generalization" venue="Neural Networks" year="1992" url="https://doi.org/10.1016/S0893-6080(05)80023-1" />
+- Weighted voting lets the system preserve a strong rules-first stance while still absorbing signal from other engines.
 
-    subgraph Pipelines["Pipeline Layer"]
-        L[BookmarkLoader]
-        D[DeduplicationPipeline]
-        C[ClassificationPipeline]
-        O[OrganizationPipeline]
-        E[ExportPipeline]
-    end
+Confidence calibration matters because raw classifier scores are not directly comparable. The system therefore treats confidence as an engineered interface, not a cosmetic number.<CiteReference id="3" authors="Zadrozny, B.; Elkan, C." title="Obtaining Calibrated Probability Estimates from Decision Trees and Naive Bayesian Classifiers" venue="ICML" year="2001" />
 
-    subgraph Classifiers["Classifier Layer"]
-        RE[RuleEngine]
-        ML[MLClassifier]
-        SA[SemanticAnalyzer]
-        LLM[LLMClassifier]
-        FE[FusionEngine]
-    end
+## Performance Methodology
 
-    CLI --> BP
-    API --> BP
-    BP --> PC
-    PC --> BPC
-    BPC --> L --> D --> C --> O --> E
-    C --> RE
-    C --> ML
-    C --> SA
-    C --> LLM
-    RE --> FE
-    ML --> FE
-    SA --> FE
-    LLM --> FE
-```
+Performance numbers on this site should be read as *measurement envelopes*, not universal promises.
 
-### 2.2 Key Design Principles
+### Measurement dimensions
 
-1. **Dependency Inversion (DIP)**: All core components define interfaces via Python Protocol, enabling interface-oriented programming
-2. **Single Responsibility (SRP)**: Each Pipeline handles one processing stage; BookmarkProcessor serves only as a facade
-3. **Open/Closed (OCP)**: New classifiers seamlessly plug into the fusion engine by implementing `IBookmarkClassifier` Protocol
-4. **Lazy Initialization**: All heavy components (ML models, LLM clients) use deferred loading; startup time < 100ms
+| Dimension | Why it matters |
+|-----------|----------------|
+| Cold start | Measures the cost of entering the runtime before heavy dependencies load |
+| Throughput | Captures steady-state bookmark processing once the pipeline is active |
+| Mode selection | Rules-only, hybrid ML, and optional LLM modes have very different cost profiles |
+| Memory footprint | Practical limit for large local bookmark archives |
+| Concurrency behavior | Indicates how much benefit the current workload extracts from thread-level parallelism |
 
-## 3. Core Algorithms
+### Interpretation
 
-### 3.1 Classifier Fusion Engine
+- **Rules-only paths** represent the minimum latency, highest determinism path.
+- **Hybrid paths** trade more CPU and model initialization cost for better recovery on weak or ambiguous bookmarks.
+- **LLM-assisted paths** should be understood as selective escalation, not the default execution mode.
 
-The fusion engine is the system's core innovation. It uses **Weighted Voting** rather than traditional Stacking or Boosting, for these reasons:
+The key architectural point is that performance is a consequence of the system boundary: local execution, delayed heavy initialization, and a rules-dominant common path.
 
-- **Heterogeneity**: Rule engine (deterministic) and ML/LLM (probabilistic) have different output spaces; a Stacking meta-learner struggles to converge
-- **Interpretability**: Weighted voting's decision process is transparent; each classifier's contribution is traceable
-- **Zero training**: No additional fusion layer training data required, lowering the barrier to entry
+## Failure Modes and Fallbacks
 
-**Fusion formula**:
+The runtime is intentionally designed to degrade, not collapse:
 
-$$
-S(c) = \sum_{i=1}^{n} w_i \cdot \mathbb{1}_{[y_i = c]} \cdot \text{conf}_i
-$$
+| Failure mode | Expected behavior |
+|--------------|-------------------|
+| Bookmark export is malformed | Loading fails early with a visible parsing boundary, before later stages run |
+| Rule match is absent | The bookmark flows into probabilistic classification instead of producing an empty result |
+| ML or semantic dependencies are unavailable | The system can still execute a narrower rules-first path |
+| LLM integration is unavailable or disabled | The main classification flow remains intact because LLM is optional |
+| Confidence is weak or conflicting | Fusion surfaces a lower-certainty outcome rather than fabricating certainty |
 
-Where $w_i$ is classifier weight, $\text{conf}_i$ is confidence, and $\mathbb{1}_{[y_i = c]}$ is the indicator function.
+This is the main reason the architecture avoids making the most expensive intelligence layer the most central one.
 
-**Actual weight configuration** (from `src/services/fusion_engine.py`):
+## Reference Trail
 
-```python
-DEFAULT_WEIGHTS = {
-    "rule_engine": 0.50,
-    "machine_learning": 0.15,
-    "semantic_analyzer": 0.10,
-    "user_profiler": 0.10,
-    "llm": 0.50,
-}
-```
-
-> **Design rationale**: Rule engine receives the highest weight (0.50) because it produces deterministic output (confidence = 1.0), holding absolute authority for known patterns. LLM also receives high weight (0.50) but only participates in fusion when available.
-
-### 3.2 Confidence Calibration
-
-Raw confidence often exhibits bias (over-confidence). The system includes a **ConfidenceCalibrator** supporting two methods:
-
-- **Platt Scaling**: Logistic regression fitting, suitable for sigmoid-shaped bias
-- **Isotonic Regression**: Monotonic regression, suitable for arbitrary bias shapes without parametric assumptions
-
-```python
-class ConfidenceCalibrator:
-    def __init__(self, config=None):
-        self.method = config.get("method", "platt")
-        self._platt_a = 1.0
-        self._platt_b = 0.0
-        # ...
-```
-
-### 3.3 Incremental Learning
-
-`IncrementalTrainer` supports model incremental updates, version management, and automatic rollback:
-
-```
-ModelVersion
-├── version_id: str
-├── created_at: datetime
-├── training_samples: int
-├── accuracy: float
-├── model_path: str
-└── is_active: bool
-```
-
-When a new batch arrives, the system validates the incrementally updated model on a validation set. If accuracy falls below `performance_threshold` (default 0.8), it automatically rolls back to the last stable version.
-
-## 4. Performance Engineering
-
-### 4.1 Concurrency Model
-
-Uses `ThreadPoolExecutor` instead of `asyncio`, because:
-
-1. **I/O characteristics**: Bookmark processing is CPU-bound (text feature extraction, model inference); multithreading effectively utilizes multiple cores
-2. **Library compatibility**: Core dependencies like scikit-learn and Sentence Transformers are thread-friendly but have limited async support
-3. **Debugging simplicity**: Threading model is more intuitive with easier-to-trace exception stacks
-
-```python
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-with ThreadPoolExecutor(max_workers=min(max_workers, 32)) as executor:
-    futures = {executor.submit(classify, bm): i for i, bm in enumerate(bookmarks)}
-    for future in as_completed(futures):
-        results[futures[future]] = future.result()
-```
-
-### 4.2 Performance Benchmarks
-
-| Metric | Value | Test Environment |
-|--------|-------|------------------|
-| Processing speed | 420 ~ 650 bookmarks/sec | AMD Ryzen 5 5600X, 6C/12T |
-| Speedup ratio | 3.2x @ 4 workers | Same as above |
-| Memory footprint | ~85 MB / 10K bookmarks | Including ML model cache |
-| Cold start time | ~90 ms | After lazy initialization |
-| Classification accuracy | 91.2% (fusion) | Human-annotated test set, n=500 |
-| Rule hit rate | 68% | Common tech sites |
-
-## 5. Security & Privacy
-
-### 5.1 Offline Guarantee
-
-- All classification inference executes locally
-- LLM calls are optional and disabled by default; local Ollama deployment supported
-- No telemetry, no log upload, no DNS queries (except optional LLM calls)
-
-### 5.2 Data Minimization
-
-- Only reads bookmark export files explicitly provided by the user
-- Output files are fully user-controlled
-- Never modifies original bookmark files
-
-## 6. References
-
-1. **Kuncheva, L. I.** (2004). *Combining Pattern Classifiers: Methods and Algorithms*. Wiley-Interscience.
-2. **Zadrozny, B., & Elkan, C.** (2001). Obtaining calibrated probability estimates from decision trees and naive Bayesian classifiers. *ICML*, 609–616.
-3. **Martin, R. C.** (2017). *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Prentice Hall.
-4. **Wolpert, D. H.** (1992). Stacked generalization. *Neural Networks*, 5(2), 241–259.
-
-## 7. Related Resources
-
-- [Architecture Decisions](/en/adr) — Complete record of key design decisions
-- [Evolution](/en/evolution) — Technical evolution from prototype to production
-- [GitHub Repository](https://github.com/LessUp/bookmarks-cleaner)
+- [Pipeline Architecture](/en/architecture/pipeline) explains the stage-level runtime.
+- [Performance Methodology](/en/performance/optimization) frames how published numbers should be interpreted.
+- [References](/en/resources/references) collects the literature behind fusion, calibration, and architecture choices.
+- [Related Projects](/en/resources/related-projects) compares adjacent tools and enabling stacks.
+- [Evolution](/en/evolution) explains how the current structure emerged from earlier code shapes.

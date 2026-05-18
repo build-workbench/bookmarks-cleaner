@@ -62,7 +62,7 @@ function closeTooltip() {
 
 .cb-cite-ref a,
 .cb-cite-clickable {
-  color: var(--cb-brand);
+  color: var(--cb-accent);
   text-decoration: none;
   font-weight: 600;
   padding: 1px 4px;
@@ -73,7 +73,7 @@ function closeTooltip() {
 
 .cb-cite-ref a:hover,
 .cb-cite-clickable:hover {
-  background: var(--cb-brand-soft);
+  background: var(--cb-accent-soft);
 }
 
 .cb-cite-tooltip {
@@ -126,7 +126,7 @@ function closeTooltip() {
 }
 
 .cb-cite-venue {
-  color: var(--cb-brand);
+  color: var(--cb-accent);
   font-style: italic;
 }
 

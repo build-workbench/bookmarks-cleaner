@@ -1,161 +1,42 @@
 # 演进思考
 
-> "软件架构不是设计出来的，而是演化出来的。" —— *Martin Fowler*
+本页解释整站默认成立的一段架构故事：Bookmarks Cleaner 并不是一开始就拥有今天这种 Pipeline 系统。当前运行时之所以长成现在这样，是因为更早的代码形态让“改动成本”变得过高。
 
-本文档记录 Bookmarks Cleaner 从一个粗糙的原型脚本演化为一个具备工程化架构的 CLI 工具的思考过程。
+## 阶段一：单一用途脚本
 
-## 阶段一：原型脚本（~200 行）
+最早的版本只回答一个狭窄问题：清理导出的 `bookmarks.html` 文件，并去掉明显重复项。它之所以有用，恰恰因为它足够小，但与此同时也没有任何被明确命名的边界。解析、去重、分类和导出都挤在同一个心智单元里。
 
-**时间**: 2024 年末
+## 阶段二：工具化，但边界仍弱
 
-最初的动机很简单：清理 Chrome 导出的 bookmarks.html，删除重复链接，按域名简单分组。
+随着配置、日志和更复杂的规则分类不断加入，脚本开始变成工具，但还不是系统。能力变多了，可这些能力仍被共享状态和大块工具函数串在一起。功能增长了，改动局部性却没有真正改善。
 
-```python
-# 最初的代码大致是这样
-from bs4 import BeautifulSoup
-import re
+## 阶段三：上帝类平台期
 
-with open('bookmarks.html') as f:
-    soup = BeautifulSoup(f, 'html.parser')
+仓库随后支付了典型代价：在缺乏分解的前提下增长，最终让太多逻辑聚集进 `BookmarkProcessor`。门面不再是门面，它本身变成了整个系统。这是最关键的转折点，因为它让下一步改造变得非常明确：
 
-links = [(a['href'], a.text) for a in soup.find_all('a')]
-unique = list(set(links))  # 简单粗暴的去重
-# ... 按域名分组 ...
-```
+- 新增一个分类器，需要修改过多调用点；
+- 写测试必须经过太多无关行为；
+- 只想理解一个功能，也要把整个运行时一起装进脑子。
 
-**当时的假设**：
-- 这是个一次性脚本
-- 不需要配置
-- 分类只需要按域名前缀判断
+## 阶段四：Facade + Pipeline
 
-**很快发现的问题**：
-- `list(set(links))` 只能做精确 URL 去重，无法处理 `?utm_source=...` 等查询参数差异
-- 按域名分类太粗糙，无法区分同一域名下的不同内容（如 GitHub 的 repo vs issue）
-- 没有错误处理，一个解析异常就导致整个脚本崩溃
+当前设计把运行时重新组织成一组更小、更明确的单元：
 
-## 阶段二：工具化（~600 行）
+| 边界 | 被抽离出来的原因 |
+|------|------------------|
+| Container | 让依赖装配关系显式化 |
+| Coordinator | 把执行顺序从公开 API 形状中分离出来 |
+| Pipelines | 隔离阶段特定行为 |
+| Protocol 与 services | 降低变化组件之间的耦合度 |
 
-**时间**: 2025 年初
+这次改造的收益不是“看起来更漂亮”，而是操作层面的：改动更局部、测试更聚焦、文档终于可以准确描述系统，而不必对一个巨大实现体做模糊概述。
 
-将脚本工具化，加入了：
-- 命令行参数解析（`argparse`）
-- 基本的日志记录
-- 配置文件支持（JSON）
-- 更智能的去重（忽略常见追踪参数）
-- 简单的规则匹配分类
+## 站点为什么要强调这段演进
 
-**架构特征**：
-- 仍然是单文件
-- 函数式编程风格
-- 全局配置字典到处传递
+整座文档站对外成立，依赖这些变化是真实的：
 
-**产生的新问题**：
-- 函数间通过全局状态耦合，测试困难
-- 添加新分类方法需要修改多处代码
-- 性能瓶颈：逐个处理书签，无法利用多核
+- [白皮书](/zh/whitepaper) 能讨论系统边界，是因为今天确实存在边界；
+- [Pipeline 架构](/zh/architecture/pipeline) 能命名处理阶段，是因为这些阶段在结构上真实存在；
+- [相关项目研究](/zh/resources/related-projects) 能比较系统形态，而不是只比较功能点。
 
-## 阶段三：上帝类（~1,148 行）
-
-**时间**: 2025 年 2 月
-
-为了整合越来越多的功能，将所有逻辑封装进一个 `BookmarkProcessor` 类。
-
-```python
-class BookmarkProcessor:
-    def __init__(self, config_path):
-        self.config = load_config(config_path)
-        self.ml_model = None
-        self.llm_client = None
-        # ... 几十个属性
-
-    def process(self, input_path, output_dir):
-        # 加载 ... 去重 ... 分类 ... 组织 ... 导出 ...
-        # 超过 800 行的方法
-```
-
-**当时认为的好处**：
-- "所有功能都在一个类里，调用方便"
-- "使用者只需要 `processor.process()` 一行代码"
-
-**实际付出的代价**：
-- 修改任何一个子功能，都需要阅读和理解整个类
-- 单元测试几乎不可能：无法单独测试"去重"逻辑，因为它深嵌在 `process()` 方法中
-- 添加 LLM 支持时，不得不修改 20+ 处代码
-- 新开发者需要一周才能安全地提交 PR
-
-**代码异味指标**：
-- 单个类超过 1,000 行
-- 单个方法超过 200 行
-- 超过 15 个实例属性
-- 导入依赖关系呈网状纠缠
-
-## 阶段四：门面 + Pipeline（当前架构）
-
-**时间**: 2025 年 4 月
-
-一次彻底的重构，核心目标：**让改变局部化**。
-
-### 重构策略
-
-采用**逐步替换**（Strangler Fig Pattern），而非大爆炸重写：
-
-1. 先提取独立的 Pipeline 类（Loader、Deduplicator、Classifier 等）
-2. 让 `BookmarkProcessor` 暂时调用这些 Pipeline，但保持外部 API 不变
-3. 逐步将 `BookmarkProcessor` 中的内联逻辑迁移到 Pipeline
-4. 最终 `BookmarkProcessor` 仅剩门面职责
-
-### 重构后的架构
-
-```
-BookmarkProcessor (Facade, ~350 lines)
-  └── ProcessorContainer (DI, ~50 lines)
-      └── BookmarkProcessorCoordinator (Coordination, ~200 lines)
-          ├── BookmarkLoader (Loading, ~80 lines)
-          ├── DeduplicationPipeline (Deduplication, ~60 lines)
-          ├── ClassificationPipeline (Classification, ~120 lines)
-          │   ├── RuleEngine
-          │   ├── MLClassifier
-          │   ├── SemanticAnalyzer
-          │   └── LLMClassifier (optional)
-          │   └── FusionEngine (Weighted Vote)
-          ├── OrganizationPipeline (Organization, ~50 lines)
-          └── ExportPipeline (Export, ~80 lines)
-```
-
-### 量化收益
-
-| 指标 | 重构前 | 重构后 | 变化 |
-|------|--------|--------|------|
-| 最大类行数 | 1,148 | 350 | -70% |
-| 最大方法行数 | 840 | 45 | -95% |
-| 单元测试覆盖率 | 12% | 78% | +66 pts |
-| 新功能开发周期 | ~3 天 | ~4 小时 | -94% |
-| 回归缺陷率 | 高 | 低 | 显著改善 |
-
-## 阶段五：未来演进方向
-
-### 近期（6 个月内）
-
-- **插件系统**：开放 `IBookmarkClassifier` 协议，允许社区贡献分类器
-- **Web UI**：可选的本地 Web 界面，保持核心 CLI 离线运行
-- **增量同步**：支持书签的增量处理（仅处理新增/修改项）
-
-### 中期（1 年内）
-
-- **跨语言扩展**：将核心分类逻辑以 WASM 形式编译，支持浏览器扩展
-- **分布式推理**：在保持隐私的前提下，利用本地 GPU 加速 LLM 推理
-
-### 长期（2 年+）
-
-- **联邦学习**：在完全本地的前提下，通过差分隐私技术共享分类器改进
-- **知识图谱**：构建个人书签知识图谱，支持语义检索和关联推荐
-
-## 教训与反思
-
-1. **过早抽象是罪恶，过晚抽象是灾难**。上帝类阶段的痛苦告诉我们：当类超过 500 行时，就是重构的信号。
-
-2. **门面模式不是万能药**。门面应该薄，如果门面本身开始积累逻辑，说明抽象层级有问题。
-
-3. **测试是重构的安全网**。没有测试覆盖的重构等于走钢丝。我们在重构前先补测试，虽然辛苦，但避免了无数次回滚。
-
-4. **用户 API 稳定性优先**。整个重构过程中，`BookmarkProcessor(config_path=...).process_files(...)` 的调用方式从未改变，这让外部用户无感知地享受到了架构改进。
+这就是为什么演进页不是仓库怀旧，而是当前架构的一部分证据。

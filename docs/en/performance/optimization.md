@@ -1,52 +1,35 @@
-# Optimization Tips
+# Performance Methodology
 
-This document summarizes performance optimization tips for Bookmarks Cleaner.
+This page describes how to read performance claims across the site. It intentionally avoids unsupported tuning folklore and focuses on the maintained runtime shape.
 
-## Quick Optimization Checklist
+## Measurement Envelope
 
-| Item | Expected Improvement | Difficulty |
-|------|---------------------|------------|
-| Increase worker threads | 2-4x | Low |
-| Enable caching | 20-50% | Low |
-| Disable ML/LLM | 10x+ | Low |
-| Batch processing | 30% | Low |
+Published numbers should be interpreted along four axes:
 
-## Concurrency Optimization
+| Axis | Question |
+|------|----------|
+| Cold start | How expensive is entering the runtime before heavy intelligence layers load? |
+| Steady-state throughput | How fast does the pipeline move once the processing stages are active? |
+| Mode width | Is the run rules-only, hybrid, or LLM-assisted? |
+| Resource pressure | What memory and concurrency constraints define the practical upper bound? |
 
-```bash
-# Adjust based on CPU cores
-cleanbook -i bookmarks.html --workers 8
-```
+## What the Reported Numbers Mean
 
-**Recommended values**:
-- 2 cores: 2-4 threads
-- 4 cores: 4-8 threads
-- 8+ cores: 8-16 threads
+- **Rules-first numbers** describe the cheapest reliable path through the system.
+- **Hybrid numbers** include additional model and semantic work, so they should be read as richer but costlier runs.
+- **Optional LLM participation** should be treated as escalation for ambiguous cases, not a baseline requirement.
 
-## Speed Comparison
+## Supported Optimization Levers
 
-| Configuration | 1000 Bookmarks Time |
-|--------------|---------------------|
-| Full features | 45s |
-| No ML | 8s |
-| Rules only | 2s |
+The maintained performance story relies on levers already consistent with the repository architecture:
 
-## Best Practice Configuration
+1. **Keep the common path deterministic.** The more bookmarks that resolve in the rules layer, the lower the marginal cost of a run.
+2. **Avoid unnecessary intelligence width.** ML, semantic, and LLM paths are useful, but they are not free.
+3. **Preserve local execution.** Avoid turning performance work into network-roundtrip work unless the user explicitly opts into it.
+4. **Read concurrency as workload-dependent.** Thread-level gains depend on how much of the run is parallelizable and how much time is spent in heavy libraries.
 
-```json
-{
-  "max_workers": 4,
-  "ai_settings": {
-    "use_ml": true,
-    "use_llm": false
-  },
-  "cache": {
-    "enabled": true
-  }
-}
-```
+## Relationship to the Other Performance Pages
 
-## Related Docs
-
-- [Concurrency](/en/performance/concurrency) - Concurrency model
-- [Caching](/en/performance/caching) - Cache system
+- [Concurrency](/en/performance/concurrency) discusses why the runtime uses its current concurrency model.
+- [Caching](/en/performance/caching) discusses what reuse can and cannot buy you.
+- [Whitepaper](/en/whitepaper) situates performance inside the broader system boundary and failure model.

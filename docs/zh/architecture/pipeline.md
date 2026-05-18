@@ -1,223 +1,70 @@
 # Pipeline 架构
 
-Bookmarks Cleaner 采用 **5 阶段 Pipeline 架构**，通过 `BookmarkProcessorCoordinator` 协调各个 Pipeline 的执行顺序和数据流转。
+Bookmarks Cleaner 把处理流程当作一个运行时流水线，而不是一堆散落的工具函数。这一点非常关键，因为后续的可观测性、可扩展性和回退行为，都依赖于这些被清晰命名的交接点。
 
-## 架构概览
+## 运行时分层
 
-```mermaid
-flowchart TB
-    subgraph Input["📥 输入层"]
-        HTML[bookmarks.html]
-        JSON_IN[bookmarks.json]
-    end
-    
-    subgraph Pipeline["⚙️ 处理管道"]
-        L[BookmarkLoader<br/>加载器] --> D[DeduplicationPipeline<br/>去重]
-        D --> C[ClassificationPipeline<br/>分类]
-        C --> O[OrganizationPipeline<br/>组织]
-        O --> E[ExportPipeline<br/>导出]
-    end
-    
-    subgraph Classifiers["🤖 分类器层"]
-        R[RuleEngine<br/>规则引擎] --> F[FusionEngine<br/>融合引擎]
-        M[MLClassifier<br/>机器学习] --> F
-        S[SemanticAnalyzer<br/>语义分析] --> F
-        LLM[LLMClassifier<br/>大语言模型] --> F
-    end
-    
-    subgraph Output["📤 输出层"]
-        HTML_OUT[HTML 报告]
-        JSON_OUT[JSON 数据]
-        MD[Markdown]
-    end
-    
-    HTML --> L
-    JSON_IN --> L
-    C --> Classifiers
-    E --> Output
-```
+### 入口与协调
 
-## 5 阶段详解
+运行时从 CLI 或薄 Python 入口开始。`BookmarkProcessor` 负责承担门面角色，而容器与协调器负责组合依赖与调度执行顺序。这样做的好处是：即使内部执行图发生变化，对外入口仍然可以保持稳定。
 
-### 1. BookmarkLoader（加载阶段）
+### 处理流水线
 
-**职责**：解析浏览器导出的书签文件，转换为统一的内部数据结构。
+维护中的处理阶段如下：
 
-```python
-class BookmarkLoader:
-    def load(self, file_path: str) -> List[Dict]:
-        """加载书签文件，支持 HTML/JSON 格式"""
-        
-    def _parse_html(self, content: str) -> List[Dict]:
-        """解析 Netscape Bookmark 格式"""
-        
-    def _normalize(self, bookmarks: List[Dict]) -> List[Bookmark]:
-        """标准化书签数据"""
-```
+1. **加载**：把浏览器书签导出文件解析为统一内部表示。
+2. **去重**：在分类之前先消除精确或近似重复，避免噪声被后续阶段放大。
+3. **分类**：把书签送入规则优先的智能分类栈。
+4. **组织**：把标签和置信度转换为目录结构决策。
+5. **导出**：输出清洗后的 HTML、JSON 与 Markdown 工件。
 
-**支持的格式**：
-- Chrome/Edge HTML 导出
-- Firefox JSON 备份
-- Safari HTML 书签
-
-### 2. DeduplicationPipeline（去重阶段）
-
-**职责**：识别并处理重复书签，减少数据冗余。
-
-```python
-class DeduplicationPipeline:
-    def process(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
-        """执行去重流程"""
-        
-    def _by_url(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
-        """URL 完全匹配去重"""
-        
-    def _by_similarity(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
-        """相似度去重（可选）"""
-```
-
-**去重策略**：
-| 策略 | 描述 | 性能 |
-|------|------|------|
-| URL 精确匹配 | 比较规范化后的 URL | O(n) |
-| 域名+路径匹配 | 忽略查询参数差异 | O(n) |
-| 语义相似度 | 计算标题/描述相似度 | O(n²) |
-
-### 3. ClassificationPipeline（分类阶段）
-
-**职责**：为每个书签分配一个或多个分类标签。
-
-```python
-class ClassificationPipeline:
-    def __init__(self, classifier: AIBookmarkClassifier):
-        self.classifier = classifier
-        
-    def process(self, bookmarks: List[Bookmark]) -> List[ClassifiedBookmark]:
-        """执行分类流程"""
-        
-    def _batch_classify(self, bookmarks: List[Bookmark]) -> List[Result]:
-        """批量分类，利用并发加速"""
-```
-
-**分类流程**：
 ```mermaid
 flowchart LR
-    B[书签] --> R{规则匹配?}
-    R -->|是| RC[规则分类]
-    R -->|否| M{ML 可用?}
-    M -->|是| MC[ML 分类]
-    M -->|否| S[语义分析]
-    RC --> F[融合结果]
-    MC --> F
-    S --> F
-    F --> O[输出分类]
+    A[CLI / Python API] --> B[BookmarkProcessor]
+    B --> C[Container / Coordinator]
+    C --> D[Load]
+    D --> E[Deduplicate]
+    E --> F[Classify]
+    F --> G[Organize]
+    G --> H[Export]
 ```
 
-### 4. OrganizationPipeline（组织阶段）
+### 智能层
 
-**职责**：根据分类结果组织书签层级结构。
+分类被刻意与外层流水线拆分开，因为它是系统里变化最快的一层。规则引擎先处理已知模式，再由 ML、语义分析与可选 LLM 为不确定样本提供额外信号，最后由融合层把这些异构信号收束成一个决策包络。
 
-```python
-class OrganizationPipeline:
-    def process(self, bookmarks: List[ClassifiedBookmark]) -> Dict:
-        """组织书签层级结构"""
-        
-    def _build_tree(self, bookmarks: List[Bookmark]) -> CategoryTree:
-        """构建分类树"""
-```
+### 输出层
 
-**输出结构**：
-```
-分类树/
-├── 技术/
-│   ├── 编程语言/
-│   │   ├── Python/
-│   │   └── JavaScript/
-│   └── 框架/
-├── 设计/
-│   ├── UI/UX/
-│   └── 图形设计/
-└── 工具/
-```
+输出层不只是序列化，它还是工具最重要的信任界面：
 
-### 5. ExportPipeline（导出阶段）
+- **HTML** 方便人工检查；
+- **JSON** 方便下游工具继续消费；
+- **Markdown** 方便生成叙述型报告与仓库内审查材料。
 
-**职责**：将处理结果导出为多种格式。
+## 数据交接
 
-```python
-class ExportPipeline:
-    def export(self, organized: Dict, output_dir: str) -> Dict[str, str]:
-        """导出处理结果"""
-        
-    def _to_html(self, data: Dict) -> str:
-        """生成 HTML 报告"""
-        
-    def _to_json(self, data: Dict) -> str:
-        """生成 JSON 数据"""
-        
-    def _to_markdown(self, data: Dict) -> str:
-        """生成 Markdown 文档"""
-```
+每个阶段都在缩窄或丰富数据：
 
-## 数据流转
+| 阶段 | 输入形态 | 输出效果 |
+|------|----------|----------|
+| 加载 | 原始导出文件 | 归一化后的书签对象 |
+| 去重 | 书签对象集合 | 更干净、更少噪声的数据集 |
+| 分类 | 清洗后的书签 | 标签、置信度与来源信息 |
+| 组织 | 已分类书签 | 目录放置决策 |
+| 导出 | 结构化结果模型 | 可审计的最终工件 |
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Coordinator
-    participant Loader
-    participant Dedup
-    participant Class
-    participant Org
-    participant Export
-    
-    User->>Coordinator: process_files(["bookmarks.html"])
-    Coordinator->>Loader: load("bookmarks.html")
-    Loader-->>Coordinator: List[Bookmark] (1247 items)
-    
-    Coordinator->>Dedup: process(bookmarks)
-    Dedup-->>Coordinator: List[Bookmark] (1158 items, 89 removed)
-    
-    Coordinator->>Class: process(bookmarks)
-    Note over Class: 并发分类<br/>ThreadPoolExecutor
-    Class-->>Coordinator: List[ClassifiedBookmark]
-    
-    Coordinator->>Org: process(classified)
-    Org-->>Coordinator: CategoryTree
-    
-    Coordinator->>Export: export(tree, "output/")
-    Export-->>Coordinator: {html, json, md}
-    
-    Coordinator-->>User: Statistics
-```
+这套形态的意义在于约束问题定位范围。加载 bug 不应伪装成融合 bug，导出问题也不应反过来迫使维护者重读分类器实现。
 
-## 性能特性
+## 故障隔离
 
-| 指标 | 数值 | 说明 |
-|------|------|------|
-| 处理速度 | 500+ 书签/秒 | 单线程基准 |
-| 并发加速 | 4x | 4 线程并发 |
-| 内存占用 | < 100MB | 10,000 书签 |
-| 启动时间 | < 100ms | 延迟初始化 |
+流水线同时也是故障边界：
 
-## 扩展点
+- 输入格式异常，应在智能层启动之前暴露；
+- 可选智能模块异常，应缩窄分类能力，而不是抹掉整个运行过程；
+- 导出失败，应发生在“结果已经形成”之后，而不是反向污染前面阶段。
 
-Pipeline 架构支持灵活扩展：
+边界命名得越清楚，代码库就越容易被安全修改。
 
-1. **自定义 Pipeline**：实现 `IPipeline` 接口
-2. **中间件模式**：在 Pipeline 之间插入处理逻辑
-3. **事件钩子**：`on_before_process`、`on_after_process`
+## 为什么这种形态重要
 
-```python
-# 自定义 Pipeline 示例
-class CustomPipeline(IPipeline):
-    def process(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
-        # 自定义处理逻辑
-        return processed_bookmarks
-```
-
-## 相关文档
-
-- [依赖注入容器](/zh/architecture/container) - 组件管理和依赖注入
-- [Protocol 接口](/zh/architecture/protocols) - 接口定义和契约
-- [融合算法](/zh/algorithms/fusion) - 分类器融合机制
+如果没有显式阶段，仓库最终就会回到上帝类模式：所有逻辑互相调用，测试成本飙升，任何改动都要求维护者重新理解整个程序。今天的 Pipeline 因而不只是一个实现细节，而是这个项目最重要的可维护性保证之一。

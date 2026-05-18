@@ -1,120 +1,70 @@
 # Pipeline Architecture
 
-Bookmarks Cleaner adopts a **5-stage Pipeline architecture**, orchestrated by `BookmarkProcessorCoordinator` to manage the execution order and data flow.
+Bookmarks Cleaner treats the processing flow as a runtime pipeline rather than a pile of utility functions. That choice matters because every later property, observability, extensibility, and fallback behavior, depends on having named handoff points.
 
-## Architecture Overview
+## Runtime Layers
+
+### Entry and orchestration
+
+The runtime begins at the CLI or the thin Python surface. From there, `BookmarkProcessor` acts as the façade, while the container and coordinator own composition and sequencing. This keeps the public entry point stable even when the internal execution graph changes.
+
+### Processing pipeline
+
+The maintained processing stages are:
+
+1. **Load**: parse bookmark exports into a normalized internal representation.
+2. **Deduplicate**: collapse exact or near-exact duplicates before classification amplifies noise.
+3. **Classify**: send bookmarks through the rules-first intelligence stack.
+4. **Organize**: translate labels and confidence into folder structure decisions.
+5. **Export**: emit cleaned HTML, JSON, and Markdown artifacts.
 
 ```mermaid
-flowchart TB
-    subgraph Input["📥 Input Layer"]
-        HTML[bookmarks.html]
-        JSON_IN[bookmarks.json]
-    end
-    
-    subgraph Pipeline["⚙️ Processing Pipeline"]
-        L[BookmarkLoader<br/>Loader] --> D[DeduplicationPipeline<br/>Dedup]
-        D --> C[ClassificationPipeline<br/>Classify]
-        C --> O[OrganizationPipeline<br/>Organize]
-        O --> E[ExportPipeline<br/>Export]
-    end
-    
-    subgraph Classifiers["🤖 Classifier Layer"]
-        R[RuleEngine<br/>Rules] --> F[FusionEngine<br/>Fusion]
-        M[MLClassifier<br/>ML] --> F
-        S[SemanticAnalyzer<br/>Semantic] --> F
-        LLM[LLMClassifier<br/>LLM] --> F
-    end
-    
-    subgraph Output["📤 Output Layer"]
-        HTML_OUT[HTML Report]
-        JSON_OUT[JSON Data]
-        MD[Markdown]
-    end
-    
-    HTML --> L
-    JSON_IN --> L
-    C --> Classifiers
-    E --> Output
+flowchart LR
+    A[CLI / Python API] --> B[BookmarkProcessor]
+    B --> C[Container / Coordinator]
+    C --> D[Load]
+    D --> E[Deduplicate]
+    E --> F[Classify]
+    F --> G[Organize]
+    G --> H[Export]
 ```
 
-## 5 Stages Explained
+### Intelligence layer
 
-### 1. BookmarkLoader (Loading Stage)
+Classification is deliberately separated from the outer pipeline because it is the most volatile part of the system. The rule engine handles known patterns first, then ML, semantic analysis, and optional LLM participation contribute signal for uncertain cases. Fusion turns those heterogeneous signals into one decision envelope.
 
-**Responsibility**: Parse browser-exported bookmark files into a unified internal data structure.
+### Output surfaces
 
-```python
-class BookmarkLoader:
-    def load(self, file_path: str) -> List[Dict]:
-        """Load bookmark file, supports HTML/JSON formats"""
-        
-    def _parse_html(self, content: str) -> List[Dict]:
-        """Parse Netscape Bookmark format"""
-        
-    def _normalize(self, bookmarks: List[Dict]) -> List[Bookmark]:
-        """Normalize bookmark data"""
-```
+The output layer is more than serialization. It is the final trust surface of the tool:
 
-**Supported formats**:
-- Chrome/Edge HTML export
-- Firefox JSON backup
-- Safari HTML bookmarks
+- **HTML** supports human inspection.
+- **JSON** supports downstream tooling.
+- **Markdown** supports narrative reporting and repository-friendly review.
 
-### 2. DeduplicationPipeline (Deduplication Stage)
+## Data Handoffs
 
-**Responsibility**: Identify and handle duplicate bookmarks.
+Each stage narrows or enriches the data:
 
-```python
-class DeduplicationPipeline:
-    def process(self, bookmarks: List[Bookmark]) -> List[Bookmark]:
-        """Execute deduplication process"""
-```
+| Stage | Input shape | Output effect |
+|-------|-------------|---------------|
+| Load | Raw export file | Normalized bookmark objects |
+| Deduplicate | Bookmark objects | Reduced, less noisy set |
+| Classify | Clean bookmarks | Labels, confidence, and provenance |
+| Organize | Classified bookmarks | Folder placement decisions |
+| Export | Structured output model | Auditable artifacts |
 
-**Deduplication strategies**:
-| Strategy | Description | Complexity |
-|----------|-------------|------------|
-| URL exact match | Compare normalized URLs | O(n) |
-| Domain+path match | Ignore query parameter differences | O(n) |
-| Semantic similarity | Calculate title/description similarity | O(n²) |
+This shape matters because it constrains where bugs can hide. A loading bug should not masquerade as a fusion bug. An export issue should not require re-reading classifier code.
 
-### 3. ClassificationPipeline (Classification Stage)
+## Failure Containment
 
-**Responsibility**: Assign one or more category labels to each bookmark.
+The pipeline also acts as a fault boundary:
 
-```python
-class ClassificationPipeline:
-    def __init__(self, classifier: AIBookmarkClassifier):
-        self.classifier = classifier
-        
-    def process(self, bookmarks: List[Bookmark]) -> List[ClassifiedBookmark]:
-        """Execute classification process"""
-```
+- malformed input should fail before intelligence stages start;
+- optional intelligence modules should degrade classification width, not erase the whole run;
+- export failures should surface after the processing result already exists conceptually.
 
-### 4. OrganizationPipeline (Organization Stage)
+The more clearly the pipeline names these boundaries, the easier the codebase is to change safely.
 
-**Responsibility**: Organize bookmark hierarchy based on classification results.
+## Why This Shape Matters
 
-### 5. ExportPipeline (Export Stage)
-
-**Responsibility**: Export processing results to multiple formats.
-
-```python
-class ExportPipeline:
-    def export(self, organized: Dict, output_dir: str) -> Dict[str, str]:
-        """Export processing results"""
-```
-
-## Performance Characteristics
-
-| Metric | Value | Description |
-|--------|-------|-------------|
-| Processing speed | 500+ bookmarks/sec | Single-threaded baseline |
-| Concurrent speedup | 4x | 4-thread concurrency |
-| Memory usage | < 100MB | 10,000 bookmarks |
-| Startup time | < 100ms | Lazy initialization |
-
-## Related Docs
-
-- [DI Container](/en/architecture/container) - Dependency injection
-- [Protocols](/en/architecture/protocols) - Interface definitions
-- [Fusion Algorithm](/en/algorithms/fusion) - Classifier fusion
+Without named stages, the repository tends toward a god-class shape: everything can call everything, tests become expensive, and every change requires whole-program understanding. The current pipeline is therefore not just an implementation detail, but the main maintainability guarantee of the project.

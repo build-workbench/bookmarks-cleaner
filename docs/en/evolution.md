@@ -1,161 +1,42 @@
 # Evolution
 
-> "Software architecture is not designed, it evolves." — *Martin Fowler*
+This page explains the architectural story that the rest of the site assumes: Bookmarks Cleaner did not begin as a polished pipeline system. The current runtime emerged because earlier code shapes made change too expensive.
 
-This document records the thought process behind Bookmarks Cleaner's evolution from a rough prototype script to an engineered CLI tool with production architecture.
+## Phase 1, single-purpose script
 
-## Phase 1: Prototype Script (~200 lines)
+The earliest version answered one narrow question: clean an exported `bookmarks.html` file and collapse obvious duplicates. That version was useful precisely because it was small, but it also had no named boundaries. Parsing, deduplication, classification, and export logic all lived in one mental unit.
 
-**Time**: Late 2024
+## Phase 2, toolification without strong boundaries
 
-The original motivation was simple: clean Chrome's exported bookmarks.html, remove duplicate links, and group by domain.
+As configuration, logging, and smarter classification rules accumulated, the script became a tool but not yet a system. More capabilities existed, yet they were still threaded through shared state and broad utility functions. Change became possible, but locality of change remained poor.
 
-```python
-# The initial code looked roughly like this
-from bs4 import BeautifulSoup
-import re
+## Phase 3, the god-class plateau
 
-with open('bookmarks.html') as f:
-    soup = BeautifulSoup(f, 'html.parser')
+The repository then paid the classic price of growth without decomposition: too much logic collected inside `BookmarkProcessor`. The façade stopped being a façade and became the system itself. This was the pivotal moment, because it made the next step obvious:
 
-links = [(a['href'], a.text) for a in soup.find_all('a')]
-unique = list(set(links))  # Brute-force deduplication
-# ... group by domain ...
-```
+- every new classifier touched too many call sites;
+- tests had to route through too much unrelated behavior;
+- understanding one feature required loading the entire runtime into working memory.
 
-**Assumptions at the time**:
-- This is a one-off script
-- No configuration needed
-- Classification only needs domain-prefix matching
+## Phase 4, façade plus pipeline
 
-**Problems discovered quickly**:
-- `list(set(links))` only does exact URL deduplication, cannot handle `?utm_source=...` query parameter differences
-- Domain-based classification is too coarse to distinguish different content on the same domain (e.g., GitHub repo vs issue)
-- No error handling; one parsing exception crashes the entire script
+The current design reorganized the runtime around smaller, named units:
 
-## Phase 2: Toolification (~600 lines)
+| Boundary | Why it was extracted |
+|----------|----------------------|
+| Container | to make dependency wiring explicit |
+| Coordinator | to separate sequencing from public API shape |
+| Pipelines | to isolate stage-specific behavior |
+| Protocols and services | to reduce coupling between changing components |
 
-**Time**: Early 2025
+The architectural win was not aesthetic, it was operational: changes became more local, tests became more targeted, and documentation could finally describe the system without hand-waving over a giant implementation blob.
 
-Turned the script into a tool by adding:
-- Command-line argument parsing (`argparse`)
-- Basic logging
-- Configuration file support (JSON)
-- Smarter deduplication (ignoring common tracking parameters)
-- Simple rule-matching classification
+## What the site now claims because of that evolution
 
-**Architecture characteristics**:
-- Still a single file
-- Functional programming style
-- Global configuration dictionary passed everywhere
+The rest of this documentation site depends on those changes being real:
 
-**New problems that emerged**:
-- Functions coupled through global state, difficult to test
-- Adding a new classification method required modifying multiple locations
-- Performance bottleneck: processing bookmarks one by one, unable to utilize multiple cores
+- the [whitepaper](/en/whitepaper) can describe a runtime boundary because one now exists;
+- the [pipeline page](/en/architecture/pipeline) can name stages because the stages are structurally real;
+- the [related projects analysis](/en/resources/related-projects) can compare system shapes instead of comparing feature bullets.
 
-## Phase 3: The God Class (~1,148 lines)
-
-**Time**: February 2025
-
-To integrate more and more features, all logic was encapsulated into a single `BookmarkProcessor` class.
-
-```python
-class BookmarkProcessor:
-    def __init__(self, config_path):
-        self.config = load_config(config_path)
-        self.ml_model = None
-        self.llm_client = None
-        # ... dozens of attributes
-
-    def process(self, input_path, output_dir):
-        # Load ... deduplicate ... classify ... organize ... export ...
-        # Over 800 lines in one method
-```
-
-**Perceived benefits at the time**:
-- "All functionality in one class, easy to call"
-- "Users only need `processor.process()` one line of code"
-
-**Actual costs paid**:
-- Modifying any sub-feature required reading and understanding the entire class
-- Unit testing was nearly impossible: deduplication logic deeply embedded in `process()`, untestable in isolation
-- Adding LLM support required modifying 20+ locations
-- New developers needed a week before they could safely submit a PR
-
-**Code smell indicators**:
-- Single class over 1,000 lines
-- Single method over 200 lines
-- Over 15 instance attributes
-- Import dependencies tangled in a web
-
-## Phase 4: Facade + Pipeline (Current Architecture)
-
-**Time**: April 2025
-
-A thorough refactoring with one core goal: **make changes local**.
-
-### Refactoring Strategy
-
-Adopted the **Strangler Fig Pattern**, not a big-bang rewrite:
-
-1. First extract independent Pipeline classes (Loader, Deduplicator, Classifier, etc.)
-2. Let `BookmarkProcessor` temporarily call these Pipelines while keeping the external API unchanged
-3. Gradually migrate inline logic from `BookmarkProcessor` into Pipelines
-4. Eventually `BookmarkProcessor` retains only facade responsibilities
-
-### Post-Refactoring Architecture
-
-```
-BookmarkProcessor (Facade, ~350 lines)
-  └── ProcessorContainer (DI, ~50 lines)
-      └── BookmarkProcessorCoordinator (Coordination, ~200 lines)
-          ├── BookmarkLoader (Loading, ~80 lines)
-          ├── DeduplicationPipeline (Deduplication, ~60 lines)
-          ├── ClassificationPipeline (Classification, ~120 lines)
-          │   ├── RuleEngine
-          │   ├── MLClassifier
-          │   ├── SemanticAnalyzer
-          │   └── LLMClassifier (optional)
-          │   └── FusionEngine (Weighted Vote)
-          ├── OrganizationPipeline (Organization, ~50 lines)
-          └── ExportPipeline (Export, ~80 lines)
-```
-
-### Quantified Gains
-
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Max class lines | 1,148 | 350 | -70% |
-| Max method lines | 840 | 45 | -95% |
-| Unit test coverage | 12% | 78% | +66 pts |
-| New feature dev cycle | ~3 days | ~4 hours | -94% |
-| Regression defect rate | High | Low | Significantly improved |
-
-## Phase 5: Future Evolution Directions
-
-### Near-term (within 6 months)
-
-- **Plugin system**: Open `IBookmarkClassifier` protocol, allow community-contributed classifiers
-- **Web UI**: Optional local web interface while keeping core CLI offline
-- **Incremental sync**: Support incremental bookmark processing (only new/modified items)
-
-### Mid-term (within 1 year)
-
-- **Cross-language extension**: Compile core classification logic as WASM, support browser extensions
-- **Distributed inference**: Utilize local GPU acceleration for LLM inference while maintaining privacy
-
-### Long-term (2+ years)
-
-- **Federated learning**: Share classifier improvements through differential privacy while remaining fully local
-- **Knowledge graph**: Build personal bookmark knowledge graph, supporting semantic retrieval and associative recommendations
-
-## Lessons & Reflections
-
-1. **Premature abstraction is sin; late abstraction is disaster**. The pain of the god class stage taught us: when a class exceeds 500 lines, it's a signal to refactor.
-
-2. **Facade pattern is not a panacea**. A facade should be thin; if the facade itself starts accumulating logic, the abstraction level is wrong.
-
-3. **Tests are the safety net for refactoring**. Refactoring without test coverage is like walking a tightrope. We added tests before refactoring — painful, but it saved countless rollbacks.
-
-4. **User API stability comes first**. Throughout the entire refactoring, the calling convention `BookmarkProcessor(config_path=...).process_files(...)` never changed, letting external users enjoy architectural improvements without noticing.
+That is why the evolution story belongs in the docs. It is not repository nostalgia, it is evidence for the current architecture.

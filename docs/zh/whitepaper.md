@@ -1,216 +1,95 @@
 # 技术白皮书
 
-> **Bookmarks Cleaner: An Offline-first, Multi-classifier Fusion Approach to Bookmark Organization**
->
-> 版本: 1.0 | 最后更新: 2025-05
+> **Bookmarks Cleaner** 在这里被当作一个本地优先的系统工件来阐述，而不是单纯的功能页面：重点是架构边界、分类器协作，以及这些选择背后的证据链。
 
 ## 摘要
 
-Bookmarks Cleaner 是一个面向开发者的离线优先书签清理与智能分类 CLI 工具。与现有工具不同，它采用**规则优先、ML 辅助、LLM 可选**的分层分类策略，通过加权投票融合引擎整合多分类器结果，在完全离线的环境下实现高精度的书签自动组织。本文档阐述其系统架构、核心算法、性能特征及设计哲学。
+Bookmarks Cleaner 是一个离线优先的 CLI，用于书签清理、去重、分类与导出。它的核心命题不是“尽可能堆叠 AI 能力”，而是“先让主路径保持规则驱动与可解释，再把概率型智能层只用于值得付出成本的疑难样本”。因此，系统的基线始终是确定性的规则分类，ML、语义分析与可选 LLM 协作只是增强层，而不是重新定义整个运行时。
 
-## 1. 问题定义
+## 系统命题
 
-### 1.1 书签管理的痛点
+本项目由三个主张构成：
 
-现代开发者的浏览器书签数量通常超过 1,000 条，面临以下挑战：
+1. **面对个人书签档案，本地优先优于托管便利。** 输入数据包含研究路径、项目轨迹与浏览意图，把它默认为云端工作负载并不合理。
+2. **规则应该掌控主路径。** 对已知域名和模式的确定性匹配，仍然是最快、最便宜、最可解释的决策机制。
+3. **融合首先是协调问题，而不是标签问题。** 关键不在于“有多个分类器”，而在于如何把它们的置信度、优先级和可选性组合成一个可运营的最终结果。<CiteReference id="1" authors="Kuncheva, L. I." title="Combining Pattern Classifiers: Methods and Algorithms" venue="Wiley-Interscience" year="2004" />
 
-- **信息熵增**：长期积累导致书签层级混乱，查找效率指数级下降
-- **重复冗余**：同一页面多次保存，形成大量重复条目
-- **分类困难**：手动分类耗时且主观，缺乏一致性
-- **隐私风险**：在线书签服务要求上传完整浏览历史
-- **格式锁定**：浏览器原生导出格式难以跨平台迁移和分析
+## 运行时边界
 
-### 1.2 现有方案的局限
+维护中的系统边界被刻意收窄：
 
-| 方案类型 | 代表 | 局限 |
-|---------|------|------|
-| 浏览器原生 | Chrome/Edge | 无智能分类，手动整理成本高 |
-| 在线服务 | Raindrop, Pocket | 需上传数据，隐私不可控 |
-| 自托管 Web | linkding, Shaarli | 需服务器维护，无 ML 能力 |
-| 脚本工具 | 各类 Python 脚本 | 无架构设计，难以维护和扩展 |
+| 表面 | 范围内内容 | 工程意义 |
+|------|------------|----------|
+| 输入 | 浏览器书签导出文件，以 HTML 等本地格式为主 | 工具从用户已经掌控的文件开始 |
+| 处理 | 去重、分类、组织、导出 | 关键价值全部发生在本地运行时内部 |
+| 输出 | 清洗后的书签 HTML、JSON 数据、Markdown 报告 | 输出必须可迁移、可审计 |
+| 可选集成 | ML 模型、语义分析、本地或远程 LLM 提供方 | 智能层是附加项，不是前置条件 |
+| 范围外 | 托管账号同步、中心数据库、遥测管线 | 这些会放大运维面和隐私边界 |
 
-**核心洞察**：开发者需要的是一个**零配置、零依赖、零上传**的本地工具，同时保持可扩展性和高准确率。
+这条边界解释了后面的多数设计决策。项目可以支持更强的智能层，但不能把个人书签档案重新塑造成一个服务型问题。
 
-## 2. 系统架构
+## 架构模型
 
-### 2.1 总体架构
+运行时被组织为一组显式命名的层：
 
-Bookmarks Cleaner 采用**门面模式（Facade）+ 管道模式（Pipeline）**的混合架构：
+1. **入口表面**：CLI 与薄 Python 入口。
+2. **门面与组合根**：`BookmarkProcessor` 以及装配依赖的容器。
+3. **协调层**：负责调度各处理阶段的运行时控制层。
+4. **流水线层**：加载、去重、分类、组织、导出。
+5. **智能层**：规则引擎、ML 分类器、语义分析器、可选 LLM 与最终融合层。
 
-```mermaid
-flowchart TB
-    subgraph Entry["入口层"]
-        CLI[CLI Parser]
-        API[Python API]
-    end
+这套结构的价值在于把“经常变化的部分”和“应该稳定的部分”分离开来。CLI 契约可以保持收敛，而分类器实现持续演化；门面可以保持轻薄，而协调层承担复杂度；Pipeline 可以替换阶段内部实现，而不必让所有贡献者重新学习整个系统。
 
-    subgraph Facade["门面层"]
-        BP[BookmarkProcessor]
-    end
+## 融合与置信度
 
-    subgraph DI["依赖注入容器"]
-        PC[ProcessorContainer]
-    end
+最终分类步骤采用加权投票，而不是再训练一个 stacked meta-model。这个选择非常务实：
 
-    subgraph Coord["协调层"]
-        BPC[BookmarkProcessorCoordinator]
-    end
+- 参与融合的引擎本身是异构的。规则结果是离散且高权威的，ML、语义与 LLM 输出则是概率型或经置信度整形后的结果。
+- 若再引入第二个学习层，就会额外需要训练数据，并削弱“为什么某条书签落到某个目录”的可解释性。<CiteReference id="2" authors="Wolpert, D. H." title="Stacked Generalization" venue="Neural Networks" year="1992" url="https://doi.org/10.1016/S0893-6080(05)80023-1" />
+- 加权投票允许系统保留强规则优先立场，同时吸收其他分类器的补充信号。
 
-    subgraph Pipelines["管道层"]
-        L[BookmarkLoader]
-        D[DeduplicationPipeline]
-        C[ClassificationPipeline]
-        O[OrganizationPipeline]
-        E[ExportPipeline]
-    end
+置信度校准之所以重要，是因为不同分类器输出的原始分数并不能直接比较。因此，本项目把“置信度”视为一个工程接口，而不是一个装饰数字。<CiteReference id="3" authors="Zadrozny, B.; Elkan, C." title="Obtaining Calibrated Probability Estimates from Decision Trees and Naive Bayesian Classifiers" venue="ICML" year="2001" />
 
-    subgraph Classifiers["分类器层"]
-        RE[RuleEngine]
-        ML[MLClassifier]
-        SA[SemanticAnalyzer]
-        LLM[LLMClassifier]
-        FE[FusionEngine]
-    end
+## 性能方法学
 
-    CLI --> BP
-    API --> BP
-    BP --> PC
-    PC --> BPC
-    BPC --> L --> D --> C --> O --> E
-    C --> RE
-    C --> ML
-    C --> SA
-    C --> LLM
-    RE --> FE
-    ML --> FE
-    SA --> FE
-    LLM --> FE
-```
+站点中的性能数字应该被理解为**测量包络**，而不是对所有机器环境的绝对承诺。
 
-### 2.2 关键设计原则
+### 观测维度
 
-1. **依赖反转（DIP）**：所有核心组件通过 Python Protocol 定义接口，实现面向接口编程
-2. **单一职责（SRP）**：每个 Pipeline 只负责一个处理阶段，BookmarkProcessor 仅作为门面
-3. **开闭原则（OCP）**：新分类器可通过实现 `IBookmarkClassifier` Protocol 无缝接入融合引擎
-4. **延迟初始化**：所有重型组件（ML 模型、LLM 客户端）采用惰性加载，启动时间 < 100ms
+| 维度 | 工程意义 |
+|------|----------|
+| 冷启动 | 进入运行时、但尚未加载重型依赖时的成本 |
+| 吞吐 | Pipeline 进入稳定态之后的书签处理速度 |
+| 模式选择 | 仅规则、混合 ML、可选 LLM 三种路径成本差异很大 |
+| 内存占用 | 决定大规模本地书签档案的可处理上限 |
+| 并发表现 | 反映线程级并行到底给当前工作负载带来多少收益 |
 
-## 3. 核心算法
+### 解释方式
 
-### 3.1 分类器融合引擎
+- **仅规则路径** 代表最低延迟、最高确定性的执行路径。
+- **混合路径** 用更多 CPU 与模型初始化成本，换取弱样本与歧义样本上的恢复能力。
+- **LLM 协助路径** 应该被理解为选择性升级，而不是默认执行模式。
 
-融合引擎是系统的核心创新点。它采用**加权投票（Weighted Voting）**策略，而非传统的 Stacking 或 Boosting，原因如下：
+关键点在于，性能不是孤立技巧，而是系统边界的结果：本地执行、延迟初始化，以及规则主导的常见路径。
 
-- **异构性**：规则引擎（确定性）与 ML/LLM（概率性）的输出空间不同，Stacking 的元学习器难以收敛
-- **可解释性**：加权投票的决策过程透明，每个分类器的贡献可追溯
-- **零训练**：无需额外的融合层训练数据，降低用户门槛
+## 失败模式与回退策略
 
-**融合公式**：
+系统被设计成“降级运行”，而不是“一处失败，整体崩溃”：
 
-$$
-S(c) = \sum_{i=1}^{n} w_i \cdot \mathbb{1}_{[y_i = c]} \cdot \text{conf}_i
-$$
+| 失败模式 | 预期行为 |
+|----------|----------|
+| 书签导出文件格式异常 | 在加载阶段尽早失败，后续阶段不再继续扩散错误 |
+| 规则无法命中 | 书签继续流向概率分类层，而不是直接给出空结果 |
+| ML 或语义依赖不可用 | 系统仍可退回更窄的规则优先路径 |
+| LLM 集成不可用或被关闭 | 主分类流保持完整，因为 LLM 本来就是可选层 |
+| 置信度较弱或互相冲突 | 融合层暴露较低确定性的结果，而不是伪造确定性 |
 
-其中 $w_i$ 为分类器权重，$\text{conf}_i$ 为置信度，$\mathbb{1}_{[y_i = c]}$ 为指示函数。
+这也是本架构刻意避免让“最昂贵的智能层”变成“最中心的依赖层”的根本原因。
 
-**实际权重配置**（来源于 `src/services/fusion_engine.py`）：
+## 参考链路
 
-```python
-DEFAULT_WEIGHTS = {
-    "rule_engine": 0.50,
-    "machine_learning": 0.15,
-    "semantic_analyzer": 0.10,
-    "user_profiler": 0.10,
-    "llm": 0.50,
-}
-```
-
-> **设计考量**：规则引擎权重最高（0.50），因为它是确定性输出（置信度为 1.0），对于已知模式的书签具有绝对权威。LLM 同样给以高权重（0.50），但仅在可用时参与融合。
-
-### 3.2 置信度校准
-
-原始置信度往往存在偏差（over-confidence）。系统内置 **ConfidenceCalibrator**，支持两种校准方法：
-
-- **Platt Scaling**：逻辑回归拟合，适用于 Sigmoid 型偏差
-- **Isotonic Regression**：单调回归，适用于任意形状偏差，无需参数假设
-
-```python
-class ConfidenceCalibrator:
-    def __init__(self, config=None):
-        self.method = config.get("method", "platt")
-        self._platt_a = 1.0
-        self._platt_b = 0.0
-        # ...
-```
-
-### 3.3 增量学习
-
-`IncrementalTrainer` 支持模型的增量更新、版本管理和自动回滚：
-
-```
-ModelVersion
-├── version_id: str
-├── created_at: datetime
-├── training_samples: int
-├── accuracy: float
-├── model_path: str
-└── is_active: bool
-```
-
-当新批次数据到达时，系统验证增量更新后的模型在验证集上的表现。若准确率低于 `performance_threshold`（默认 0.8），自动回滚至上一稳定版本。
-
-## 4. 性能工程
-
-### 4.1 并发模型
-
-采用 `ThreadPoolExecutor` 而非 `asyncio`，原因：
-
-1. **I/O 特性**：书签处理以 CPU 密集型为主（文本特征提取、模型推理），多线程能有效利用多核
-2. **库兼容性**：scikit-learn、Sentence Transformers 等核心依赖对多线程友好，但对 async 支持有限
-3. **调试简单性**：线程模型更直观，异常栈更易追踪
-
-```python
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-with ThreadPoolExecutor(max_workers=min(max_workers, 32)) as executor:
-    futures = {executor.submit(classify, bm): i for i, bm in enumerate(bookmarks)}
-    for future in as_completed(futures):
-        results[futures[future]] = future.result()
-```
-
-### 4.2 性能基准
-
-| 指标 | 数值 | 测试环境 |
-|------|------|----------|
-| 处理速度 | 420 ~ 650 书签/秒 | AMD Ryzen 5 5600X, 6C/12T |
-| 并发加速比 | 3.2x @ 4 workers | 同上 |
-| 内存占用 | ~85 MB / 10K 书签 | 含 ML 模型缓存 |
-| 冷启动时间 | ~90 ms | 延迟初始化后 |
-| 分类准确率 | 91.2% (融合) | 人工标注测试集, n=500 |
-| 规则命中率 | 68% | 常见技术站点 |
-
-## 5. 安全与隐私
-
-### 5.1 离线保证
-
-- 所有分类推理在本地执行
-- LLM 调用可选，默认关闭；支持本地 Ollama 部署
-- 无遥测、无日志上传、无 DNS 查询（除可选的 LLM 调用）
-
-### 5.2 数据最小化
-
-- 仅读取用户显式提供的书签导出文件
-- 输出文件完全由用户控制
-- 不修改原始书签文件
-
-## 6. 参考文献
-
-1. **Kuncheva, L. I.** (2004). *Combining Pattern Classifiers: Methods and Algorithms*. Wiley-Interscience.
-2. **Zadrozny, B., & Elkan, C.** (2001). Obtaining calibrated probability estimates from decision trees and naive Bayesian classifiers. *ICML*, 609–616.
-3. **Martin, R. C.** (2017). *Clean Architecture: A Craftsman's Guide to Software Structure and Design*. Prentice Hall.
-4. **Wolpert, D. H.** (1992). Stacked generalization. *Neural Networks*, 5(2), 241–259.
-
-## 7. 相关资源
-
-- [架构决策记录](/zh/adr) — 关键设计决策的完整记录
-- [演进思考](/zh/evolution) — 从原型到生产的技术演进
-- [GitHub 仓库](https://github.com/LessUp/bookmarks-cleaner)
+- [Pipeline 架构](/zh/architecture/pipeline) 解释阶段级运行时。
+- [性能方法学](/zh/performance/optimization) 说明站点数字应该如何阅读。
+- [参考文献](/zh/resources/references) 汇总融合、校准与架构设计背后的文献。
+- [相关项目研究](/zh/resources/related-projects) 对照邻近工具与基础能力栈。
+- [演进思考](/zh/evolution) 解释当前结构如何从旧代码形态演化而来。

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import llmstxt from 'vitepress-plugin-llms'
+import { createMermaidConfig } from './shared/mermaid-theme.mjs'
 import { createLocaleThemeConfig, localeRedirectScript } from './shared/site-data.mjs'
 
 const rawBase = process.env.VITEPRESS_BASE
@@ -77,13 +78,7 @@ export default withMermaid(defineConfig({
     siteTitle: 'Bookmarks Cleaner',
   },
 
-  mermaid: {
-    theme: 'default',
-    flowchart: {
-      curve: 'basis',
-      padding: 20,
-    },
-  },
+  mermaid: createMermaidConfig(),
 
   markdown: {
     theme: {

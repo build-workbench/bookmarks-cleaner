@@ -1,171 +1,51 @@
-# 相关开源项目
+# 相关项目研究
 
-本文档列出与 Bookmarks Cleaner 相关的开源项目，供参考和对比。
+这不是一个普通的链接列表，而是一份围绕 Bookmarks Cleaner 关心维度展开的对照页：运行时模型、隐私边界、可扩展性，以及智能分类策略。
 
-## 书签管理工具
+## 对比框架
+
+| 项目 | 运行时模型 | 数据边界 | 智能模型 | 运维负担 | 对本项目的启发 |
+|------|------------|----------|----------|----------|----------------|
+| Bookmarks Cleaner | 本地 CLI | 本地文件不离开设备 | 规则优先的混合融合 | 很低 | 本页要论证的基线 |
+| linkding | 自托管 Web 应用 | 用户控制的服务器 | 标签与检索，不强调分类器融合 | 中等 | 对照“自托管所有权”与“本地优先执行”的差异 |
+| Shaarli | 轻量自托管 Web 应用 | 用户控制的服务器 | 手工组织为主 | 低到中等 | 对照“轻量书签服务”与“自动分类 CLI”的差异 |
+| 浏览器原生导出 | 浏览器功能，不构成系统 | 完全本地 | 无智能层 | 很低 | 作为下界：只解决导出，不解决组织 |
+
+## 邻近书签系统
 
 ### linkding
 
-> **GitHub**: [sissbruecker/linkding](https://github.com/sissbruecker/linkding)
-> **Star**: 6k+ | **License**: MIT
-
-**特点**：
-- 自托管书签管理服务
-- 支持标签和分类
-- 提供 REST API
-- 支持浏览器扩展
-
-**对比**：
-| 特性 | linkding | Bookmarks Cleaner |
-|------|----------|-------------------|
-| 部署方式 | 服务端 | CLI 工具 |
-| 数据存储 | 数据库 | 本地文件 |
-| 离线使用 | 需要部署 | ✅ 完全离线 |
-| ML 分类 | ❌ | ✅ |
+- **仓库**: [sissbruecker/linkding](https://github.com/sissbruecker/linkding)
+- **为什么值得研究**：它很好地回答了“如何自托管并长期保存书签”，但产品形态与本项目不同。
+- **核心差异**：linkding 把书签管理塑造成一个长期在线服务；Bookmarks Cleaner 把它当作一次次本地处理任务。
 
 ### Shaarli
 
-> **GitHub**: [shaarli/Shaarli](https://github.com/shaarli/Shaarli)
-> **Star**: 3k+ | **License**: Zlib
+- **仓库**: [shaarli/Shaarli](https://github.com/shaarli/Shaarli)
+- **为什么值得研究**：它展示了手工策展与轻量部署在个人书签工具中的上限。
+- **核心差异**：Shaarli 优化的是持续存储与轻量托管，而不是自动分类或系统级白皮书表达。
 
-**特点**：
-- 个人书签管理器
-- PHP 实现，轻量级
-- 支持插件扩展
-- 支持 Markdown 描述
-
-### Browser Bookmark Manager
-
-> **GitHub**: [browser-bookmark-manager](https://github.com/raycast/browser-bookmark-manager)
-> **Star**: 500+ | **License**: MIT
-
-**特点**：
-- Raycast 扩展
-- 快速搜索书签
-- 支持多浏览器
-
-## 文本分类工具
-
-### FastText
-
-> **GitHub**: [facebookresearch/fastText](https://github.com/facebookresearch/fastText)
-> **Star**: 26k+ | **License**: MIT
-
-**特点**：
-- 高效文本分类
-- 词向量训练
-- 多语言支持
-
-**应用**：Bookmarks Cleaner 的 ML 分类器参考了 FastText 的文本处理方法。
+## 支撑性技术栈
 
 ### scikit-learn
 
-> **GitHub**: [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn)
-> **Star**: 60k+ | **License**: BSD
-
-**特点**：
-- 丰富的机器学习算法
-- 文本特征提取
-- 模型评估工具
-
-**应用**：Bookmarks Cleaner 使用 scikit-learn 实现 ML 分类器。
-
-## 语义分析工具
+- **仓库**: [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn)
+- **在本项目中的位置**：代表可在本地执行、且足够成熟的经典 ML 分类能力底座。
 
 ### Sentence Transformers
 
-> **GitHub**: [UKPLab/sentence-transformers](https://github.com/UKPLab/sentence-transformers)
-> **Star**: 15k+ | **License**: Apache 2.0
-
-**特点**：
-- 预训练语义模型
-- 多语言支持
-- 易于微调
-
-**应用**：Bookmarks Cleaner 使用 Sentence Transformers 实现语义分析器。
-
-### spaCy
-
-> **GitHub**: [explosion/spaCy](https://github.com/explosion/spaCy)
-> **Star**: 30k+ | **License**: MIT
-
-**特点**：
-- 工业级 NLP 库
-- 快速文本处理
-- 预训练模型
-
-## LLM 工具
-
-### LangChain
-
-> **GitHub**: [langchain-ai/langchain](https://github.com/langchain-ai/langchain)
-> **Star**: 90k+ | **License**: MIT
-
-**特点**：
-- LLM 应用开发框架
-- Prompt 模板管理
-- 链式调用
-
-**应用**：Bookmarks Cleaner 的 LLM 集成参考了 LangChain 的设计模式。
+- **仓库**: [UKPLab/sentence-transformers](https://github.com/UKPLab/sentence-transformers)
+- **在本项目中的位置**：让语义相似度与 embedding 相关增强能够被纳入本地运行时。
 
 ### Ollama
 
-> **GitHub**: [ollama/ollama](https://github.com/ollama/ollama)
-> **Star**: 80k+ | **License**: MIT
+- **仓库**: [ollama/ollama](https://github.com/ollama/ollama)
+- **在本项目中的位置**：说明可选 LLM 支持如何在用户选择本地模型宿主时，仍与本地优先边界兼容。
 
-**特点**：
-- 本地运行 LLM
-- 模型管理
-- API 兼容 OpenAI
+## 解释
 
-**应用**：Bookmarks Cleaner 支持通过 Ollama 运行本地 LLM。
+最值得记住的对比，不是“哪个工具功能更多”，而是“每个工具接受了什么样的问题形态”：
 
-## 架构参考
-
-### Clean Architecture
-
-> **GitHub**: [btjung/clean-architecture](https://github.com/btjung/clean-architecture)
-> **参考**: Robert C. Martin
-
-**应用**：Bookmarks Cleaner 采用清洁架构原则：
-- 依赖注入容器
-- Protocol 接口定义
-- 分层 Pipeline 设计
-
-### Python Type System
-
-> **文档**: [typing — Support for type hints](https://docs.python.org/3/library/typing.html)
-
-**应用**：Bookmarks Cleaner 使用 Python 类型系统：
-- Protocol 结构化子类型
-- 泛型和类型注解
-- mypy 静态检查
-
-## 性能优化
-
-### cachetools
-
-> **GitHub**: [tkem/cachetools](https://github.com/tkem/cachetools)
-> **Star**: 2k+ | **License**: MIT
-
-**应用**：内存缓存实现，支持 LRU/LFU/TTL 淘汰策略。
-
-### joblib
-
-> **GitHub**: [joblib/joblib](https://github.com/joblib/joblib)
-> **Star**: 4k+ | **License**: BSD
-
-**应用**：磁盘缓存和并行计算支持。
-
-## 对比总结
-
-| 项目 | 类型 | 离线 | ML | LLM | CLI |
-|------|------|------|----|----|-----|
-| Bookmarks Cleaner | CLI 工具 | ✅ | ✅ | ✅ | ✅ |
-| linkding | Web 服务 | ❌ | ❌ | ❌ | ❌ |
-| Shaarli | Web 服务 | ❌ | ❌ | ❌ | ❌ |
-| FastText | 库 | ✅ | ✅ | ❌ | ✅ |
-
-## 贡献
-
-如果您发现其他相关项目，欢迎提交 PR 更新此列表。
+- 自托管书签系统优化的是长期访问与共享；
+- 浏览器原生导出优化的是可迁移性；
+- Bookmarks Cleaner 优化的是一次次本地清理、分类与导出，同时保持明确的架构边界。

@@ -1,80 +1,51 @@
 # Related Projects
 
-This document lists open source projects related to Bookmarks Cleaner for reference and comparison.
+This page is not a generic link dump. It frames adjacent projects and enabling stacks in terms that matter to Bookmarks Cleaner: runtime model, privacy boundary, extensibility, and intelligence strategy.
 
-## Bookmark Management Tools
+## Comparative Frame
+
+| Project | Runtime model | Data boundary | Intelligence model | Operational burden | Why it matters here |
+|---------|---------------|---------------|--------------------|--------------------|---------------------|
+| Bookmarks Cleaner | Local CLI | Local files stay local | Rules-first with hybrid fusion | Very low | The baseline being justified |
+| linkding | Self-hosted web app | User-controlled server | Tagging and retrieval, not classifier fusion | Medium | Useful comparison for ownership without local-first execution |
+| Shaarli | Lightweight self-hosted web app | User-controlled server | Manual organization | Low to medium | Good contrast for minimal self-hosted bookmarking |
+| Browser-native exports | Browser feature, not a system | Fully local | No intelligence layer | Very low | Establishes the lower bound: portability without organization intelligence |
+
+## Adjacent Bookmark Systems
 
 ### linkding
 
-> **GitHub**: [sissbruecker/linkding](https://github.com/sissbruecker/linkding)
-> **Stars**: 6k+ | **License**: MIT
-
-**Features**:
-- Self-hosted bookmark management service
-- Tag and category support
-- REST API
-- Browser extension
-
-**Comparison**:
-| Feature | linkding | Bookmarks Cleaner |
-|---------|----------|-------------------|
-| Deployment | Server | CLI Tool |
-| Data storage | Database | Local files |
-| Offline | Needs deployment | ✅ Fully offline |
-| ML Classification | ❌ | ✅ |
+- **Repository**: [sissbruecker/linkding](https://github.com/sissbruecker/linkding)
+- **Why it matters**: strong self-hosted bookmark ownership model, but a different product shape. It solves persistence and retrieval better than local cleanup and classification.
+- **Main contrast**: linkding turns bookmark management into an always-on service; Bookmarks Cleaner keeps it as an episodic local processing task.
 
 ### Shaarli
 
-> **GitHub**: [shaarli/Shaarli](https://github.com/shaarli/Shaarli)
-> **Stars**: 3k+ | **License**: Zlib
+- **Repository**: [shaarli/Shaarli](https://github.com/shaarli/Shaarli)
+- **Why it matters**: demonstrates how far a personal bookmarking tool can go with manual curation and a light runtime.
+- **Main contrast**: Shaarli optimizes for durable storage and lightweight hosting, not automated classification or whitepaper-style runtime decomposition.
 
-**Features**:
-- Personal bookmark manager
-- PHP, lightweight
-- Plugin extension support
-
-## Text Classification Tools
-
-### FastText
-
-> **GitHub**: [facebookresearch/fastText](https://github.com/facebookresearch/fastText)
-> **Stars**: 26k+ | **License**: MIT
-
-**Application**: Bookmarks Cleaner's ML classifier references FastText's text processing methods.
+## Enabling Technical Stacks
 
 ### scikit-learn
 
-> **GitHub**: [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn)
-> **Stars**: 60k+ | **License**: BSD
-
-**Application**: Bookmarks Cleaner uses scikit-learn for ML classifier implementation.
-
-## Semantic Analysis Tools
+- **Repository**: [scikit-learn/scikit-learn](https://github.com/scikit-learn/scikit-learn)
+- **Role in this project**: represents the mature ML substrate used for practical local classification work.
 
 ### Sentence Transformers
 
-> **GitHub**: [UKPLab/sentence-transformers](https://github.com/UKPLab/sentence-transformers)
-> **Stars**: 15k+ | **License**: Apache 2.0
-
-**Application**: Used for semantic analyzer implementation.
-
-## LLM Tools
+- **Repository**: [UKPLab/sentence-transformers](https://github.com/UKPLab/sentence-transformers)
+- **Role in this project**: makes semantic similarity and embedding-based enrichment feasible inside the local runtime.
 
 ### Ollama
 
-> **GitHub**: [ollama/ollama](https://github.com/ollama/ollama)
-> **Stars**: 80k+ | **License**: MIT
+- **Repository**: [ollama/ollama](https://github.com/ollama/ollama)
+- **Role in this project**: illustrates how optional LLM support can stay compatible with the local-first trust boundary when the user chooses to run a local model host.
 
-**Application**: Bookmarks Cleaner supports local LLM via Ollama.
+## Interpretation
 
-## Comparison Summary
+The comparison worth remembering is not "which tool has more features", but "which problem shape each tool accepts":
 
-| Project | Type | Offline | ML | LLM | CLI |
-|---------|------|---------|----|----|-----|
-| Bookmarks Cleaner | CLI Tool | ✅ | ✅ | ✅ | ✅ |
-| linkding | Web Service | ❌ | ❌ | ❌ | ❌ |
-| Shaarli | Web Service | ❌ | ❌ | ❌ | ❌ |
-
-## Contribute
-
-If you find other related projects, welcome to submit PR to update this list.
+- self-hosted bookmark systems optimize for persistent access and sharing;
+- browser-native export flows optimize for portability only;
+- Bookmarks Cleaner optimizes for episodic local cleanup and classification with explicit architecture boundaries.
