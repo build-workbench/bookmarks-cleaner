@@ -2,7 +2,7 @@
 layout: home
 hero:
   name: Bookmarks Cleaner
-  text: 加载中...
+  text: Redirecting to the localized technical portal...
 ---
 
 <script setup>

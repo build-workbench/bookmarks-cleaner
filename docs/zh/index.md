@@ -2,15 +2,15 @@
 layout: home
 hero:
   name: Bookmarks Cleaner
-  text: 离线优先的智能书签清理工具
-  tagline: 规则引擎 · ML 辅助 · LLM 可选 · 完全离线
+  text: 离线优先的书签系统工程
+  tagline: 规则优先分类、融合推断架构，以及白皮书级技术文档。
   actions:
     - theme: brand
-      text: 安装使用
-      link: /zh/guide/installation
-    - theme: alt
       text: 阅读白皮书
       link: /zh/whitepaper
+    - theme: alt
+      text: 探索架构
+      link: /zh/architecture/pipeline
 features:
   - icon: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
     title: 离线优先
