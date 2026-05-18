@@ -257,10 +257,20 @@ export function resolvePreferredLocale(storedLocale, navigatorLanguage = '') {
 
 const resolvePreferredLocaleSource = resolvePreferredLocale.toString()
 
-export const localeRedirectScript = `
+/**
+ * Returns an inline script that redirects the root page to the user's preferred locale.
+ *
+ * `base` must be passed in from config.ts so that the correct path prefix is
+ * hard-coded at build time. Relying on `document.querySelector('base')` at
+ * runtime does not work on GitHub Pages because VitePress does not emit a
+ * `<base>` tag — the fallback `'/'` causes the `isRoot` check to fail when the
+ * site is served from a sub-path like `/bookmarks-cleaner/`.
+ */
+export function createLocaleRedirectScript(base = '/') {
+  return `
   (function() {
     const key = 'bookmarks-cleaner-lang';
-    const base = document.querySelector('base')?.getAttribute('href') || '/';
+    const base = ${JSON.stringify(base)};
     const path = location.pathname;
     const isRoot = path === base || path === base + 'index.html' || path === '/' || path === '/index.html';
     if (!isRoot) return;
@@ -276,6 +286,7 @@ export const localeRedirectScript = `
     location.replace(base + targetLang + '/');
   })();
 `.trim()
+}
 
 export function createLocaleThemeConfig(lang) {
   const copy = localeText[lang]

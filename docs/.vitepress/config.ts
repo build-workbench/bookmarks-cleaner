@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import llmstxt from 'vitepress-plugin-llms'
 import { createMermaidConfig } from './shared/mermaid-theme.mjs'
-import { createLocaleThemeConfig, localeRedirectScript } from './shared/site-data.mjs'
+import { createLocaleThemeConfig, createLocaleRedirectScript } from './shared/site-data.mjs'
 
 const rawBase = process.env.VITEPRESS_BASE
 const base = rawBase
@@ -45,7 +45,7 @@ export default withMermaid(defineConfig({
   head: [
     ['meta', { name: 'theme-color', content: '#0066FF' }],
     ['meta', { name: 'theme-color', content: '#4D94FF', media: '(prefers-color-scheme: dark)' }],
-    ['script', {}, localeRedirectScript],
+    ['script', {}, createLocaleRedirectScript(base)],
   ],
 
   locales: {
