@@ -7,7 +7,7 @@ test('english landing content exposes architecture-first entry points and eviden
   const en = getLandingContent('en')
 
   assert.equal(en.metrics.length, 4)
-  assert.equal(en.paths.length, 4)
+  assert.equal(en.paths.length, 5)
   assert.equal(en.evidence.length, 4)
   assert.ok(en.metrics.some((item) => item.label === 'Throughput'))
   assert.ok(en.paths.some((item) => item.href === '/en/whitepaper'))
@@ -18,7 +18,7 @@ test('chinese landing content mirrors the same structure', () => {
   const zh = getLandingContent('zh')
 
   assert.equal(zh.metrics.length, 4)
-  assert.equal(zh.paths.length, 4)
+  assert.equal(zh.paths.length, 5)
   assert.equal(zh.evidence.length, 4)
   assert.ok(zh.metrics.some((item) => item.label === '处理速度'))
   assert.ok(zh.paths.some((item) => item.href === '/zh/whitepaper'))

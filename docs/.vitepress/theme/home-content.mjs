@@ -24,6 +24,7 @@ const landingContent = {
       { index: '02', title: 'Architecture trace', detail: 'Follow the runtime from CLI entry through orchestration, pipelines, and export surfaces.', href: '/en/architecture/pipeline' },
       { index: '03', title: 'Algorithm deep dive', detail: 'Study rule matching, semantic assistance, and fusion weighting as separate but cooperating layers.', href: '/en/algorithms/fusion' },
       { index: '04', title: 'Performance evidence', detail: 'Inspect concurrency choices, cache design, and the measurement envelope for reported metrics.', href: '/en/performance/optimization' },
+      { index: '05', title: 'Engineering practices', detail: 'Learn about testing strategy, CI/CD configuration, and contribution process.', href: '/en/engineering/testing-strategy' },
     ],
     citations: [
       { title: 'Kuncheva 2004', detail: 'Classifier combination theory behind the fusion engine.', href: '/en/resources/references' },
@@ -55,8 +56,9 @@ const landingContent = {
     paths: [
       { index: '01', title: '先读白皮书', detail: '先建立系统命题、边界与失败模型，再进入代码级实现。', href: '/zh/whitepaper' },
       { index: '02', title: '沿架构追踪', detail: '从 CLI 入口一路跟到协调层、流水线、分类器和导出层。', href: '/zh/architecture/pipeline' },
-      { index: '03', title: '深挖算法', detail: '把规则匹配、语义辅助和融合权重当作协作层，而不是混成一团的“AI 能力”。', href: '/zh/algorithms/fusion' },
+      { index: '03', title: '深挖算法', detail: '把规则匹配、语义辅助和融合权重当作协作层，而不是混成一团的"AI 能力"。', href: '/zh/algorithms/fusion' },
       { index: '04', title: '检查性能证据', detail: '阅读并发策略、缓存设计和性能数字成立的边界条件。', href: '/zh/performance/optimization' },
+      { index: '05', title: '工程实践', detail: '了解测试策略、CI/CD 配置和贡献流程。', href: '/zh/engineering/testing-strategy' },
     ],
     citations: [
       { title: 'Kuncheva 2004', detail: '为融合引擎提供分类器组合理论背景。', href: '/zh/resources/references' },

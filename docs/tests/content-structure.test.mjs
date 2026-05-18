@@ -17,10 +17,10 @@ test('english whitepaper and pipeline pages expose the new research-grade struct
   assert.match(whitepaper, /^## System Thesis$/m)
   assert.match(whitepaper, /^## Runtime Boundary$/m)
   assert.match(whitepaper, /^## Performance Methodology$/m)
-  assert.match(whitepaper, /^## Failure Modes and Fallbacks$/m)
+  assert.match(whitepaper, /^## Failure Modes and Fallback Strategy$/m)
 
   assert.match(pipeline, /^## Runtime Layers$/m)
-  assert.match(pipeline, /^### Entry and orchestration$/m)
+  assert.match(pipeline, /^### Entry and Orchestration$/m)
   assert.match(related, /^## Comparative Frame$/m)
 })
 
