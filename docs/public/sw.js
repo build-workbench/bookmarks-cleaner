@@ -4,13 +4,14 @@
  */
 
 const CACHE_NAME = 'cleanbook-docs-v1'
+const BASE_PATH = '/bookmarks-cleaner/'
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/zh/',
-  '/en/',
-  '/manifest.json',
-  '/logo.svg',
+  BASE_PATH,
+  BASE_PATH + 'index.html',
+  BASE_PATH + 'zh/',
+  BASE_PATH + 'en/',
+  BASE_PATH + 'manifest.json',
+  BASE_PATH + 'logo.svg',
 ]
 
 // Install event - cache static assets
@@ -87,8 +88,8 @@ self.addEventListener('fetch', (event) => {
             if (cached) {
               return cached
             }
-            // Return offline page if available
-            return caches.match('/offline.html')
+            // Fallback to root page
+            return caches.match(BASE_PATH)
           })
         })
     )
@@ -141,6 +142,6 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   event.waitUntil(
-    clients.openWindow('/')
+    clients.openWindow(BASE_PATH)
   )
 })

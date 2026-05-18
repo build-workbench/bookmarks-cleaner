@@ -9,9 +9,10 @@ const base = rawBase
   ? rawBase.startsWith('/')
     ? rawBase.endsWith('/') ? rawBase : `${rawBase}/`
     : `/${rawBase}/`
-  : '/'
+  : '/bookmarks-cleaner/' // Default to production base path for local builds
 
 const REPO = 'https://github.com/LessUp/bookmarks-cleaner'
+const SITE_URL = 'https://lessup.github.io'
 
 function meta(lang: 'zh' | 'en'): any[] {
   const isZh = lang === 'zh'
@@ -41,6 +42,12 @@ export default withMermaid(defineConfig({
   title: 'Bookmarks Cleaner',
   description: 'Offline-first bookmark cleaner for developers',
   lastUpdated: true,
+  sitemap: {
+    hostname: `${SITE_URL}${base}`,
+    exclude: [
+      '/superpowers/**',
+    ],
+  },
 
   head: [
     ['meta', { name: 'theme-color', content: '#0066FF' }],

@@ -1,3 +1,8 @@
+---
+sitemap:
+  exclude: true
+---
+
 # GitHub Pages 架构白皮书站点重构设计
 
 ## 1. 背景
