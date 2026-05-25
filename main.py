@@ -112,7 +112,7 @@ def main():
             return
 
         if args.health_check:
-            from src.health_checker import run_health_check
+            from src.health.checker import run_health_check
 
             ok = run_health_check(str(config_path))
             if not ok:

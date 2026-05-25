@@ -3,7 +3,7 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from src.llm_organizer import LLMBookmarkOrganizer
+from src.llm.organizer import LLMBookmarkOrganizer
 
 
 class TestLLMBookmarkOrganizer(unittest.TestCase):
@@ -52,7 +52,7 @@ class TestLLMBookmarkOrganizer(unittest.TestCase):
             )
         )
 
-    @patch("src.llm_organizer.requests.post")
+    @patch("src.llm.organizer.requests.post")
     def test_successful_reorganization_and_cache(self, mock_post):
         os.environ["OPENAI_API_KEY"] = "fake-key"
         organizer = LLMBookmarkOrganizer(config=self.base_config)

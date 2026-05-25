@@ -9,8 +9,7 @@ from unittest.mock import patch
 import pytest
 
 from src.cli.interface import CLIInterface
-from src.enhanced_cli import main as enhanced_main
-from src.health_checker import run_health_check
+from src.health.checker import run_health_check
 from src.utils.resource_loader import (
     load_json_config,
     resolve_config_path,
@@ -49,13 +48,6 @@ def test_cli_interface_uses_resolved_config_path():
     cli = CLIInterface()
     resolved, _ = resolve_config_path(None)
     assert cli.config_path == str(resolved)
-
-
-def test_enhanced_cli_main_runs_interactive_manager():
-    with patch("src.enhanced_cli.InteractiveBookmarkManager") as manager_cls:
-        manager = manager_cls.return_value
-        enhanced_main()
-        manager.run.assert_called_once()
 
 
 def test_main_help_does_not_create_logs(tmp_path):

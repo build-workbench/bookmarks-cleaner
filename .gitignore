@@ -98,9 +98,6 @@ config_temp.json
 # Runtime data (user-specific)
 data/active_learning/
 models/
-logs/
-.hypothesis/
-.pytest_cache/
 
 # Frontend dependencies
 docs/package-lock.json
@@ -111,3 +108,14 @@ _bmad-output/
 .github/copilot-instructions.md
 .omc/
 superpowers-docs/
+
+# AI agent tooling local configs
+.agents/
+.devin/
+.benchmarks/
+
+# mypy cache
+.mypy_cache/
+
+# Claude Code local settings
+.claude/settings.local.json

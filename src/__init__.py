@@ -17,7 +17,7 @@ __all__ = [
 def __getattr__(name: str):
     """按需延迟导入，避免启动时加载全部模块。"""
     _mapping = {
-        "AIBookmarkClassifier": ".ai_classifier",
+        "AIBookmarkClassifier": ".classifiers.ai",
         "BookmarkProcessor": ".bookmark_processor",
         "RuleEngine": ".rule_engine",
         "DataExporter": ".data_exporter",
