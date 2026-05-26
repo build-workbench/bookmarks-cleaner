@@ -18,6 +18,11 @@ if TYPE_CHECKING:
 class EmbeddingService:
     """Transformer 嵌入服务"""
 
+    _sentence_transformer_cls: Any = None
+    _sentence_transformer_checked: bool = False
+    _sentence_transformer_error: str = ""
+    _sentence_transformer_warned: bool = False
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
         初始化嵌入服务
@@ -40,6 +45,23 @@ class EmbeddingService:
         self._fallback_enabled = bool(self.config.get("fallback_enabled", True))
         self.logger = logging.getLogger(__name__)
         self._use_transformer = True
+
+    @classmethod
+    def _resolve_sentence_transformer(cls) -> Any:
+        """延迟解析 sentence-transformers，失败结果在进程内缓存。"""
+        if cls._sentence_transformer_checked:
+            return cls._sentence_transformer_cls
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            cls._sentence_transformer_cls = SentenceTransformer
+            cls._sentence_transformer_error = ""
+        except Exception as exc:
+            cls._sentence_transformer_cls = None
+            cls._sentence_transformer_error = str(exc)
+        finally:
+            cls._sentence_transformer_checked = True
+        return cls._sentence_transformer_cls
 
     def initialize(self) -> bool:
         """
@@ -64,20 +86,23 @@ class EmbeddingService:
             self._use_transformer = False
             return False
 
-        try:
-            from sentence_transformers import SentenceTransformer
-
-            self.model = SentenceTransformer(self.model_name)
+        sentence_transformer_cls = self._resolve_sentence_transformer()
+        if sentence_transformer_cls is not None:
+            self.model = sentence_transformer_cls(self.model_name)
             self._embedding_dim = self.model.get_sentence_embedding_dimension()
             self.logger.info(f"Loaded Transformer model: {self.model_name}")
             self._use_transformer = True
             return True
-        except Exception as e:
-            self.logger.warning(f"Failed to load Transformer model: {e}")
-            if self._fallback_enabled or self.backend == "auto":
-                self._init_fallback()
-            self._use_transformer = False
-            return self._fallback_vectorizer is not None
+
+        if not self.__class__._sentence_transformer_warned:
+            err = self.__class__._sentence_transformer_error or "unknown error"
+            self.logger.warning(f"Failed to load Transformer model: {err}")
+            self.__class__._sentence_transformer_warned = True
+
+        if self._fallback_enabled or self.backend == "auto":
+            self._init_fallback()
+        self._use_transformer = False
+        return self._fallback_vectorizer is not None
 
     def _init_fallback(self):
         """初始化 TF-IDF 降级方案"""
