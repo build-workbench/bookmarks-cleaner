@@ -107,6 +107,27 @@ class TestBookmarkProcessor:
         assert processor is not None
         assert processor.config is not None
 
+    def test_initialization_with_injected_container_skips_config_loading(self):
+        """测试注入容器时不会额外读取配置文件"""
+        config = create_mock_config()
+        container = ProcessorContainer(
+            config=config,
+            _coordinator=create_mock_coordinator(),
+            _health_checker=create_mock_health_checker(),
+        )
+
+        with patch(
+            "src.bookmark_processor.resolve_config_path",
+            side_effect=AssertionError("should not resolve config"),
+        ), patch(
+            "src.bookmark_processor.load_json_config",
+            side_effect=AssertionError("should not load config"),
+        ):
+            processor = BookmarkProcessor(container=container)
+
+        assert processor.config == config
+        assert processor._container is container
+
     def test_process_files_delegates_to_coordinator(self, processor):
         """测试 process_files 委托给 Coordinator"""
         result = processor.process_files(["input.html"])

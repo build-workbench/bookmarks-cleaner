@@ -20,7 +20,7 @@ from src.utils.resource_loader import ResourceResolutionError, resolve_config_pa
 
 def setup_logging(log_level: str = "INFO", use_file: bool = False):
     """设置日志"""
-    handlers = [logging.StreamHandler()]
+    handlers: list[logging.Handler] = [logging.StreamHandler()]
     if use_file:
         os.makedirs("logs", exist_ok=True)
         handlers.insert(
@@ -191,7 +191,7 @@ def main():
 
             if not input_files:
                 logger.error("没有找到有效的输入文件")
-                return
+                sys.exit(1)
 
             logger.info(f"将处理 {len(input_files)} 个文件: {input_files}")
 
