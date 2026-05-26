@@ -9,6 +9,8 @@ Tests Properties:
 - Property 11: Feedback Persistence
 """
 
+import tempfile
+
 import pytest
 from hypothesis import assume, given, settings
 from hypothesis import strategies as st
@@ -43,9 +45,11 @@ title_strategy = st.text(min_size=5, max_size=100)
 
 
 def create_engine(
-    confidence_threshold=0.6, max_requests=10, persist_path="/tmp/test_active_learning"
+    confidence_threshold=0.6, max_requests=10, persist_path=None
 ):
     """创建主动学习引擎"""
+    if persist_path is None:
+        persist_path = tempfile.mkdtemp(prefix="test_active_learning_")
     config = {
         "confidence_threshold": confidence_threshold,
         "max_requests_per_session": max_requests,
