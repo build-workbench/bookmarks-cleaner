@@ -59,7 +59,7 @@ class FeedbackPipeline:
         self.logger = logging.getLogger(__name__)
 
         # 统计信息
-        self.stats = {
+        self.stats: Dict[str, Optional[Dict[str, Any]]] = {
             "last_export_result": None,
             "last_apply_result": None,
             "last_train_result": None,
@@ -153,7 +153,7 @@ class FeedbackPipeline:
             feedback_path: 反馈文件路径
 
         Returns:
-            包含 applied_count 和 path 的字典
+            包含 applied_count、skipped_count 和 path 的字典
         """
         engine = self.active_learning_engine
         if engine is None:
@@ -162,7 +162,8 @@ class FeedbackPipeline:
         items = self._load_feedback_items(feedback_path)
 
         applied_items: List[Dict] = []
-        for item in items:
+        skipped_count = 0
+        for index, item in enumerate(items):
             bookmark_id = item.get("bookmark_id")
             url = item.get("url", "")
             title = item.get("title", "")
@@ -173,7 +174,11 @@ class FeedbackPipeline:
             )
 
             if not bookmark_id or not correct_category:
-                raise ValueError("反馈项缺少 bookmark_id 或 correct_category")
+                skipped_count += 1
+                self.logger.warning(
+                    f"跳过无效反馈项 #{index + 1}: 缺少 bookmark_id 或 correct_category"
+                )
+                continue
 
             # 提交反馈到主动学习引擎
             engine.submit_feedback(
@@ -217,7 +222,11 @@ class FeedbackPipeline:
         if applied_feedback_path:
             self._save_applied_feedback(applied_feedback_path, applied_items)
 
-        result = {"applied_count": len(applied_items), "path": feedback_path}
+        result = {
+            "applied_count": len(applied_items),
+            "skipped_count": skipped_count,
+            "path": feedback_path,
+        }
         self.stats["last_apply_result"] = result
         return result
 

@@ -18,6 +18,7 @@ np = pytest.importorskip("numpy")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from services.feature_store import FeatureStore
+from services import feature_store as feature_store_module
 
 # Hypothesis strategies
 key_strategy = st.text(min_size=1, max_size=100)
@@ -218,6 +219,28 @@ def test_feature_store_find_similar():
     if results:
         assert results[0][0] == "vec1"
         assert results[0][1] > 0.9  # High similarity
+
+
+def test_feature_store_brute_force_reuses_cached_vector_norms(monkeypatch):
+    """Brute-force search should normalize cached vectors once, not once per query."""
+    store = FeatureStore({"max_size": 100, "ttl_seconds": 3600})
+    store.put("vec1", np.array([1.0, 0.0, 0.0], dtype=np.float32))
+    store.put("vec2", np.array([0.8, 0.2, 0.0], dtype=np.float32))
+    store.put("vec3", np.array([0.0, 1.0, 0.0], dtype=np.float32))
+
+    original_norm = feature_store_module.np.linalg.norm
+    calls = {"count": 0}
+
+    def counting_norm(value):
+        calls["count"] += 1
+        return original_norm(value)
+
+    monkeypatch.setattr(feature_store_module.np.linalg, "norm", counting_norm)
+
+    results = store.find_similar(np.array([1.0, 0.0, 0.0], dtype=np.float32), top_k=2)
+
+    assert [key for key, _ in results] == ["vec1", "vec2"]
+    assert calls["count"] == 1
 
 
 def test_feature_store_prefers_ann_index_when_available():

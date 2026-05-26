@@ -30,9 +30,10 @@ Bookmark Processor - 书签处理器门面类
 
 from __future__ import annotations
 
+import importlib
 import logging
 import time
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 from src.container import ProcessorContainer
 from src.utils.category import normalize_category_config, normalize_category_string
@@ -41,10 +42,13 @@ from src.utils.resource_loader import load_json_config, resolve_config_path
 if TYPE_CHECKING:
     from src.interfaces import IProcessor
 
+RuntimeLLMBookmarkOrganizer: Any = None
 try:
-    from src.llm.organizer import LLMBookmarkOrganizer
+    _llm_module = importlib.import_module("src.llm.organizer")
 except ImportError:
-    LLMBookmarkOrganizer = None
+    pass
+else:
+    RuntimeLLMBookmarkOrganizer = getattr(_llm_module, "LLMBookmarkOrganizer", None)
 
 
 class BookmarkProcessor:
@@ -86,10 +90,6 @@ class BookmarkProcessor:
             confidence_threshold: 置信度阈值
             container: 依赖注入容器（用于测试）
         """
-        # 解析配置路径
-        resolved_path, self._explicit_config = resolve_config_path(config_path)
-        self.config_path = str(resolved_path)
-
         # 限制线程数
         self.max_workers = min(max_workers, self.MAX_WORKERS_LIMIT)
         self.use_ml = use_ml
@@ -109,16 +109,29 @@ class BookmarkProcessor:
 
         self.logger = logging.getLogger(__name__)
 
-        # 加载配置
-        loaded_config, _, explicit = load_json_config(self.config_path)
-        self.config = self._normalize_category_config(loaded_config)
-        self._explicit_config = explicit
+        container_instance: ProcessorContainer
+
+        if container is not None:
+            injected_config_path = (
+                config_path if config_path is not None else container.config_path
+            )
+            self.config_path = (
+                str(injected_config_path) if injected_config_path is not None else ""
+            )
+            self._explicit_config = injected_config_path is not None
+            self.config = self._normalize_category_config(container.config)
+        else:
+            resolved_path, self._explicit_config = resolve_config_path(config_path)
+            self.config_path = str(resolved_path)
+            loaded_config, _, explicit = load_json_config(self.config_path)
+            self.config = self._normalize_category_config(loaded_config)
+            self._explicit_config = explicit
 
         # 验证配置
         if not isinstance(
             self.config.get("category_rules"), dict
         ) or not self.config.get("category_rules"):
-            source = "显式配置" if explicit else "默认配置"
+            source = "显式配置" if self._explicit_config else "默认配置"
             raise ValueError(f"{source}缺少有效的 category_rules: {self.config_path}")
 
         # 更新 AI 设置
@@ -143,12 +156,21 @@ class BookmarkProcessor:
             ai_settings["confidence_threshold"] = self.confidence_threshold
 
         # 初始化容器
-        self._container = container or ProcessorContainer(
-            config=self.config,
-            config_path=self.config_path,
-            max_workers=self.max_workers,
-            confidence_threshold=self.confidence_threshold,
-        )
+        if container is None:
+            container_instance = ProcessorContainer(
+                config=self.config,
+                config_path=self.config_path,
+                max_workers=self.max_workers,
+                confidence_threshold=self.confidence_threshold,
+            )
+        else:
+            container.config = self.config
+            container.config_path = container.config_path or self.config_path
+            container.max_workers = self.max_workers
+            container.confidence_threshold = self.confidence_threshold
+            container_instance = container
+
+        self._container: ProcessorContainer = container_instance
 
         # LLM 整理器（可选）
         self._llm_organizer: Optional[Any] = None
@@ -168,9 +190,9 @@ class BookmarkProcessor:
     @property
     def llm_organizer(self) -> Optional[Any]:
         """延迟初始化 LLM 整理器"""
-        if self._llm_organizer is None and LLMBookmarkOrganizer is not None:
+        if self._llm_organizer is None and RuntimeLLMBookmarkOrganizer is not None:
             try:
-                self._llm_organizer = LLMBookmarkOrganizer(
+                self._llm_organizer = RuntimeLLMBookmarkOrganizer(
                     config_path=self.config_path, config=self.config
                 )
             except Exception as exc:
@@ -187,7 +209,7 @@ class BookmarkProcessor:
         train_models: bool = False,
         limit: int = 0,
         review_queue_path: Optional[str] = None,
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         """处理多个书签文件
 
         Args:
@@ -238,7 +260,7 @@ class BookmarkProcessor:
             except Exception as exc:
                 self.logger.warning(f"LLM organizer execution failed: {exc}")
 
-    def health_check(self, bookmarks: List[Dict]) -> Dict:
+    def health_check(self, bookmarks: List[Dict]) -> Dict[str, Any]:
         """对书签进行健康检查
 
         Args:
@@ -249,23 +271,25 @@ class BookmarkProcessor:
         """
         self.logger.info(f"开始健康检查 {len(bookmarks)} 个书签...")
 
-        results = self._container.health_checker.check_bookmarks(bookmarks)
-        summary = self._container.health_checker.get_summary(results)
+        health_checker: Any = self._container.health_checker
+        results = health_checker.check_bookmarks(bookmarks)
+        summary = health_checker.get_summary(results)
 
         self.logger.info(
             f"健康检查完成: {summary['accessible_count']}/{summary['total_count']} 个链接可访问"
         )
 
-        return summary
+        return cast(Dict[str, Any], summary)
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> Dict[str, Any]:
         """获取处理统计信息
 
         Returns:
             统计信息字典
         """
         # 合并 Coordinator 的统计
-        coordinator_stats = self._container.coordinator.get_statistics()
+        coordinator: Any = self._container.coordinator
+        coordinator_stats = coordinator.get_statistics()
 
         # 计算 BPS
         processing_time = coordinator_stats.get("processing_time", 0.0)
@@ -282,7 +306,7 @@ class BookmarkProcessor:
 
     def export_review_queue(
         self, classified_bookmarks: List[Dict], output_path: Optional[str] = None
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         """导出低置信度复核队列
 
         Args:
@@ -292,11 +316,13 @@ class BookmarkProcessor:
         Returns:
             导出统计信息
         """
-        return self._container.coordinator.export_review_queue(
-            classified_bookmarks, output_path
+        coordinator: Any = self._container.coordinator
+        return cast(
+            Dict[str, Any],
+            coordinator.export_review_queue(classified_bookmarks, output_path),
         )
 
-    def apply_feedback_file(self, feedback_path: str) -> Dict:
+    def apply_feedback_file(self, feedback_path: str) -> Dict[str, Any]:
         """应用反馈数据
 
         Args:
@@ -305,9 +331,10 @@ class BookmarkProcessor:
         Returns:
             应用统计信息
         """
-        return self._container.coordinator.apply_feedback(feedback_path)
+        coordinator: Any = self._container.coordinator
+        return cast(Dict[str, Any], coordinator.apply_feedback(feedback_path))
 
-    def train_feedback_file(self, feedback_path: str) -> Dict:
+    def train_feedback_file(self, feedback_path: str) -> Dict[str, Any]:
         """使用反馈数据训练模型
 
         Args:
@@ -316,11 +343,12 @@ class BookmarkProcessor:
         Returns:
             训练统计信息
         """
-        return self._container.coordinator.train_feedback(feedback_path)
+        coordinator: Any = self._container.coordinator
+        return cast(Dict[str, Any], coordinator.train_feedback(feedback_path))
 
     def audit_feedback_file(
         self, feedback_path: str, output_path: Optional[str] = None
-    ) -> Dict:
+    ) -> Dict[str, Any]:
         """审核反馈数据质量
 
         Args:
@@ -330,7 +358,11 @@ class BookmarkProcessor:
         Returns:
             审核统计信息
         """
-        return self._container.coordinator.audit_feedback(feedback_path, output_path)
+        coordinator: Any = self._container.coordinator
+        return cast(
+            Dict[str, Any],
+            coordinator.audit_feedback(feedback_path, output_path),
+        )
 
     # ==================== 兼容性属性 ====================
 
@@ -343,13 +375,15 @@ class BookmarkProcessor:
     def deduplicator(self):
         """兼容性属性：获取去重器"""
         # 委托给 Coordinator 的去重 Pipeline
-        return self._container.coordinator.deduplication
+        coordinator: Any = self._container.coordinator
+        return coordinator.deduplication
 
     @property
     def exporter(self):
         """兼容性属性：获取导出器"""
         # 委托给 Coordinator 的导出 Pipeline
-        return self._container.coordinator.export_pipeline.exporter
+        coordinator: Any = self._container.coordinator
+        return coordinator.export_pipeline.exporter
 
     @property
     def active_learning_engine(self):

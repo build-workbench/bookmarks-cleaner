@@ -39,8 +39,9 @@ class FeatureStore:
         self._ann_m = int(ann_config.get("M", 16))
         self._ann_ef_search = int(ann_config.get("ef_search", 50))
 
-        self._cache: OrderedDict = OrderedDict()
+        self._cache: OrderedDict[str, np.ndarray] = OrderedDict()
         self._timestamps: Dict[str, float] = {}
+        self._embedding_norms: Dict[str, float] = {}
         self._lock = threading.RLock()
 
         # 统计
@@ -48,7 +49,7 @@ class FeatureStore:
         self._misses = 0
 
         # ANN 索引（可选）
-        self._ann_index = None
+        self._ann_index: Any = None
         self._ann_labels: List[str] = []
         self._ann_dirty = self._ann_enabled
 
@@ -98,6 +99,7 @@ class FeatureStore:
 
             self._cache[key] = value
             self._timestamps[key] = time.time()
+            self._embedding_norms[key] = self._vector_norm(value)
             self._ann_dirty = self._ann_enabled
 
     def _evict(self, key: str):
@@ -111,6 +113,8 @@ class FeatureStore:
             del self._cache[key]
         if key in self._timestamps:
             del self._timestamps[key]
+        if key in self._embedding_norms:
+            del self._embedding_norms[key]
         self._ann_dirty = self._ann_enabled
 
     def _check_hit_rate(self):
@@ -158,9 +162,20 @@ class FeatureStore:
             (键, 相似度) 元组列表
         """
         similarities = []
+        query = np.asarray(embedding, dtype=np.float32)
+        query_norm = self._vector_norm(query)
         with self._lock:
             for key, cached_embedding in self._cache.items():
-                sim = self._cosine_similarity(embedding, cached_embedding)
+                cached_norm = self._embedding_norms.get(key)
+                if cached_norm is None:
+                    cached_norm = self._vector_norm(cached_embedding)
+                    self._embedding_norms[key] = cached_norm
+                sim = self._cosine_similarity(
+                    query,
+                    cached_embedding,
+                    norm_a=query_norm,
+                    norm_b=cached_norm,
+                )
                 similarities.append((key, sim))
 
         similarities.sort(key=lambda x: x[1], reverse=True)
@@ -262,7 +277,17 @@ class FeatureStore:
             return 1.0 / (1.0 + max(distance, 0.0))
         return 1.0 - distance
 
-    def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
+    def _vector_norm(self, value: np.ndarray) -> float:
+        """计算并返回向量范数。"""
+        return float(np.linalg.norm(value))
+
+    def _cosine_similarity(
+        self,
+        a: np.ndarray,
+        b: np.ndarray,
+        norm_a: Optional[float] = None,
+        norm_b: Optional[float] = None,
+    ) -> float:
         """
         计算余弦相似度
 
@@ -273,8 +298,8 @@ class FeatureStore:
         Returns:
             余弦相似度
         """
-        norm_a = np.linalg.norm(a)
-        norm_b = np.linalg.norm(b)
+        norm_a = self._vector_norm(a) if norm_a is None else norm_a
+        norm_b = self._vector_norm(b) if norm_b is None else norm_b
         if norm_a == 0 or norm_b == 0:
             return 0.0
         return float(np.dot(a, b) / (norm_a * norm_b))
@@ -310,6 +335,11 @@ class FeatureStore:
             with self._lock:
                 self._cache = OrderedDict(data.get("cache", {}))
                 self._timestamps = data.get("timestamps", {})
+                self._embedding_norms = {
+                    key: self._vector_norm(value)
+                    for key, value in self._cache.items()
+                    if isinstance(value, np.ndarray)
+                }
                 stats = data.get("stats", {})
                 self._hits = stats.get("hits", 0)
                 self._misses = stats.get("misses", 0)
@@ -358,6 +388,7 @@ class FeatureStore:
         with self._lock:
             self._cache.clear()
             self._timestamps.clear()
+            self._embedding_norms.clear()
             self._hits = 0
             self._misses = 0
             self._ann_index = None

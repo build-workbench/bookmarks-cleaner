@@ -107,6 +107,24 @@ def test_main_batch_smoke(tmp_path):
     assert payload["metadata"]["processor_version"] == __import__("src").__version__
 
 
+def test_main_returns_error_when_all_input_files_are_invalid(tmp_path):
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(MAIN),
+            "-i",
+            "missing.html",
+        ],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1
+    assert "没有找到有效的输入文件" in (result.stderr + result.stdout)
+
+
 def test_package_metadata_version_matches_runtime_version():
     with PYPROJECT.open("rb") as f:
         data = tomllib.load(f)
