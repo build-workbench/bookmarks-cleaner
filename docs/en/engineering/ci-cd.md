@@ -4,13 +4,11 @@ This page explains the project's continuous integration and deployment configura
 
 ## Workflow Overview
 
-The project maintains three main GitHub Actions workflows:
+The project maintains one main GitHub Actions workflow:
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `ci.yml` | Push/PR to master | Testing and code quality checks |
-| `pages.yml` | Push to master | Documentation site deployment |
-| `release.yml` | Create Release Tag | PyPI publishing |
+| `ci.yml` | Push to master | Testing and code quality checks |
 
 ## CI Workflow Details
 
@@ -73,72 +71,6 @@ jobs:
       
       - name: Test docs
         run: cd docs && node --test tests/*.test.mjs
-```
-
-## Pages Deployment
-
-The documentation site is automatically deployed via GitHub Pages:
-
-```yaml
-# .github/workflows/pages.yml
-name: Deploy Pages
-
-on:
-  push:
-    branches: [master]
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - name: Build VitePress
-        run: |
-          cd docs
-          npm ci
-          npm run build
-      
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/.vitepress/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
-```
-
-## Release Process
-
-Creating a new Release Tag automatically triggers PyPI publishing:
-
-```bash
-# Create a new version release
-git tag v2.1.0
-git push origin v2.1.0
-
-# GitHub Actions automatically executes:
-# 1. Build distribution packages
-# 2. Publish to PyPI
-# 3. Create GitHub Release
 ```
 
 ## Local Verification
