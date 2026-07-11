@@ -15,24 +15,24 @@ The repository MUST keep only automation that serves the maintained CLI closeout
 #### Scenario: Workflow portfolio review
 - **GIVEN** GitHub workflow files exist in the repository
 - **WHEN** their purpose is evaluated
-- **THEN** only workflows that support verification, documentation publishing, or release operations for the maintained product MUST remain
+- **THEN** only workflows that support verification for the maintained product MUST remain
 
 ### Requirement: Repository metadata is maintained from the product surface
-Repository description, homepage, and topics MUST match the maintained README and Pages story.
+Repository description, homepage, and topics MUST match the maintained README story.
 
 #### Scenario: GitHub repository presentation
 - **GIVEN** the repository is viewed on GitHub
 - **WHEN** a visitor reads the repository metadata
-- **THEN** the description, homepage URL, and topics MUST accurately describe the maintained product and docs surface
+- **THEN** the description, homepage URL, and topics MUST accurately describe the maintained product
 - **AND** topics MUST include: bookmark-manager, classification, offline-first, python-cli, machine-learning
 
 ### Requirement: GitHub repository metadata is synchronized intentionally
-Repository description, homepage, topics, and published Pages URL MUST be updated from the maintained local product surface rather than drifting independently on GitHub.
+Repository description, homepage, and topics MUST be updated from the maintained local product surface rather than drifting independently on GitHub.
 
 #### Scenario: Updating repository presentation
-- **GIVEN** README and GitHub Pages have been normalized for the maintained CLI story
+- **GIVEN** README has been normalized for the maintained CLI story
 - **WHEN** the maintainer updates remote repository metadata
-- **THEN** description, homepage, topics, and Pages URL MUST match the maintained product narrative
+- **THEN** description, homepage, and topics MUST match the maintained product narrative
 - **AND** the update path MUST be documented as part of repository operations
 
 #### Scenario: Cleaning up stale remote branches
@@ -45,7 +45,7 @@ Repository description, homepage, topics, and published Pages URL MUST be update
 GitHub Actions workflows MUST use triggers and matrices that are intentionally limited to the maintained closeout surface so that CI noise stays low for a single maintainer.
 
 #### Scenario: Reviewing an existing workflow
-- **GIVEN** a workflow file exists for CI, Pages, or release operations
+- **GIVEN** a workflow file exists for CI operations
 - **WHEN** its trigger conditions and job matrix are evaluated
 - **THEN** only triggers and combinations that serve the maintained CLI product MUST remain
 - **AND** redundant or low-value automation paths MUST be removed

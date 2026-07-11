@@ -53,7 +53,7 @@ If you touch formatting, linting, typing, or workflow configuration, run the mat
 
 - `openspec/specs/` is the requirements source of truth.
 - README is the canonical repository entry point.
-- GitHub Pages should remain a concise landing surface, not a mirror of every markdown file.
+- The docs source tree should remain a concise maintained surface, not a mirror of every markdown file.
 - Remove or consolidate stale docs instead of layering new duplicates on top.
 - Use lightweight `/review` at logical checkpoints rather than PR-first process overhead.
 

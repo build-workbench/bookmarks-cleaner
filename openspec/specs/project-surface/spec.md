@@ -30,15 +30,6 @@ The root README MUST present the maintained product story, supported installatio
 - **THEN** they MUST be able to understand the product value, installation path, and where to go next
 - **AND** the README MUST avoid sprawling low-signal reference content
 
-### Requirement: GitHub Pages acts as a product landing site
-The GitHub Pages site MUST present the project as a polished landing page plus essential supporting documentation rather than a raw mirror of repository markdown.
-
-#### Scenario: Pages communicates the product clearly
-- **GIVEN** a visitor opens the published Pages URL
-- **WHEN** the site loads
-- **THEN** it MUST present a concise product narrative, quick-start path, and links to core docs
-- **AND** it MUST avoid depending on an oversized documentation information architecture
-
 ### Requirement: Generated documentation assets are not maintained as source
 The repository MUST NOT treat generated documentation outputs or installed documentation dependencies as maintained source artifacts when those assets can be reproduced from committed source files.
 
@@ -60,10 +51,8 @@ The maintained docs site MUST keep only pages that serve the product landing sto
 ## Correctness Properties
 
 - Every maintained public doc has a clear owner-purpose.
-- README and Pages tell a consistent product story.
 - Removed docs do not leave broken primary entry points.
 - The docs source tree contains maintainable source, not large reproducible build outputs.
-- Pages content stays aligned with active product messaging.
 - Deep pages exist only when they still explain maintained behavior.
 - No duplicate source files exist in the codebase.
 - All source files match the package configuration in `pyproject.toml`.
