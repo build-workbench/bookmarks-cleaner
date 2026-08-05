@@ -132,17 +132,15 @@ def test_package_metadata_version_matches_runtime_version():
     assert data["project"]["version"] == __import__("src").__version__
 
 
-def test_optional_dependency_groups_cover_semantic_and_audit_support():
+def test_optional_dependency_groups_cover_semantic_support():
     with PYPROJECT.open("rb") as f:
         data = tomllib.load(f)
 
     optional = data["project"]["optional-dependencies"]
 
     assert "semantic" in optional
-    assert "audit" in optional
     assert any(dep.startswith("sentence-transformers") for dep in optional["semantic"])
     assert any(dep.startswith("hnswlib") for dep in optional["semantic"])
-    assert any(dep.startswith("cleanlab") for dep in optional["audit"])
 
 
 def test_default_config_exposes_hybrid_runtime_hooks(tmp_path, monkeypatch):

@@ -1,29 +1,29 @@
 # CLAUDE.md
 
-This file provides repository-specific guidance for Claude Code. The full project workflow, conventions, and verification baseline live in `AGENTS.md`.
+本文件为 Claude Code 提供仓库级指引。完整的项目约定、验证基线见 `AGENTS.md`。
 
-## First Principles
+## 基本原则
 
-- Optimize for the **current maintained CLI**, not for future platform expansion.
-- Default to the **single-maintainer direct-push** workflow.
-- Keep the repository surface small, specific, and low-noise.
+- 面向 **当前维护的 CLI**，不做平台扩展
+- 业余项目，单人直接推 master，保持仓库小巧低噪
+- 不考虑向后兼容，可以破坏性更改
 
-## What to Preserve
+## 保留什么
 
-- `cleanbook` remains the canonical packaged CLI entry point.
-- The bookmark processing pipeline stays rules-first, ML-assisted, and LLM-optional.
-- Public docs stay aligned with actual supported behavior.
-- CI and verification must fail loudly on real errors.
+- `cleanbook` 作为打包 CLI 入口
+- 处理流水线保持：规则优先、ML 辅助、LLM 可选
+- 公开文档与实际支持行为对齐
+- CI 在真实错误上必须响亮失败
 
-## What to Avoid
+## 避免什么
 
-- Adding API/database scope during closeout
-- Reintroducing generic or duplicated AI instructions
-- Expanding docs just to look comprehensive
-- Soft-failing checks with `|| true` for required validation
-- Growing the AI/tooling surface without a concrete recurring repository need
+- 引入 API/数据库等新作用域
+- 堆砌通用或重复的 AI 指令
+- 为了显得全面而扩张文档
+- 用 `|| true` 让必需校验软失败
+- 没有具体复用场景就扩张工具面
 
-## High-Value Files
+## 高价值文件
 
 - `main.py`
 - `pyproject.toml`
@@ -31,5 +31,3 @@ This file provides repository-specific guidance for Claude Code. The full projec
 - `src/bookmark_processor.py`
 - `src/plugins/`
 - `src/services/`
-
-If a change touches packaging, workflows, or developer tooling, align local verification with the maintained CI configuration before pushing.

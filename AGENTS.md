@@ -1,30 +1,17 @@
 # AGENTS.md
 
-## Project Phase
+## 项目阶段
 
-CleanBook is in a **stable maintenance** phase. The CLI product is complete and the repository is in an archive-ready state.
+CleanBook 是一个 **业余维护** 的离线书签清理与分类 CLI，仓库保持小巧、低维护。
 
-## Canonical Workflow
+## 产品边界
 
-This repository uses **OpenSpec** as the only active specification workflow:
+- **入口**：`cleanbook`、`python main.py`
+- **输入**：浏览器导出的书签 HTML
+- **输出**：清洗后的 HTML、JSON 数据、markdown 报告
+- **分类栈**：规则优先，ML 辅助，LLM 可选
 
-1. `/opsx:explore` — clarify the problem and inspect the current state
-2. `/opsx:propose` — create or update the change artifacts
-3. `/opsx:apply` — implement tasks from the change
-4. `/opsx:archive` — archive the change after implementation is complete
-
-**One change at a time.** Default to **single-maintainer direct-push** on master.
-
-## Product Boundaries
-
-CleanBook is an **offline-first bookmark cleaning and classification CLI**:
-
-- **Primary entry points**: `cleanbook`, `python main.py`
-- **Core inputs**: browser bookmark HTML exports
-- **Core outputs**: cleaned bookmark HTML, JSON data, markdown reports
-- **Classification stack**: rules first, ML assisted, optional LLM integration
-
-## Architecture
+## 架构
 
 ```
 CLI / main.py
@@ -34,16 +21,16 @@ CLI / main.py
   -> services (feature store, taxonomy, etc.)
 ```
 
-## Verification Baseline
+## 验证基线
 
 ```bash
 pytest -q tests/test_runtime_paths.py
 pytest -q
 ```
 
-## Maintained Conventions
+## 约定
 
-- Type hints throughout
-- Docstrings for public APIs
-- `logging.getLogger(__name__)` instead of `print`
-- Mixed Chinese/English comments and docs are acceptable
+- 类型注解贯穿
+- 公共 API 写 docstring
+- 用 `logging.getLogger(__name__)` 而不是 `print`
+- 中英文混用注释和文档均可

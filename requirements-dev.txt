@@ -1,3 +1,0 @@
-# Maintained dependency source of truth lives in pyproject.toml.
-# This file remains as a convenience entry point for source installs with dev extras.
-.[dev]

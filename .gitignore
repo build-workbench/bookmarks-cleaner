@@ -61,14 +61,6 @@ ENV/
 env.bak/
 venv.bak/
 
-# Sphinx documentation
-docs/_build/
-
-# VitePress
-docs/.vitepress/dist/
-docs/.vitepress/cache/
-node_modules/
-
 # PyBuilder
 target/
 
@@ -99,23 +91,10 @@ config_temp.json
 data/active_learning/
 models/
 
-# Frontend dependencies
-docs/package-lock.json
-
-# BMad Method V6
-_bmad/
-_bmad-output/
-.github/copilot-instructions.md
-.omc/
-superpowers-docs/
-
 # AI agent tooling local configs
 .agents/
 .devin/
 .benchmarks/
-
-# mypy cache
-.mypy_cache/
 
 # Claude Code local settings
 .claude/settings.local.json
