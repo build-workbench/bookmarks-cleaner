@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 import llmstxt from 'vitepress-plugin-llms'
 import { createMermaidConfig } from './shared/mermaid-theme.mjs'
-import { createLocaleThemeConfig, createLocaleRedirectScript } from './shared/site-data.mjs'
+import { createThemeConfig } from './shared/site-data.mjs'
 
 const rawBase = process.env.VITEPRESS_BASE
 const base = rawBase
@@ -14,16 +14,22 @@ const base = rawBase
 const REPO = 'https://github.com/LessUp/bookmarks-cleaner'
 const SITE_URL = 'https://lessup.github.io'
 
-function meta(lang: 'zh' | 'en'): any[] {
-  const isZh = lang === 'zh'
-  const description = isZh
-    ? '开发者的离线优先书签清理与分类工具：规则优先，ML 辅助，LLM 可选。'
-    : 'Offline-first bookmark cleaner for developers: rules-first, ML-assisted, LLM-optional.'
-  const keywords = isZh
-    ? '书签清理,书签分类,离线工具,Python CLI,规则引擎,机器学习,文本分类,集成学习'
-    : 'bookmark cleaner,bookmark classification,offline tool,Python CLI,rules engine,machine learning,text classification,ensemble learning'
+const description = '开发者的离线优先书签清理与分类工具：规则优先，ML 辅助，LLM 可选。'
+const keywords = '书签清理,书签分类,离线工具,Python CLI,规则引擎,机器学习,文本分类,集成学习'
 
-  return [
+export default withMermaid(defineConfig({
+  base,
+  lang: 'zh-CN',
+  title: 'Bookmarks Cleaner',
+  description,
+  lastUpdated: true,
+  sitemap: {
+    hostname: `${SITE_URL}${base}`,
+  },
+
+  head: [
+    ['meta', { name: 'theme-color', content: '#0066FF' }],
+    ['meta', { name: 'theme-color', content: '#4D94FF', media: '(prefers-color-scheme: dark)' }],
     ['meta', { name: 'description', content: description }],
     ['meta', { name: 'keywords', content: keywords }],
     ['meta', { property: 'og:type', content: 'website' }],
@@ -34,46 +40,10 @@ function meta(lang: 'zh' | 'en'): any[] {
     ['link', { rel: 'preconnect', href: 'https://fonts.googleapis.com' }],
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap' }],
-  ]
-}
-
-export default withMermaid(defineConfig({
-  base,
-  title: 'Bookmarks Cleaner',
-  description: 'Offline-first bookmark cleaner for developers',
-  lastUpdated: true,
-  sitemap: {
-    hostname: `${SITE_URL}${base}`,
-  },
-
-  head: [
-    ['meta', { name: 'theme-color', content: '#0066FF' }],
-    ['meta', { name: 'theme-color', content: '#4D94FF', media: '(prefers-color-scheme: dark)' }],
-    ['script', {}, createLocaleRedirectScript(base)],
   ],
 
-  locales: {
-    zh: {
-      label: '简体中文',
-      lang: 'zh-CN',
-      link: '/zh/',
-      title: 'Bookmarks Cleaner',
-      description: '开发者的离线优先书签清理与分类工具：规则优先，ML 辅助，LLM 可选。',
-      head: meta('zh'),
-      themeConfig: createLocaleThemeConfig('zh'),
-    },
-    en: {
-      label: 'English',
-      lang: 'en-US',
-      link: '/en/',
-      title: 'Bookmarks Cleaner',
-      description: 'Offline-first bookmark cleaner for developers: rules-first, ML-assisted, LLM-optional.',
-      head: meta('en'),
-      themeConfig: createLocaleThemeConfig('en'),
-    },
-  },
-
   themeConfig: {
+    ...createThemeConfig(),
     search: { provider: 'local' },
     socialLinks: [
       { icon: 'github', link: REPO },

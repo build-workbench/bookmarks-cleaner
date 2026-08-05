@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides repository-specific guidance for Claude Code.
+This file provides repository-specific guidance for Claude Code. The full project workflow, conventions, and verification baseline live in `AGENTS.md`.
 
 ## First Principles
 
@@ -32,14 +32,4 @@ This file provides repository-specific guidance for Claude Code.
 - `src/plugins/`
 - `src/services/`
 
-## Verification Baseline
-
-```bash
-pytest -q tests/test_runtime_paths.py
-pytest -q
-```
-
 If a change touches packaging, workflows, or developer tooling, align local verification with the maintained CI configuration before pushing.
-
-Prefer repository-scoped instructions/skills over new MCP or plugin layers unless the extra surface clearly pays for itself.
-Default to no project-level MCP or Opencode config unless a repeated repository task cannot be handled cleanly with the maintained instruction files, skills, and ordinary CLI tooling.

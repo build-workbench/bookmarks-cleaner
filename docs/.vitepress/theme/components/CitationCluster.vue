@@ -1,24 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useData } from 'vitepress'
 import { getLandingContent } from '../home-content.mjs'
 
-const { lang } = useData()
-const locale = computed(() => lang.value === 'zh-CN' ? 'zh' : 'en')
-const content = computed(() => getLandingContent(locale.value))
+const content = computed(() => getLandingContent())
 </script>
 
 <template>
   <section class="cb-citation-cluster">
     <header class="cb-citation-header">
-      <h2>{{ locale === 'zh' ? '进一步阅读' : 'Further reading' }}</h2>
-      <p>
-        {{
-          locale === 'zh'
-            ? '把论文、相关项目和演进记录放到同一阅读出口，形成完整证据链。'
-            : 'Keep the literature, competitor analysis, and evolution notes in the same evidence trail.'
-        }}
-      </p>
+      <h2>进一步阅读</h2>
+      <p>把论文、相关项目和演进记录放到同一阅读出口，形成完整证据链。</p>
     </header>
 
     <div class="cb-citation-grid">

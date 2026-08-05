@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useData } from 'vitepress'
 import { getLandingContent } from '../home-content.mjs'
 
-const { lang } = useData()
-const locale = computed(() => lang.value === 'zh-CN' ? 'zh' : 'en')
-const content = computed(() => getLandingContent(locale.value))
+const content = computed(() => getLandingContent())
 </script>
 
 <template>
@@ -17,7 +14,7 @@ const content = computed(() => getLandingContent(locale.value))
     >
       <h3>{{ item.title }}</h3>
       <p>{{ item.detail }}</p>
-      <a :href="item.href">{{ locale === 'zh' ? '继续阅读' : 'Read more' }}</a>
+      <a :href="item.href">继续阅读</a>
     </article>
   </section>
 </template>

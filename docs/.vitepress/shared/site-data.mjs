@@ -1,309 +1,205 @@
 const REPO = 'https://github.com/LessUp/bookmarks-cleaner'
 
-const footerMessage = 'Bookmarks Cleaner · Offline-first bookmark cleanup'
+const footerMessage = 'Bookmarks Cleaner · 离线优先的书签清理'
 
-const localeText = {
-  zh: {
-    nav: ['导读', '架构', '算法', '性能', '白皮书', '参考'],
-    sidebar: {
-      overview: '导读',
-      home: '首页',
-      installation: '安装',
-      configuration: '配置',
-      advanced: '进阶用法',
-      architecture: '架构',
-      pipeline: 'Pipeline 架构',
-      container: '依赖注入容器',
-      protocols: 'Protocol 接口',
-      algorithms: '算法',
-      ruleEngine: '规则引擎',
-      mlClassifier: 'ML 分类器',
-      semanticAnalyzer: '语义分析器',
-      llmIntegration: 'LLM 集成',
-      fusion: '融合算法',
-      performance: '性能',
-      concurrency: '并发处理',
-      caching: '缓存策略',
-      optimization: '优化技巧',
-      whitepaper: '白皮书',
-      whitepaperDoc: '技术白皮书',
-      evolution: '演进思考',
-      adr: '架构决策记录',
-      references: '参考',
-      referencesDoc: '参考文献',
-      relatedProjects: '相关项目研究',
-      referenceDocs: '参考手册',
-      cli: 'CLI 命令',
-      config: '配置项',
-      taxonomy: '词表格式',
-      engineering: '工程实践',
-      testingStrategy: '测试策略',
-      ciCd: 'CI/CD 配置',
-    },
-    editLink: '在 GitHub 上编辑此页',
-    outline: '本页内容',
-    prev: '上一页',
-    next: '下一页',
-    lastUpdated: '最后更新',
-    returnToTop: '返回顶部',
-    sidebarMenu: '菜单',
-    darkModeSwitch: '切换主题',
-  },
-  en: {
-    nav: ['Overview', 'Architecture', 'Algorithms', 'Performance', 'Whitepaper', 'References'],
-    sidebar: {
-      overview: 'Overview',
-      home: 'Home',
-      installation: 'Installation',
-      configuration: 'Configuration',
-      advanced: 'Advanced',
-      architecture: 'Architecture',
-      pipeline: 'Pipeline',
-      container: 'DI Container',
-      protocols: 'Protocols',
-      algorithms: 'Algorithms',
-      ruleEngine: 'Rule Engine',
-      mlClassifier: 'ML Classifier',
-      semanticAnalyzer: 'Semantic Analyzer',
-      llmIntegration: 'LLM Integration',
-      fusion: 'Fusion',
-      performance: 'Performance',
-      concurrency: 'Concurrency',
-      caching: 'Caching',
-      optimization: 'Optimization',
-      whitepaper: 'Whitepaper',
-      whitepaperDoc: 'Technical Whitepaper',
-      evolution: 'Evolution',
-      adr: 'Architecture Decisions',
-      references: 'References',
-      referencesDoc: 'References',
-      relatedProjects: 'Related Projects',
-      referenceDocs: 'Reference',
-      cli: 'CLI',
-      config: 'Configuration',
-      taxonomy: 'Taxonomy',
-      engineering: 'Engineering',
-      testingStrategy: 'Testing Strategy',
-      ciCd: 'CI/CD',
-    },
-    editLink: 'Edit this page on GitHub',
-    outline: 'On this page',
-    prev: 'Previous',
-    next: 'Next',
-    lastUpdated: 'Last updated',
-    returnToTop: 'Return to top',
-    sidebarMenu: 'Menu',
-    darkModeSwitch: 'Appearance',
-  },
+const sidebar = {
+  overview: '导读',
+  home: '首页',
+  installation: '安装',
+  configuration: '配置',
+  advanced: '进阶用法',
+  architecture: '架构',
+  pipeline: 'Pipeline 架构',
+  container: '依赖注入容器',
+  protocols: 'Protocol 接口',
+  algorithms: '算法',
+  ruleEngine: '规则引擎',
+  mlClassifier: 'ML 分类器',
+  semanticAnalyzer: '语义分析器',
+  llmIntegration: 'LLM 集成',
+  fusion: '融合算法',
+  performance: '性能',
+  concurrency: '并发处理',
+  caching: '缓存策略',
+  optimization: '优化技巧',
+  whitepaper: '白皮书',
+  whitepaperDoc: '技术白皮书',
+  evolution: '演进思考',
+  adr: '架构决策记录',
+  references: '参考',
+  referencesDoc: '参考文献',
+  relatedProjects: '相关项目研究',
+  referenceDocs: '参考手册',
+  cli: 'CLI 命令',
+  config: '配置项',
+  taxonomy: '词表格式',
+  engineering: '工程实践',
+  testingStrategy: '测试策略',
+  ciCd: 'CI/CD 配置',
 }
 
-function pathFor(lang, suffix = '') {
-  return suffix ? `/${lang}/${suffix}` : `/${lang}/`
+function pathFor(suffix = '') {
+  return suffix ? `/zh/${suffix}` : '/zh/'
 }
 
-function themeNav(lang) {
-  const copy = localeText[lang]
-
+function themeNav() {
   return [
-    { text: copy.nav[0], link: pathFor(lang) },
-    { text: copy.nav[1], link: pathFor(lang, 'architecture/pipeline') },
-    { text: copy.nav[2], link: pathFor(lang, 'algorithms/fusion') },
-    { text: copy.nav[3], link: pathFor(lang, 'performance/optimization') },
-    { text: copy.nav[4], link: pathFor(lang, 'whitepaper') },
-    { text: copy.nav[5], link: pathFor(lang, 'resources/references') },
+    { text: '导读', link: pathFor() },
+    { text: '架构', link: pathFor('architecture/pipeline') },
+    { text: '算法', link: pathFor('algorithms/fusion') },
+    { text: '性能', link: pathFor('performance/optimization') },
+    { text: '白皮书', link: pathFor('whitepaper') },
+    { text: '参考', link: pathFor('resources/references') },
     { text: 'GitHub', link: REPO },
   ]
 }
 
-function themeSidebar(lang) {
-  const copy = localeText[lang].sidebar
-  const base = `/${lang}/`
+function themeSidebar() {
+  const base = '/zh/'
+  const c = sidebar
 
   return {
     [base]: [
       {
-        text: copy.overview,
+        text: c.overview,
         collapsed: false,
         items: [
-          { text: copy.home, link: base },
-          { text: copy.installation, link: pathFor(lang, 'guide/installation') },
-          { text: copy.configuration, link: pathFor(lang, 'guide/configuration') },
-          { text: copy.advanced, link: pathFor(lang, 'guide/advanced') },
-          { text: copy.whitepaperDoc, link: pathFor(lang, 'whitepaper') },
-          { text: copy.evolution, link: pathFor(lang, 'evolution') },
+          { text: c.home, link: base },
+          { text: c.installation, link: pathFor('guide/installation') },
+          { text: c.configuration, link: pathFor('guide/configuration') },
+          { text: c.advanced, link: pathFor('guide/advanced') },
+          { text: c.whitepaperDoc, link: pathFor('whitepaper') },
+          { text: c.evolution, link: pathFor('evolution') },
         ],
       },
     ],
-    [pathFor(lang, 'guide/')]: [
+    [pathFor('guide/')]: [
       {
-        text: copy.overview,
+        text: c.overview,
         collapsed: false,
         items: [
-          { text: copy.installation, link: pathFor(lang, 'guide/installation') },
-          { text: copy.configuration, link: pathFor(lang, 'guide/configuration') },
-          { text: copy.advanced, link: pathFor(lang, 'guide/advanced') },
+          { text: c.installation, link: pathFor('guide/installation') },
+          { text: c.configuration, link: pathFor('guide/configuration') },
+          { text: c.advanced, link: pathFor('guide/advanced') },
         ],
       },
     ],
-    [pathFor(lang, 'architecture/')]: [
+    [pathFor('architecture/')]: [
       {
-        text: copy.architecture,
+        text: c.architecture,
         collapsed: false,
         items: [
-          { text: copy.pipeline, link: pathFor(lang, 'architecture/pipeline') },
-          { text: copy.container, link: pathFor(lang, 'architecture/container') },
-          { text: copy.protocols, link: pathFor(lang, 'architecture/protocols') },
+          { text: c.pipeline, link: pathFor('architecture/pipeline') },
+          { text: c.container, link: pathFor('architecture/container') },
+          { text: c.protocols, link: pathFor('architecture/protocols') },
         ],
       },
     ],
-    [pathFor(lang, 'algorithms/')]: [
+    [pathFor('algorithms/')]: [
       {
-        text: copy.algorithms,
+        text: c.algorithms,
         collapsed: false,
         items: [
-          { text: copy.ruleEngine, link: pathFor(lang, 'algorithms/rule-engine') },
-          { text: copy.mlClassifier, link: pathFor(lang, 'algorithms/ml-classifier') },
-          { text: copy.semanticAnalyzer, link: pathFor(lang, 'algorithms/semantic-analyzer') },
-          { text: copy.llmIntegration, link: pathFor(lang, 'algorithms/llm-integration') },
-          { text: copy.fusion, link: pathFor(lang, 'algorithms/fusion') },
+          { text: c.ruleEngine, link: pathFor('algorithms/rule-engine') },
+          { text: c.mlClassifier, link: pathFor('algorithms/ml-classifier') },
+          { text: c.semanticAnalyzer, link: pathFor('algorithms/semantic-analyzer') },
+          { text: c.llmIntegration, link: pathFor('algorithms/llm-integration') },
+          { text: c.fusion, link: pathFor('algorithms/fusion') },
         ],
       },
     ],
-    [pathFor(lang, 'performance/')]: [
+    [pathFor('performance/')]: [
       {
-        text: copy.performance,
+        text: c.performance,
         collapsed: false,
         items: [
-          { text: copy.concurrency, link: pathFor(lang, 'performance/concurrency') },
-          { text: copy.caching, link: pathFor(lang, 'performance/caching') },
-          { text: copy.optimization, link: pathFor(lang, 'performance/optimization') },
+          { text: c.concurrency, link: pathFor('performance/concurrency') },
+          { text: c.caching, link: pathFor('performance/caching') },
+          { text: c.optimization, link: pathFor('performance/optimization') },
         ],
       },
     ],
-    [pathFor(lang, 'whitepaper')]: [
+    [pathFor('whitepaper')]: [
       {
-        text: copy.whitepaper,
+        text: c.whitepaper,
         collapsed: false,
         items: [
-          { text: copy.whitepaperDoc, link: pathFor(lang, 'whitepaper') },
-          { text: copy.evolution, link: pathFor(lang, 'evolution') },
-          { text: copy.adr, link: pathFor(lang, 'adr') },
+          { text: c.whitepaperDoc, link: pathFor('whitepaper') },
+          { text: c.evolution, link: pathFor('evolution') },
+          { text: c.adr, link: pathFor('adr') },
         ],
       },
     ],
-    [pathFor(lang, 'evolution')]: [
+    [pathFor('evolution')]: [
       {
-        text: copy.whitepaper,
+        text: c.whitepaper,
         collapsed: false,
         items: [
-          { text: copy.whitepaperDoc, link: pathFor(lang, 'whitepaper') },
-          { text: copy.evolution, link: pathFor(lang, 'evolution') },
-          { text: copy.adr, link: pathFor(lang, 'adr') },
+          { text: c.whitepaperDoc, link: pathFor('whitepaper') },
+          { text: c.evolution, link: pathFor('evolution') },
+          { text: c.adr, link: pathFor('adr') },
         ],
       },
     ],
-    [pathFor(lang, 'adr')]: [
+    [pathFor('adr')]: [
       {
-        text: copy.whitepaper,
+        text: c.whitepaper,
         collapsed: false,
         items: [
-          { text: copy.whitepaperDoc, link: pathFor(lang, 'whitepaper') },
-          { text: copy.evolution, link: pathFor(lang, 'evolution') },
-          { text: copy.adr, link: pathFor(lang, 'adr') },
+          { text: c.whitepaperDoc, link: pathFor('whitepaper') },
+          { text: c.evolution, link: pathFor('evolution') },
+          { text: c.adr, link: pathFor('adr') },
         ],
       },
     ],
-    [pathFor(lang, 'resources/')]: [
+    [pathFor('resources/')]: [
       {
-        text: copy.references,
+        text: c.references,
         collapsed: false,
         items: [
-          { text: copy.referencesDoc, link: pathFor(lang, 'resources/references') },
-          { text: copy.relatedProjects, link: pathFor(lang, 'resources/related-projects') },
+          { text: c.referencesDoc, link: pathFor('resources/references') },
+          { text: c.relatedProjects, link: pathFor('resources/related-projects') },
         ],
       },
     ],
-    [pathFor(lang, 'reference/')]: [
+    [pathFor('reference/')]: [
       {
-        text: copy.referenceDocs,
+        text: c.referenceDocs,
         collapsed: false,
         items: [
-          { text: copy.cli, link: pathFor(lang, 'reference/cli') },
-          { text: copy.config, link: pathFor(lang, 'reference/config') },
-          { text: copy.taxonomy, link: pathFor(lang, 'reference/taxonomy') },
+          { text: c.cli, link: pathFor('reference/cli') },
+          { text: c.config, link: pathFor('reference/config') },
+          { text: c.taxonomy, link: pathFor('reference/taxonomy') },
         ],
       },
     ],
-    [pathFor(lang, 'engineering/')]: [
+    [pathFor('engineering/')]: [
       {
-        text: copy.engineering,
+        text: c.engineering,
         collapsed: false,
         items: [
-          { text: copy.testingStrategy, link: pathFor(lang, 'engineering/testing-strategy') },
-          { text: copy.ciCd, link: pathFor(lang, 'engineering/ci-cd') },
+          { text: c.testingStrategy, link: pathFor('engineering/testing-strategy') },
+          { text: c.ciCd, link: pathFor('engineering/ci-cd') },
         ],
       },
     ],
   }
 }
 
-export function resolvePreferredLocale(storedLocale, navigatorLanguage = '') {
-  if (storedLocale === 'zh' || storedLocale === 'en') {
-    return storedLocale
-  }
-
-  return navigatorLanguage.toLowerCase().startsWith('zh') ? 'zh' : 'en'
-}
-
-const resolvePreferredLocaleSource = resolvePreferredLocale.toString()
-
-/**
- * Returns an inline script that redirects the root page to the user's preferred locale.
- *
- * `base` must be passed in from config.ts so that the correct path prefix is
- * hard-coded at build time. Relying on `document.querySelector('base')` at
- * runtime does not work on GitHub Pages because VitePress does not emit a
- * `<base>` tag — the fallback `'/'` causes the `isRoot` check to fail when the
- * site is served from a sub-path like `/bookmarks-cleaner/`.
- */
-export function createLocaleRedirectScript(base = '/') {
-  return `
-  (function() {
-    const key = 'bookmarks-cleaner-lang';
-    const base = ${JSON.stringify(base)};
-    const path = location.pathname;
-    const isRoot = path === base || path === base + 'index.html' || path === '/' || path === '/index.html';
-    if (!isRoot) return;
-
-    const stored = localStorage.getItem(key);
-    const resolvePreferredLocale = ${resolvePreferredLocaleSource};
-    const targetLang = resolvePreferredLocale(stored, navigator.language || '');
-
-    if (!stored) {
-      localStorage.setItem(key, targetLang);
-    }
-
-    location.replace(base + targetLang + '/');
-  })();
-`.trim()
-}
-
-export function createLocaleThemeConfig(lang) {
-  const copy = localeText[lang]
-
+export function createThemeConfig() {
   return {
-    nav: themeNav(lang),
-    sidebar: themeSidebar(lang),
+    nav: themeNav(),
+    sidebar: themeSidebar(),
     editLink: {
       pattern: `${REPO}/edit/master/docs/:path`,
-      text: copy.editLink,
+      text: '在 GitHub 上编辑此页',
     },
-    outline: { level: [2, 3], label: copy.outline },
-    docFooter: { prev: copy.prev, next: copy.next },
-    lastUpdated: { text: copy.lastUpdated },
-    returnToTopLabel: copy.returnToTop,
-    sidebarMenuLabel: copy.sidebarMenu,
-    darkModeSwitchLabel: copy.darkModeSwitch,
+    outline: { level: [2, 3], label: '本页内容' },
+    docFooter: { prev: '上一页', next: '下一页' },
+    lastUpdated: { text: '最后更新' },
+    returnToTopLabel: '返回顶部',
+    sidebarMenuLabel: '菜单',
+    darkModeSwitchLabel: '切换主题',
     footer: {
       message: footerMessage,
       copyright: `Copyright © 2025-${new Date().getFullYear()} LessUp`,

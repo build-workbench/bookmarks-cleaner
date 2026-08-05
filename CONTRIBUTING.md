@@ -1,61 +1,6 @@
 # Contributing to CleanBook
 
-CleanBook is a small repository in a **closeout and stabilization** phase. Contributions are welcome when they improve the maintained CLI, documentation surface, or repository health without reopening broad product scope.
-
-## Start Here
-
-1. Read `AGENTS.md` for the repository workflow.
-2. Use `openspec/` as the only active specification system.
-3. Work on one change at a time.
-
-## Development Workflow
-
-For any non-trivial change, follow:
-
-1. `/opsx:explore`
-2. `/opsx:propose`
-3. `/opsx:apply`
-4. `/opsx:archive`
-
-The maintainer workflow defaults to **direct pushes on the default branch**. Temporary branches or worktrees are optional isolation tools, not a required norm.
-
-For a repository-wide closeout pass, one umbrella OpenSpec change is acceptable as long as the tasks keep explicit phase order and dependencies.
-
-## Scope Rules
-
-Good contributions for this phase:
-
-- runtime or packaging fixes
-- docs cleanup with a clear maintained purpose
-- workflow and CI simplification
-- fixes that reduce maintenance cost or clarify the product story
-- small, repository-specific AI/editor/tooling improvements that reduce recurring maintenance friction
-
-Out of scope unless explicitly requested:
-
-- new API layers
-- database work
-- speculative feature expansion
-- adding redundant docs or automation
-
-## Verification
-
-Use the maintained verification baseline:
-
-```bash
-pytest -q tests/test_runtime_paths.py
-pytest -q
-```
-
-If you touch formatting, linting, typing, or workflow configuration, run the matching local commands used by the maintained CI setup.
-
-## Documentation Rules
-
-- `openspec/specs/` is the requirements source of truth.
-- README is the canonical repository entry point.
-- The docs source tree should remain a concise maintained surface, not a mirror of every markdown file.
-- Remove or consolidate stale docs instead of layering new duplicates on top.
-- Use lightweight `/review` at logical checkpoints rather than PR-first process overhead.
+CleanBook is in a **stable maintenance** phase. The project workflow, scope rules, and verification baseline are defined in `AGENTS.md`. This file covers contribution-specific guidance only.
 
 ## Reporting Problems
 
@@ -65,3 +10,10 @@ When reporting a bug or proposing a cleanup:
 - explain why it is incorrect or high-maintenance
 - include a reproduction path if runtime behavior is affected
 - point to the relevant spec, workflow file, or doc if process drift is involved
+
+## Documentation Rules
+
+- `openspec/specs/` is the requirements source of truth for active changes.
+- README is the canonical repository entry point.
+- The docs source tree should remain a concise maintained surface, not a mirror of every markdown file.
+- Remove or consolidate stale docs instead of layering new duplicates on top.

@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useData } from 'vitepress'
 import { getLandingContent } from '../home-content.mjs'
 
-const { lang } = useData()
-const locale = computed(() => lang.value === 'zh-CN' ? 'zh' : 'en')
-const content = computed(() => getLandingContent(locale.value))
+const content = computed(() => getLandingContent())
 
 // Animated number counters via IntersectionObserver
 const stripRef = ref<HTMLElement | null>(null)

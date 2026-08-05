@@ -9,22 +9,7 @@ function read(relativePath) {
   return readFileSync(join(docsRoot, relativePath), 'utf8')
 }
 
-test('english whitepaper and pipeline pages expose the new research-grade structure', () => {
-  const whitepaper = read('en/whitepaper.md')
-  const pipeline = read('en/architecture/pipeline.md')
-  const related = read('en/resources/related-projects.md')
-
-  assert.match(whitepaper, /^## System Thesis$/m)
-  assert.match(whitepaper, /^## Runtime Boundary$/m)
-  assert.match(whitepaper, /^## Performance Methodology$/m)
-  assert.match(whitepaper, /^## Failure Modes and Fallback Strategy$/m)
-
-  assert.match(pipeline, /^## Runtime Layers$/m)
-  assert.match(pipeline, /^### Entry and Orchestration$/m)
-  assert.match(related, /^## Comparative Frame$/m)
-})
-
-test('chinese whitepaper and pipeline pages mirror the same technical structure', () => {
+test('chinese whitepaper and pipeline pages expose the research-grade structure', () => {
   const whitepaper = read('zh/whitepaper.md')
   const pipeline = read('zh/architecture/pipeline.md')
   const related = read('zh/resources/related-projects.md')

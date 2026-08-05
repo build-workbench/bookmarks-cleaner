@@ -9,7 +9,6 @@ const STATIC_ASSETS = [
   BASE_PATH,
   BASE_PATH + 'index.html',
   BASE_PATH + 'zh/',
-  BASE_PATH + 'en/',
   BASE_PATH + 'manifest.json',
   BASE_PATH + 'logo.svg',
 ]

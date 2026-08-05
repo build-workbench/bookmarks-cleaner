@@ -56,4 +56,4 @@ The maintained docs site MUST keep only pages that serve the product landing sto
 - Deep pages exist only when they still explain maintained behavior.
 - No duplicate source files exist in the codebase.
 - All source files match the package configuration in `pyproject.toml`.
-- Only project-relevant skills remain in `.claude/skills/`.
+- No project-level AI skills are retained; verification is defined in `AGENTS.md` and CI.
