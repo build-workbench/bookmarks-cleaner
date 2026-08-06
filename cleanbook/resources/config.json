@@ -1,0 +1,759 @@
+{
+  "show_confidence_indicator": false,
+  "ai_settings": {
+    "confidence_threshold": 0.4,
+    "cache_size": 10000,
+    "max_workers": 4
+  },
+  "llm": {
+    "enable": false,
+    "provider": "openai",
+    "base_url": "https://api.openai.com",
+    "model": "gpt-4o-mini",
+    "api_key_env": "OPENAI_API_KEY",
+    "temperature": 0.0,
+    "top_p": 1.0,
+    "timeout_seconds": 25,
+    "max_retries": 1,
+    "prompt": {
+      "task_description": "请作为 CleanBook-Agent，精准识别浏览器书签的主题、意图与优先级。",
+      "steps": [
+        "解析书签标题、URL、域名、上下文，识别核心主题",
+        "匹配提供的主/子分类，必要时返回 '未分类' 并说明原因",
+        "输出包含 category、confidence、reasons、facets、priority_tags 的 JSON"
+      ],
+      "scoring_notes": "若分类不确定，请降低置信度并说明疑点；需要人工复核时，在 facets.priority_tags 中加入 'review'。",
+      "force_json": true
+    },
+    "organizer": {
+      "enable": false,
+      "model": "",
+      "temperature": 0.0,
+      "top_p": 1.0,
+      "timeout_seconds": 40,
+      "max_retries": 1,
+      "max_examples_per_category": 5,
+      "max_domains_per_category": 5,
+      "max_tokens": 1800,
+      "force_json": true
+    }
+  },
+  "title_cleaning_rules": {
+    "prefixes": [
+      "登录 |",
+      "Sign in ·",
+      "登录 "
+    ],
+    "suffixes": [
+      "- V2EX",
+      "· GitHub",
+      "| Microsoft Learn",
+      " - 知乎",
+      " - 简书",
+      " | 酷 壳 - CoolShell"
+    ],
+    "replacements": {
+      "&": "&",
+      "<": "<",
+      ">": ">",
+      "--- ": "- ",
+      "(7条消息)": ""
+    }
+  },
+  "taxonomy": {
+    "subjects_file": "taxonomy/subjects.yaml",
+    "resource_types_file": "taxonomy/resource_types.yaml"
+  },
+  "processing_order": [
+    "priority_rules",
+    "category_rules"
+  ],
+  "category_order": [
+    "💼 工作台",
+    "🤖 AI",
+    "💻 编程",
+    "🧬 生物",
+    "📚 学习",
+    "👥 社区",
+    "📰 资讯",
+    "🎮 娱乐",
+    "📂 其他"
+  ],
+  "domain_grouping_rules": {
+    "🤖 AI": [
+      "openai.com",
+      "deepseek.com",
+      "chatglm.cn",
+      "huggingface.co",
+      "labs.google",
+      "replicate.com",
+      "perplexity.ai",
+      "mistral.ai"
+    ],
+    "💻 编程": [
+      "github.com",
+      "gitlab.com",
+      "docker.com",
+      "kubernetes.io",
+      "python.org",
+      "rust-lang.org",
+      "go.dev"
+    ],
+    "🧬 生物": [
+      "broadinstitute.org",
+      "bioconda.github.io",
+      "illumina.com",
+      "cngb.org",
+      "stomics.tech",
+      "nature.com"
+    ],
+    "👥 社区": [
+      "linux.do",
+      "v2ex.com",
+      "news.ycombinator.com",
+      "reddit.com"
+    ],
+    "💼 工作台": [
+      "zego.im",
+      "zego.cloud",
+      "genomics.cn",
+      "bgi.com",
+      "dingtalk.com"
+    ]
+  },
+  "priority_rules": {
+    "💼 工作台/司内业务": {
+      "weight": 100,
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "zego.im",
+            "zego.cloud",
+            "bgi.com",
+            "genomics.cn",
+            "dingtalk.com"
+          ]
+        }
+      ]
+    }
+  },
+  "category_rules": {
+    "🤖 AI/模型平台": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "openai.com",
+            "huggingface.co",
+            "cohere.com",
+            "anthropic.com",
+            "chatglm.cn",
+            "hunyuan.tencent.com",
+            "baichuan-ai.com",
+            "mistral.ai",
+            "reka.ai",
+            "jina.ai",
+            "qwen.ai",
+            "deepseek.com",
+            "chat.qwen.ai",
+            "chat.mistral.ai",
+            "build.nvidia.com",
+            "bigmodel.cn"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "gpt-4",
+            "gpt4",
+            "gpt-5",
+            "gpt5",
+            "claude 3",
+            "claude 4",
+            "gemini",
+            "llama",
+            "sora",
+            "大模型",
+            "llm",
+            "qwen3",
+            "deepseek-v3",
+            "glm"
+          ],
+          "weight": 10
+        }
+      ]
+    },
+    "🤖 AI/Claude中转": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "xychatai.com",
+            "new.xychatai.com",
+            "claude.hubp.de",
+            "gaccode.com",
+            "claude.nonocode.cn",
+            "packycode.com",
+            "aicodemirror.com"
+          ],
+          "weight": 20
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "claude code中转",
+            "claude中转",
+            "cc中转"
+          ],
+          "weight": 15
+        }
+      ]
+    },
+    "🤖 AI/AI编程": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "cursor.com",
+            "cursor.sh",
+            "roocode.com",
+            "augment.dev",
+            "trae.ai",
+            "factory.ai",
+            "cto.new",
+            "qodo.ai",
+            "aider.chat",
+            "codeium.com"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "cursor",
+            "augment",
+            "roo code",
+            "roocode",
+            "claude code",
+            "ai编程",
+            "vibe coding",
+            "vibecoding",
+            "kiro",
+            "windsurf",
+            "superclaud"
+          ],
+          "weight": 12
+        }
+      ]
+    },
+    "🤖 AI/应用工具": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "perplexity.ai",
+            "aider.chat",
+            "replicate.com",
+            "midjourney.com",
+            "styleai.art",
+            "ghibliai.net",
+            "voo.works",
+            "readpaper.com",
+            "codium.ai",
+            "metaso.cn"
+          ],
+          "weight": 10
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "copilot",
+            "langchain",
+            "prompt",
+            "stable diffusion",
+            "aigc"
+          ],
+          "weight": 8
+        }
+      ]
+    },
+    "💻 编程/编程语言": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "python.org",
+            "rust-lang.org",
+            "go.dev",
+            "java.com",
+            "elixir.bootlin.com"
+          ],
+          "weight": 10
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "python",
+            "rust",
+            "golang",
+            " go ",
+            "java",
+            "c++",
+            "openmp",
+            "cuda"
+          ],
+          "weight": 8,
+          "must_not_contain": [
+            "go out",
+            "go shopping"
+          ]
+        }
+      ]
+    },
+    "💻 编程/代码仓库": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "github.com",
+            "gitlab.com",
+            "gitee.com",
+            "bitbucket.org",
+            "sourceforge.net",
+            "opensource.google",
+            "opendev.org",
+            "github.io"
+          ],
+          "weight": 20
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "代码仓库",
+            "repository",
+            "gitee",
+            "github"
+          ],
+          "weight": 10
+        }
+      ]
+    },
+    "💻 编程/Web开发": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "vue-element-admin-site.panjiachen.com",
+            "gioui.org",
+            "webrtcforthecurious.com"
+          ],
+          "weight": 8
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "react",
+            "vue",
+            "angular",
+            "webpack",
+            "nodejs",
+            "css",
+            "html",
+            "frontend",
+            "echarts",
+            "eslint"
+          ],
+          "weight": 5
+        }
+      ]
+    },
+    "💻 编程/DevOps运维": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "docker.com",
+            "kubernetes.io",
+            "helm.sh",
+            "aliyun.com",
+            "huaweicloud.com",
+            "vercel.com",
+            "netlify.com",
+            "cloudflare.com",
+            "apptainer.org",
+            "coder.com",
+            "unraid.net"
+          ],
+          "weight": 10
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "devops",
+            "kubernetes",
+            "docker",
+            "ci/cd",
+            "container",
+            "jenkins",
+            "prometheus",
+            "grafana"
+          ],
+          "weight": 7
+        }
+      ]
+    },
+    "🧬 生物": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "bioconda.github.io",
+            "broadinstitute.org",
+            "illumina.com",
+            "ncbi.nlm.nih.gov",
+            "stomics.tech",
+            "cngb.org",
+            "thermofisher.cn",
+            "insvast.com",
+            "harvard.edu",
+            "biorxiv.org",
+            "nature.com",
+            "embopress.org",
+            "rosalind.info",
+            "biocontainers.pro",
+            "singlecellcourse.org"
+          ],
+          "weight": 20
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "bioinformatics",
+            "biotool",
+            "rna-seq",
+            "genomics",
+            "genome",
+            "fastq",
+            "sam",
+            "vcf",
+            "bam",
+            "bioperl",
+            "cell",
+            "qiime2",
+            "gatk",
+            "基因组",
+            "测序"
+          ],
+          "weight": 15
+        }
+      ]
+    },
+    "📚 学习/技术文档": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "stackoverflow.com",
+            "stackexchange.com",
+            "medium.com",
+            "dev.to",
+            "juejin.cn",
+            "segmentfault.com",
+            "infoq.com",
+            "ruanyifeng.com",
+            "coolshell.cn",
+            "zhile.io",
+            "eryajf.net",
+            "mtlynch.io",
+            "blog.codingconfessions.com"
+          ],
+          "weight": 10
+        },
+        {
+          "match": "url_ends_with",
+          "keywords": [
+            ".pdf"
+          ],
+          "weight": 8
+        },
+        {
+          "match": "domain",
+          "keywords": [
+            "arxiv.org",
+            "paperswithcode.com",
+            "jalammar.github.io",
+            "thenlp.space"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "domain",
+          "keywords": [
+            "greenteapress.com",
+            "udlbook.github.io",
+            "kancloud.cn",
+            "ituring.com.cn",
+            "norvig.com",
+            "hello-algo.com",
+            "gitbook.com"
+          ],
+          "weight": 15
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "book",
+            "手册",
+            "指南",
+            "tutorial",
+            "教程",
+            "实践",
+            "实战",
+            "详解",
+            "攻略"
+          ],
+          "weight": 7
+        }
+      ]
+    },
+    "📚 学习/课程讲座": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "slides.com",
+            "speakerdeck.com",
+            "ocw.mit.edu",
+            "youtube.com",
+            "bilibili.com"
+          ],
+          "weight": 8,
+          "match_all_keywords_in": {
+            "title": [
+              "lecture",
+              "course",
+              "talk",
+              "conference",
+              "教程",
+              "课程"
+            ]
+          }
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "幻灯片",
+            "演讲"
+          ],
+          "weight": 5
+        }
+      ]
+    },
+    "👥 社区": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "linux.do",
+            "rate.linux.do",
+            "nav.linux.do",
+            "v2ex.com"
+          ],
+          "weight": 30
+        },
+        {
+          "match": "domain",
+          "keywords": [
+            "news.ycombinator.com",
+            "reddit.com",
+            "solidot.org",
+            "hachyderm.io",
+            "mastodon.social",
+            "hupu.com",
+            "chiphell.com",
+            "bbs.pcbeta.com"
+          ],
+          "weight": 10
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "开发调优",
+            "搞七捻三",
+            "资源荟萃",
+            "福利羊毛",
+            "前沿快讯",
+            "文档共建",
+            "LINUX DO",
+            "LinuxDo",
+            "linux.do"
+          ],
+          "weight": 25
+        }
+      ]
+    },
+    "📰 资讯": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "techcrunch.com",
+            "theverge.com",
+            "producthunt.com",
+            "36kr.com",
+            "arstechnica.com",
+            "cnbeta.com.tw"
+          ],
+          "weight": 8
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "news",
+            "report",
+            "周刊",
+            "weekly",
+            "日报"
+          ],
+          "weight": 5
+        }
+      ]
+    },
+    "🎮 娱乐": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "gying.si",
+            "hifini.com",
+            "music.163.com",
+            "douban.com",
+            "dribbble.com",
+            "behance.net",
+            "unsplash.com",
+            "thefarside.com"
+          ],
+          "weight": 8
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "电影",
+            "音乐",
+            "music",
+            "播客",
+            "wallpaper",
+            "壁纸",
+            "游戏",
+            "漫画"
+          ],
+          "weight": 5
+        }
+      ]
+    },
+    "🎮 娱乐/影音": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "youtube.com",
+            "bilibili.com",
+            "v.qq.com",
+            "youku.com",
+            "iqiyi.com",
+            "moontv.click"
+          ],
+          "weight": 8
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "电影",
+            "电视剧",
+            "MV",
+            "预告",
+            "周深",
+            "MoonTV"
+          ],
+          "weight": 6
+        }
+      ]
+    },
+    "📂 其他/在线服务": {
+      "rules": [
+        {
+          "match": "domain",
+          "keywords": [
+            "google.com",
+            "baidu.com",
+            "bing.com",
+            "duckduckgo.com",
+            "wolframalpha.com"
+          ],
+          "weight": 5
+        },
+        {
+          "match": "title",
+          "keywords": [
+            "search",
+            "搜索",
+            "在线",
+            "online",
+            "web"
+          ],
+          "weight": 3
+        },
+        {
+          "match": "domain",
+          "keywords": [
+            "deepl.com",
+            "regex101.com",
+            "codepen.io",
+            "tldraw.com",
+            "jsoncrack.com",
+            "mermaid.live",
+            "excalidraw.com",
+            "star-history.com",
+            "portableapps.com",
+            "raycast.com"
+          ],
+          "weight": 15
+        }
+      ]
+    },
+    "📂 其他/文档资料": {
+      "rules": [
+        {
+          "match": "title",
+          "keywords": [
+            "文档",
+            "document",
+            "资料",
+            "materials",
+            "reference",
+            "参考"
+          ],
+          "weight": 4
+        }
+      ]
+    },
+    "📂 其他/软件下载": {
+      "rules": [
+        {
+          "match": "title",
+          "keywords": [
+            "下载",
+            "download",
+            "软件",
+            "software",
+            "app",
+            "应用"
+          ],
+          "weight": 4
+        }
+      ]
+    }
+  }
+}
