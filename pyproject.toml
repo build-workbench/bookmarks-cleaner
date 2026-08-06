@@ -4,118 +4,63 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cleanbook"
-version = "2.0.1"
-description = "智能书签清理与分类：规则+ML+LLM（可选）"
+version = "3.0.0"
+description = "离线书签清理与分类：规则优先 · ML 辅助 · LLM 可选"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [
-    { name = "LessUp", email = "github@lessup.dev" }
-]
-keywords = [
-    "bookmarks",
-    "classification",
-    "clean",
-    "ai",
-    "llm",
-    "productivity",
-    "knowledge-management",
-    "bookmark-manager",
-    "ml",
-    "nlp",
-    "automation"
-]
+authors = [{ name = "LessUp", email = "github@lessup.dev" }]
+keywords = ["bookmarks", "classification", "clean", "cli"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: End Users/Desktop",
-    "Intended Audience :: Developers",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3 :: Only",
     "Topic :: Internet :: WWW/HTTP :: Browsers",
-    "Topic :: Office/Business :: Groupware",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Text Processing :: General",
     "Topic :: Utilities",
     "Typing :: Typed",
 ]
 
-# 运行依赖（requirements*.txt 仅复用本声明）
-# 版本锁定策略：使用 ~= 锁定 minor 版本，允许补丁更新
 dependencies = [
   "beautifulsoup4~=4.12.3",
   "lxml~=5.2.2",
-  "numpy~=1.26.4",
+  "pyyaml~=6.0.2",
+  "chardet~=5.2.0",
+]
+
+[project.optional-dependencies]
+ml = [
   "scikit-learn~=1.4.2",
+  "numpy~=1.26.4",
   "jieba~=0.42.1",
   "langdetect~=1.0.9",
-  "matplotlib~=3.9.0",
-  "seaborn~=0.13.2",
-  "pandas~=2.2.2",
-  "requests~=2.32.3",
-  "tqdm~=4.66.4",
-  "click~=8.1.7",
-  "psutil~=6.0.0",
   "joblib~=1.4.2",
-  "watchdog~=4.0.2",
-  "pyyaml~=6.0.2",
-  "jsonschema~=4.23.0",
-  "rich~=13.7.1",
-  "chardet~=5.2.0",
-  "urllib3~=2.0.7"
+]
+llm = [
+  "requests~=2.32.3",
+]
+dev = [
+  "pytest~=8.2.2",
 ]
 
 [project.urls]
-Homepage = "https://github.com/LessUp/bookmarks-cleaner"
-Documentation = "https://lessup.github.io/bookmarks-cleaner/"
 Repository = "https://github.com/LessUp/bookmarks-cleaner"
 Issues = "https://github.com/LessUp/bookmarks-cleaner/issues"
-Changelog = "https://github.com/LessUp/bookmarks-cleaner/blob/master/CHANGELOG.md"
-
-[project.optional-dependencies]
-dev = [
-  "pytest~=8.2.2",
-  "hypothesis~=6.0.0",
-]
-semantic = [
-  "sentence-transformers~=3.0.1",
-  "hnswlib>=0.8,<1.0",
-]
 
 [project.scripts]
-# 命令入口（推荐 pipx 安装后直接使用）
-cleanbook = "src.cleanbook.cli:main"
+cleanbook = "cleanbook.cli:main"
 
 [tool.setuptools]
-# 包含包和独立模块
 py-modules = ["main"]
-packages = [
-    "src",
-    "src.cleanbook",
-    "src.core",
-    "src.utils",
-    "src.cli",
-    "src.classifiers",
-    "src.engines",
-    "src.llm",
-    "src.health",
-    "src.data",
-    "src.plugins",
-    "src.plugins.classifiers",
-    "src.services",
-    "src.resources",
-    "src.resources.taxonomy",
-    "config",
-]
+
+[tool.setuptools.packages.find]
+include = ["cleanbook*"]
 
 [tool.setuptools.package-data]
-# 打包运行时资源与模型
-"src" = ["**/*.pkl"]
-"src.resources" = ["config.json", "taxonomy/*.yaml"]
-
+"cleanbook.resources" = ["config.json", "taxonomy/*.yaml"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -124,14 +69,8 @@ pythonpath = ["."]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = [
-    "-v",
-    "--tb=short",
-    "--strict-markers",
-    "--disable-warnings",
-]
+addopts = ["-v", "--tb=short", "--strict-markers", "--disable-warnings"]
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
-    "property: marks tests as property-based tests",
 ]

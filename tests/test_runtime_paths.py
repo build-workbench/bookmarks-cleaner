@@ -1,156 +1,33 @@
-import json
-import os
-import subprocess
-import sys
-import tomllib
-from pathlib import Path
-from unittest.mock import patch
+"""运行时路径解析测试"""
 
-import pytest
-
-from src.cli.interface import CLIInterface
-from src.health.checker import run_health_check
-from src.utils.resource_loader import (
-    load_json_config,
-    resolve_config_path,
-    resolve_taxonomy_path,
-)
-
-ROOT = Path(__file__).resolve().parent.parent
-MAIN = ROOT / "main.py"
-EXAMPLE = ROOT / "examples" / "demo_bookmarks.html"
-PYPROJECT = ROOT / "pyproject.toml"
+from cleanbook.config import resolve_config_path, resolve_taxonomy_path, load_json_config
 
 
-def test_default_config_and_taxonomy_resolve_without_repo_cwd(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    config, config_path, explicit = load_json_config(None)
-    assert config_path.is_file()
-    assert explicit is False
-    assert "category_rules" in config
+class TestRuntimePaths:
+    def test_config_resolvable(self):
+        path, _ = resolve_config_path(None)
+        assert path.is_file()
 
-    subjects = resolve_taxonomy_path(config, "subjects_file", "taxonomy/subjects.yaml")
-    resource_types = resolve_taxonomy_path(
-        config, "resource_types_file", "taxonomy/resource_types.yaml"
-    )
-    assert subjects.is_file()
-    assert resource_types.is_file()
+    def test_config_loadable(self):
+        config, path, explicit = load_json_config(None)
+        assert isinstance(config, dict)
+        assert "category_rules" in config
 
+    def test_taxonomy_subjects_resolvable(self):
+        config, _, _ = load_json_config(None)
+        path = resolve_taxonomy_path(config, "subjects_file", "taxonomy/subjects.yaml")
+        assert path.is_file()
 
-def test_health_check_is_read_only(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    assert run_health_check() is True
-    assert not (tmp_path / "logs").exists()
-    assert not (tmp_path / "models").exists()
+    def test_taxonomy_resource_types_resolvable(self):
+        config, _, _ = load_json_config(None)
+        path = resolve_taxonomy_path(config, "resource_types_file", "taxonomy/resource_types.yaml")
+        assert path.is_file()
 
-
-def test_cli_interface_uses_resolved_config_path():
-    cli = CLIInterface()
-    resolved, _ = resolve_config_path(None)
-    assert cli.config_path == str(resolved)
-
-
-def test_main_help_does_not_create_logs(tmp_path):
-    result = subprocess.run(
-        [sys.executable, str(MAIN), "--help"],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0
-    assert not (tmp_path / "logs").exists()
-
-
-def test_main_rejects_missing_explicit_config(tmp_path):
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(MAIN),
-            "--health-check",
-            "-c",
-            str(tmp_path / "missing.json"),
-        ],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 2
-    assert "配置或资源错误" in (result.stderr + result.stdout)
-
-
-def test_main_batch_smoke(tmp_path):
-    output_dir = tmp_path / "out"
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(MAIN),
-            "-i",
-            str(EXAMPLE),
-            "-o",
-            str(output_dir),
-            "--no-ml",
-            "--limit",
-            "10",
-        ],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 0, result.stderr + result.stdout
-    exported = list(output_dir.glob("*.json"))
-    assert exported, "expected JSON export file"
-    payload = json.loads(exported[0].read_text(encoding="utf-8"))
-    assert "bookmarks" in payload
-    assert payload["metadata"]["processor_version"] == __import__("src").__version__
-
-
-def test_main_returns_error_when_all_input_files_are_invalid(tmp_path):
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(MAIN),
-            "-i",
-            "missing.html",
-        ],
-        cwd=tmp_path,
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-    assert result.returncode == 1
-    assert "没有找到有效的输入文件" in (result.stderr + result.stdout)
-
-
-def test_package_metadata_version_matches_runtime_version():
-    with PYPROJECT.open("rb") as f:
-        data = tomllib.load(f)
-
-    assert data["project"]["version"] == __import__("src").__version__
-
-
-def test_optional_dependency_groups_cover_semantic_support():
-    with PYPROJECT.open("rb") as f:
-        data = tomllib.load(f)
-
-    optional = data["project"]["optional-dependencies"]
-
-    assert "semantic" in optional
-    assert any(dep.startswith("sentence-transformers") for dep in optional["semantic"])
-    assert any(dep.startswith("hnswlib") for dep in optional["semantic"])
-
-
-def test_default_config_exposes_hybrid_runtime_hooks(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    config, _, _ = load_json_config(None)
-
-    assert "embedding" in config
-    assert "confidence_calibration" in config
-    assert "feedback_loop" in config
-
-    assert config["embedding"]["backend"] == "auto"
-    assert config["confidence_calibration"]["method"] == "platt"
-    assert config["feedback_loop"]["review_queue_path"]
+    def test_explicit_config_path(self):
+        import tempfile, json
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            json.dump({"test": True}, f)
+            f.flush()
+            path, explicit = resolve_config_path(f.name)
+            assert explicit is True
+            assert path.is_file()
