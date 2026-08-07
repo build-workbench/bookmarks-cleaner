@@ -45,10 +45,11 @@ def main():
     parser.add_argument("--health-check", action="store_true", help="运行健康检查")
     parser.add_argument("--train", action="store_true", help="训练机器学习模型")
     parser.add_argument("--workers", type=int, default=4, help="并行处理线程数")
-    parser.add_argument("--threshold", type=float, default=0.7, help="分类置信度阈值")
+    parser.add_argument("--threshold", type=float, default=None, help="分类置信度阈值（默认使用配置文件中的值）")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
     parser.add_argument("--no-ml", action="store_true", help="禁用机器学习")
     parser.add_argument("--limit", type=int, default=0, help="限制处理的书签数量（调试用）")
+    parser.add_argument("--eval", metavar="FILE", help="评估分类效果，传入标注数据 JSON 文件")
 
     args = parser.parse_args()
     logger = logging.getLogger(__name__)
@@ -102,6 +103,9 @@ def main():
             logger.info(f"处理完成: {results['processed_bookmarks']} 个书签已分类")
             return
 
+        if args.eval:
+            return run_eval(args)
+
         parser.print_help()
 
     except KeyboardInterrupt:
@@ -122,6 +126,78 @@ def main():
         if args.log_level == "DEBUG":
             raise
         sys.exit(1)
+
+
+def run_eval(args):
+    """评估分类效果：加载标注数据，逐条分类，输出准确率"""
+    import json
+    from cleanbook.text_utils import normalize_category_string
+
+    eval_path = Path(args.eval)
+    if not eval_path.is_file():
+        logging.getLogger(__name__).error(f"标注文件不存在: {eval_path}")
+        sys.exit(1)
+
+    with open(eval_path, "r", encoding="utf-8") as f:
+        labeled = json.load(f)
+
+    processor = BookmarkProcessor(
+        config_path=str(config_path) if (config_path := resolve_config_path(args.config)[0]) else None,
+        max_workers=args.workers,
+        use_ml=not args.no_ml,
+        confidence_threshold=args.threshold,
+    )
+
+    correct = 0
+    total = len(labeled)
+    mismatches = []
+    category_stats = {}
+
+    for item in labeled:
+        url = item["url"]
+        title = item["title"]
+        expected = normalize_category_string(item["expected"])
+        result = processor.classifier.classify(url, title)
+        predicted = normalize_category_string(result.category)
+
+        top_expected = expected.split("/")[0]
+        top_predicted = predicted.split("/")[0]
+
+        category_stats.setdefault(top_expected, {"correct": 0, "total": 0})
+        category_stats[top_expected]["total"] += 1
+        if top_predicted == top_expected:
+            correct += 1
+            category_stats[top_expected]["correct"] += 1
+        else:
+            mismatches.append({
+                "url": url,
+                "title": title,
+                "expected": top_expected,
+                "predicted": top_predicted,
+                "confidence": round(result.confidence, 3),
+                "method": result.method,
+            })
+
+    accuracy = correct / total if total > 0 else 0
+    print(f"\n{'='*50}")
+    print(f"评估结果: {correct}/{total} 正确 ({accuracy:.1%})")
+    print(f"分类方法: {'规则' if args.no_ml else '规则+ML'}")
+    print(f"{'='*50}")
+
+    print(f"\n各分类准确率:")
+    for cat in sorted(category_stats.keys()):
+        s = category_stats[cat]
+        rate = s["correct"] / s["total"] if s["total"] > 0 else 0
+        print(f"  {cat}: {s['correct']}/{s['total']} ({rate:.0%})")
+
+    if mismatches:
+        print(f"\n分类错误 ({len(mismatches)} 条):")
+        for m in mismatches:
+            print(f"  [{m['expected']} -> {m['predicted']}] {m['title'][:50]}")
+            print(f"    url: {m['url'][:80]}")
+            print(f"    method={m['method']}, confidence={m['confidence']}")
+
+    return
 
 
 if __name__ == "__main__":
