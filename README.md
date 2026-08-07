@@ -24,7 +24,7 @@ cleanbook -i bookmarks.html -o output/ --no-ml
 从源码运行：
 
 ```bash
-git clone https://github.com/AICL-Lab/bookmarks-cleaner.git
+git clone https://github.com/vibe-knight/bookmarks-cleaner.git
 cd bookmarks-cleaner
 pip install -e ".[dev]"
 cleanbook -i examples/sample_bookmarks.html -o output/

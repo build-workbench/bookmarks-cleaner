@@ -47,8 +47,8 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/AICL-Lab/bookmarks-cleaner"
-Issues = "https://github.com/AICL-Lab/bookmarks-cleaner/issues"
+Repository = "https://github.com/vibe-knight/bookmarks-cleaner"
+Issues = "https://github.com/vibe-knight/bookmarks-cleaner/issues"
 
 [project.scripts]
 cleanbook = "cleanbook.cli:main"
