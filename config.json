@@ -69,7 +69,6 @@
     "category_rules"
   ],
   "category_order": [
-    "💼 工作台",
     "🤖 AI",
     "💻 编程",
     "🧬 生物",
@@ -112,32 +111,9 @@
       "v2ex.com",
       "news.ycombinator.com",
       "reddit.com"
-    ],
-    "💼 工作台": [
-      "zego.im",
-      "zego.cloud",
-      "genomics.cn",
-      "bgi.com",
-      "dingtalk.com"
     ]
   },
-  "priority_rules": {
-    "💼 工作台/司内业务": {
-      "weight": 100,
-      "rules": [
-        {
-          "match": "domain",
-          "keywords": [
-            "zego.im",
-            "zego.cloud",
-            "bgi.com",
-            "genomics.cn",
-            "dingtalk.com"
-          ]
-        }
-      ]
-    }
-  },
+  "priority_rules": {},
   "category_rules": {
     "🤖 AI/模型平台": {
       "rules": [
@@ -182,32 +158,6 @@
             "glm"
           ],
           "weight": 10
-        }
-      ]
-    },
-    "🤖 AI/Claude中转": {
-      "rules": [
-        {
-          "match": "domain",
-          "keywords": [
-            "xychatai.com",
-            "new.xychatai.com",
-            "claude.hubp.de",
-            "gaccode.com",
-            "claude.nonocode.cn",
-            "packycode.com",
-            "aicodemirror.com"
-          ],
-          "weight": 20
-        },
-        {
-          "match": "title",
-          "keywords": [
-            "claude code中转",
-            "claude中转",
-            "cc中转"
-          ],
-          "weight": 15
         }
       ]
     },
