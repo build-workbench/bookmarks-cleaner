@@ -27,8 +27,8 @@ def run_health_check(config_path: Optional[str] = None) -> bool:
     else:
         print(f"[OK] Python: {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
 
-    required_packages = [("beautifulsoup4", "bs4"), ("lxml", "lxml"), ("pyyaml", "yaml")]
-    optional_packages = [("numpy", "numpy"), ("scikit-learn", "sklearn"), ("jieba", "jieba")]
+    required_packages = [("beautifulsoup4", "bs4"), ("lxml", "lxml"), ("pyyaml", "yaml"), ("chardet", "chardet")]
+    optional_packages = [("requests", "requests")]
 
     for name, import_name in required_packages:
         try:

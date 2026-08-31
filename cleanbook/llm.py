@@ -7,16 +7,15 @@ import json
 import logging
 import os
 import re
+import threading
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import parse_qs, urlparse
 
 import requests
 
 from cleanbook.config import load_json_config, resolve_config_path
-from cleanbook.text_utils import normalize_category_string, strip_category_prefix
+from cleanbook.text_utils import CHINESE_REGEX, ENGLISH_REGEX, normalize_category_string
 
-_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
-_ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
 _KEYWORD_REGEX = re.compile(r"[a-zA-Z\u4e00-\u9fff]{2,}")
 
 logger = logging.getLogger(__name__)
@@ -100,6 +99,8 @@ class LLMClassifier:
         self.llm_conf = self.config.get("llm", {}) or {}
         self.prompt_builder = LLMPromptBuilder(self.config)
         self._cache: Dict[str, Dict] = {}
+        self._cache_limit = 1000
+        self._lock = threading.Lock()  # 保护 _cache 与 _stats 的并发访问
         self._stats = {
             "enabled": bool(self.llm_conf.get("enable", False)),
             "calls": 0, "cache_hits": 0, "failures": 0,
@@ -117,9 +118,10 @@ class LLMClassifier:
             return None
 
         h = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
-        if h in self._cache:
-            self._stats["cache_hits"] += 1
-            return self._cache[h]
+        with self._lock:
+            if h in self._cache:
+                self._stats["cache_hits"] += 1
+                return self._cache[h]
 
         base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip("/")
         model = self.llm_conf.get("model", "gpt-4o-mini")
@@ -146,7 +148,8 @@ class LLMClassifier:
         last_err = None
         for _ in range(max_retries + 1):
             try:
-                self._stats["calls"] += 1
+                with self._lock:
+                    self._stats["calls"] += 1
                 resp = requests.post(url_chat, headers=headers, json=payload, timeout=timeout)
                 if resp.status_code >= 400:
                     last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
@@ -161,11 +164,17 @@ class LLMClassifier:
                 last_err = str(e)
 
         if not data:
-            self._stats["failures"] += 1
+            with self._lock:
+                self._stats["failures"] += 1
             return None
 
         category = self._map_to_known_category(data.get("category", "未分类"), categories)
-        confidence = float(data.get("confidence", 0.0))
+        try:
+            confidence = float(data.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            # LLM 可能返回 "confidence": "high" 这类非数值，按 0 处理并记录
+            logger.debug(f"LLM 返回非法 confidence: {data.get('confidence')!r}")
+            confidence = 0.0
         reasons = data.get("reasons") or data.get("reason") or []
         if isinstance(reasons, str):
             reasons = [reasons]
@@ -179,11 +188,16 @@ class LLMClassifier:
             "subcategory": data.get("subcategory"),
             "priority_tags": data.get("priority_tags", []),
         }
-        self._cache[h] = result
+        with self._lock:
+            # 有上限的缓存，防止长期运行内存无界增长
+            if len(self._cache) >= self._cache_limit:
+                self._cache.pop(next(iter(self._cache)))
+            self._cache[h] = result
         return result
 
     def get_stats(self) -> Dict:
-        return dict(self._stats)
+        with self._lock:
+            return dict(self._stats)
 
     def _load_config(self) -> Dict:
         data, _, _ = load_json_config(self.config_path)
@@ -292,9 +306,9 @@ class LLMClassifier:
         return keywords
 
     def _detect_language(self, text: str) -> str:
-        if _CHINESE_REGEX.search(text):
+        if CHINESE_REGEX.search(text):
             return "zh"
-        if _ENGLISH_REGEX.search(text):
+        if ENGLISH_REGEX.search(text):
             return "en"
         return "unknown"
 

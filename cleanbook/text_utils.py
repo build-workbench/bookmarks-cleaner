@@ -5,6 +5,10 @@ from __future__ import annotations
 import re
 from typing import Iterable, Optional, Set
 
+# 统一的语言检测正则（多模块共用，避免重复定义）
+CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
+ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
+
 DEFAULT_PREFIX_EMOJIS: Set[str] = {
     "🟢", "🟡", "🟠", "🔴", "🔥", "📌", "⭐", "❓",
 }
@@ -13,13 +17,31 @@ _EMOJI_PATTERN = re.compile(rf'^(?:[{"".join(DEFAULT_PREFIX_EMOJIS)}]\s*)+')
 
 
 class TextCleaner:
-    """统一的文本清理工具"""
+    """统一的文本清理工具
 
-    def __init__(self, extra_emojis: Optional[Set[str]] = None, strip_whitespace: bool = True):
+    清理顺序：emoji 前缀 -> 站点前缀 -> 站点后缀 -> 字符替换 -> 收尾去空白。
+    prefixes/suffixes/replacements 来自配置的 title_cleaning_rules。
+    """
+
+    def __init__(
+        self,
+        extra_emojis: Optional[Set[str]] = None,
+        strip_whitespace: bool = True,
+        prefixes: Optional[Iterable[str]] = None,
+        suffixes: Optional[Iterable[str]] = None,
+        replacements: Optional[dict] = None,
+    ):
         self._strip_whitespace = strip_whitespace
         all_emojis = DEFAULT_PREFIX_EMOJIS | (extra_emojis or set())
         safe = "".join(sorted(all_emojis))
         self._emoji_pattern = re.compile(rf"^(?:[{safe}]\s*)+") if safe else None
+        self._prefix_patterns = [re.compile(re.escape(p), re.IGNORECASE) for p in (prefixes or []) if p]
+        self._suffix_patterns = [re.compile(re.escape(s) + r"\s*$", re.IGNORECASE) for s in (suffixes or []) if s]
+        self._replacement_patterns = [
+            (re.compile(re.escape(k), re.IGNORECASE), v)
+            for k, v in (replacements or {}).items()
+            if k
+        ]
 
     def clean_title(self, title: Optional[str], extra_prefix_emojis: Optional[Iterable[str]] = None) -> str:
         if not title:
@@ -32,6 +54,12 @@ class TextCleaner:
             pattern = re.compile(rf"^(?:[{safe}]\s*)+")
         if pattern:
             text = pattern.sub("", text)
+        for prefix_pattern in self._prefix_patterns:
+            text = prefix_pattern.sub("", text)
+        for suffix_pattern in self._suffix_patterns:
+            text = suffix_pattern.sub("", text)
+        for pattern, replacement in self._replacement_patterns:
+            text = pattern.sub(replacement, text)
         return text.strip() if self._strip_whitespace else text
 
     def strip_prefix(self, text: Optional[str]) -> str:
@@ -81,19 +109,6 @@ def normalize_category_config(config: dict) -> dict:
     order = normalized.get("category_order")
     if isinstance(order, list):
         normalized["category_order"] = [strip_prefix(x) for x in order if str(x).strip()]
-
-    dgr = normalized.get("domain_grouping_rules")
-    if isinstance(dgr, dict):
-        new_dgr: dict = {}
-        for k, v in dgr.items():
-            nk = strip_prefix(k)
-            if not nk:
-                continue
-            if nk in new_dgr and isinstance(new_dgr[nk], list) and isinstance(v, list):
-                new_dgr[nk].extend(v)
-            else:
-                new_dgr[nk] = v
-        normalized["domain_grouping_rules"] = new_dgr
 
     pr = normalized.get("priority_rules")
     if isinstance(pr, dict):

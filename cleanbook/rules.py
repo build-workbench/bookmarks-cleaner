@@ -30,6 +30,15 @@ class RuleEngine:
         self.logger = logging.getLogger(__name__)
         self.url_analyzer = URLAnalyzer()
         self.compiled_rules = {}
+        ai_settings = (config or {}).get("ai_settings", {}) or {}
+        try:
+            self.url_analysis_weight = float(ai_settings.get("url_analysis_weight", 15))
+        except (TypeError, ValueError):
+            self.url_analysis_weight = 15.0
+        try:
+            self.merge_top_ratio = float(ai_settings.get("merge_top_ratio", 0.4))
+        except (TypeError, ValueError):
+            self.merge_top_ratio = 0.4
         self._compile_rules()
         self.stats = {
             "total_matches": 0,
@@ -133,7 +142,7 @@ class RuleEngine:
                         for category, confidence in analysis.category_hints:
                             url_hints.append(RuleMatch(
                                 rule_id="url_analyzer", category=category,
-                                confidence=confidence * 15,
+                                confidence=confidence * self.url_analysis_weight,
                                 matched_text=f"{analysis.site_type}:{analysis.content_type}",
                                 rule_type="url_analysis",
                             ))
@@ -247,17 +256,10 @@ class RuleEngine:
         return matches
 
     def _calculate_scores(self, matches: List[RuleMatch]) -> Dict[str, float]:
+        """按权重累加各分类得分（纯权重竞争，无个人化偏好）"""
         category_scores = defaultdict(float)
-        has_ai_match = any("AI" in m.category for m in matches)
-        has_code_repo_match = any("代码仓库" in m.category for m in matches)
         for match in matches:
-            score = match.confidence
-            if has_ai_match and has_code_repo_match:
-                if "AI" in match.category:
-                    score *= 1.3
-                elif "代码仓库" in match.category:
-                    score *= 0.8
-            category_scores[match.category] += score
+            category_scores[match.category] += match.confidence
 
         merged_scores = defaultdict(float)
         for category, score in category_scores.items():
@@ -268,7 +270,7 @@ class RuleEngine:
             top_merged = max(merged_scores, key=merged_scores.get)
             top_merged_score = merged_scores[top_merged]
             total_merged = sum(merged_scores.values())
-            if total_merged > 0 and top_merged_score / total_merged > 0.4:
+            if total_merged > 0 and top_merged_score / total_merged > self.merge_top_ratio:
                 best_sub = None
                 best_sub_score = 0
                 for category, score in category_scores.items():
@@ -277,6 +279,9 @@ class RuleEngine:
                         best_sub_score = score
                 if best_sub:
                     category_scores[best_sub] = top_merged_score
+                    # 移除同主类的其他子类残留，避免稀释合并后的置信度
+                    for cat in [c for c in category_scores if c != best_sub and c.startswith(top_merged)]:
+                        del category_scores[cat]
         return dict(category_scores)
 
     def _generate_reasoning(self, matches: List[RuleMatch], best_category: str) -> List[str]:

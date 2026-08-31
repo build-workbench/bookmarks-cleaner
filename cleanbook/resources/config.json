@@ -3,7 +3,8 @@
   "ai_settings": {
     "confidence_threshold": 0.4,
     "cache_size": 10000,
-    "max_workers": 4
+    "url_analysis_weight": 15,
+    "merge_top_ratio": 0.4
   },
   "llm": {
     "enable": false,
@@ -23,18 +24,6 @@
         "输出包含 category、confidence、reasons、facets、priority_tags 的 JSON"
       ],
       "scoring_notes": "若分类不确定，请降低置信度并说明疑点；需要人工复核时，在 facets.priority_tags 中加入 'review'。",
-      "force_json": true
-    },
-    "organizer": {
-      "enable": false,
-      "model": "",
-      "temperature": 0.0,
-      "top_p": 1.0,
-      "timeout_seconds": 40,
-      "max_retries": 1,
-      "max_examples_per_category": 5,
-      "max_domains_per_category": 5,
-      "max_tokens": 1800,
       "force_json": true
     }
   },
@@ -78,41 +67,6 @@
     "🎮 娱乐",
     "📂 其他"
   ],
-  "domain_grouping_rules": {
-    "🤖 AI": [
-      "openai.com",
-      "deepseek.com",
-      "chatglm.cn",
-      "huggingface.co",
-      "labs.google",
-      "replicate.com",
-      "perplexity.ai",
-      "mistral.ai"
-    ],
-    "💻 编程": [
-      "github.com",
-      "gitlab.com",
-      "docker.com",
-      "kubernetes.io",
-      "python.org",
-      "rust-lang.org",
-      "go.dev"
-    ],
-    "🧬 生物": [
-      "broadinstitute.org",
-      "bioconda.github.io",
-      "illumina.com",
-      "cngb.org",
-      "stomics.tech",
-      "nature.com"
-    ],
-    "👥 社区": [
-      "linux.do",
-      "v2ex.com",
-      "news.ycombinator.com",
-      "reddit.com"
-    ]
-  },
   "priority_rules": {},
   "category_rules": {
     "🤖 AI/模型平台": {

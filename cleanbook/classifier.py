@@ -1,29 +1,18 @@
-"""书签分类器 - 规则优先 + ML(可选) + LLM(可选)"""
+"""书签分类器 - 规则优先 + LLM(可选) 两级级联"""
 
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
-import os
-import re
+import threading
 from datetime import datetime
 from typing import Dict, List, Optional
 
 from cleanbook.cache import CacheManager
 from cleanbook.config import load_json_config, resolve_config_path
-from cleanbook.fusion import FusionEngine
 from cleanbook.models import BookmarkFeatures, ClassificationResult
 from cleanbook.rules import RuleEngine
-from cleanbook.text_utils import normalize_category_config, normalize_category_string
-
-_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
-_ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
-
-try:
-    from cleanbook.ml import MLClassifierWrapper
-except ImportError:
-    MLClassifierWrapper = None  # type: ignore[assignment,misc]
+from cleanbook.text_utils import CHINESE_REGEX, ENGLISH_REGEX, normalize_category_config
 
 try:
     from cleanbook.llm import LLMClassifier
@@ -34,35 +23,44 @@ except ImportError:
 class BookmarkClassifier:
     """书签分类器
 
-    集成规则引擎、ML(可选)和 LLM(可选)，通过加权融合输出最终分类。
+    两级级联：规则引擎给出确定性主分类，LLM(可选)在规则未命中时兜底、命中时补充子分类。
     """
 
     def __init__(
         self,
         config_path: Optional[str] = None,
-        enable_ml: bool = True,
         config: Optional[Dict] = None,
     ):
         resolved_path, _ = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
-        self.enable_ml = enable_ml
         self.logger = logging.getLogger(__name__)
 
-        self._config: Optional[Dict] = (
-            normalize_category_config(config) if isinstance(config, dict) else None
-        )
+        if isinstance(config, dict):
+            normalized = normalize_category_config(config)
+            if not isinstance(normalized.get("category_rules"), dict) or not normalized.get("category_rules"):
+                raise ValueError("传入的 config 缺少有效的 category_rules")
+            self._config = normalized
+        else:
+            self._config = None
         self._rule_engine: Optional[RuleEngine] = None
-        self._ml_classifier = None
         self._llm_classifier = None
-        self._fusion_engine: Optional[FusionEngine] = None
 
-        self.feature_cache: CacheManager[BookmarkFeatures] = CacheManager(max_size=10000, strategy="lru")
-        self.classification_cache: CacheManager[ClassificationResult] = CacheManager(max_size=5000, strategy="lru")
+        # 缓存大小来自配置（默认 10000），分类结果缓存减半以省内存
+        cache_size = 10000
+        if isinstance(config, dict):
+            try:
+                cache_size = int((config.get("ai_settings") or {}).get("cache_size", 10000))
+            except (TypeError, ValueError):
+                cache_size = 10000
+        self.feature_cache: CacheManager[BookmarkFeatures] = CacheManager(max_size=cache_size, strategy="lru")
+        self.classification_cache: CacheManager[ClassificationResult] = CacheManager(max_size=max(cache_size // 2, 100), strategy="lru")
+
+        # stats 由多线程（_classify_batch）并发更新，需要锁保护
+        self._stats_lock = threading.Lock()
 
         self.stats = {
             "total_classified": 0,
             "rule_engine": 0,
-            "ml_classifier": 0,
             "fallback": 0,
             "cache_hits": 0,
             "average_confidence": 0.0,
@@ -82,16 +80,6 @@ class BookmarkClassifier:
         return self._rule_engine
 
     @property
-    def ml_classifier(self):
-        if self._ml_classifier is None and self.enable_ml and MLClassifierWrapper is not None:
-            try:
-                self._ml_classifier = MLClassifierWrapper()
-                self.logger.info("机器学习组件已启用")
-            except Exception as e:
-                self.logger.warning(f"机器学习组件初始化失败: {e}")
-        return self._ml_classifier
-
-    @property
     def llm_classifier(self):
         if self._llm_classifier is None and LLMClassifier is not None:
             try:
@@ -99,15 +87,6 @@ class BookmarkClassifier:
             except Exception as e:
                 self.logger.warning(f"LLM 分类器初始化失败: {e}")
         return self._llm_classifier
-
-    @property
-    def fusion_engine(self) -> FusionEngine:
-        if self._fusion_engine is None:
-            self._fusion_engine = FusionEngine(
-                method_weights=self.config.get("method_weights"),
-                category_normalizer=normalize_category_string,
-            )
-        return self._fusion_engine
 
     def _load_config(self) -> Dict:
         config, _, _ = load_json_config(self.config_path)
@@ -131,63 +110,102 @@ class BookmarkClassifier:
         cache_key = hashlib.md5(f"{url}::{title}".encode()).hexdigest()
         cached = self.classification_cache.get(cache_key)
         if cached is not None:
-            self.stats["cache_hits"] += 1
+            with self._stats_lock:
+                self.stats["cache_hits"] += 1
             cached.processing_time = (datetime.now() - start_time).total_seconds()
             return cached
 
         features = self.extract_features(url, title)
-        results: List[ClassificationResult] = []
 
-        # 1) 规则引擎
+        # 1) 规则引擎 - 确定性优先
         rule_result = self.rule_engine.classify(features)
-        if rule_result is not None:
-            results.append(self._to_classification_result(rule_result))
 
-        # 2) 机器学习
-        if self.ml_classifier:
-            ml_result = self.ml_classifier.classify(features)
-            if ml_result is not None:
-                results.append(self._to_classification_result(ml_result))
-
-        # 3) LLM（可选）
+        # 2) LLM（可选）- 规则未命中时兜底，命中时补充子分类
+        llm_result = None
         if self.llm_classifier and self.llm_classifier.enabled():
             try:
                 llm_result = self.llm_classifier.classify(
                     url, title,
                     context={"domain": features.domain, "content_type": features.content_type, "language": features.language},
                 )
-                if llm_result is not None:
-                    results.append(self._to_classification_result(llm_result))
             except Exception as e:
                 self.logger.warning(f"LLM 分类调用失败: {e}")
 
         confidence_threshold = self.config.get("ai_settings", {}).get("confidence_threshold", 0.7)
-        final_result = self.fusion_engine.fuse(
-            results, features=features,
+        final_result = self._cascade_fuse(
+            rule_result=rule_result,
+            llm_result=llm_result,
+            features=features,
             confidence_threshold=float(confidence_threshold),
-            subcategory_resolver=self._determine_subcategory,
         )
 
-        final_method = final_result.method
-        if "rule_engine" in final_method:
-            self.stats["rule_engine"] += 1
-        if "machine_learning" in final_method:
-            self.stats["ml_classifier"] += 1
-        if "llm" in final_method:
-            self.stats["llm"] += 1
-        if final_method == "fallback":
-            self.stats["fallback"] += 1
+        with self._stats_lock:
+            if "rule_engine" in final_result.method:
+                self.stats["rule_engine"] += 1
+            if "llm" in final_result.method:
+                self.stats["llm"] += 1
+            if final_result.method == "fallback":
+                self.stats["fallback"] += 1
 
         final_result.processing_time = (datetime.now() - start_time).total_seconds()
         self._update_stats(final_result)
         self.classification_cache.put(cache_key, final_result)
         return final_result
 
+    def _cascade_fuse(
+        self,
+        rule_result,
+        llm_result,
+        features: BookmarkFeatures,
+        confidence_threshold: float,
+    ) -> ClassificationResult:
+        """级联决策：规则命中即采用规则主分类，LLM 补子分类/facets；规则未命中才走 LLM"""
+        if rule_result is not None:
+            result = self._to_classification_result(rule_result)
+            # 1) 配置的 category_hierarchy 标题匹配
+            if result.subcategory is None:
+                result.subcategory = self._determine_subcategory(result.category, features)
+            # 2) LLM 补充子分类/facets/理由
+            if llm_result is not None:
+                llm = self._to_classification_result(llm_result)
+                if result.subcategory is None and llm.subcategory:
+                    result.subcategory = llm.subcategory
+                # LLM 输出不可控，facets 可能是非 dict（如列表/字符串），防御性处理
+                llm_facets = llm.facets if isinstance(llm.facets, dict) else {}
+                for k, v in llm_facets.items():
+                    if v and k not in (result.facets or {}):
+                        result.facets[k] = v
+                result.reasoning.extend(llm.reasoning or [])
+        elif llm_result is not None:
+            result = self._to_classification_result(llm_result)
+        else:
+            return ClassificationResult(
+                category="未分类", confidence=0.0,
+                reasoning=["没有匹配到任何分类规则"], method="fallback",
+            )
+
+        if result.category != "未分类" and result.confidence < confidence_threshold:
+            result.reasoning.append(
+                f"最终置信度 {result.confidence:.2f} 低于阈值 {confidence_threshold:.2f}，标记为未分类"
+            )
+            return ClassificationResult(
+                category="未分类", subcategory=None,
+                confidence=result.confidence,
+                reasoning=result.reasoning,
+                alternatives=result.alternatives[:3],
+                method=result.method, facets=result.facets,
+            )
+        return result
+
     @staticmethod
     def _to_classification_result(raw) -> ClassificationResult:
         if isinstance(raw, ClassificationResult):
             return raw
         if isinstance(raw, dict):
+            # LLM 输出不可控，facets 可能是非 dict（如列表/字符串），统一防御
+            facets = raw.get("facets", {})
+            if not isinstance(facets, dict):
+                facets = {}
             return ClassificationResult(
                 category=raw.get("category", "未分类"),
                 confidence=float(raw.get("confidence", 0.0)),
@@ -196,17 +214,23 @@ class BookmarkClassifier:
                 alternatives=raw.get("alternatives", []),
                 processing_time=float(raw.get("processing_time", 0.0)),
                 method=raw.get("method", "unknown"),
-                facets=raw.get("facets", {}),
+                facets=facets,
             )
         raise TypeError(f"Unexpected classification result type: {type(raw)}")
 
     def _determine_subcategory(self, category: str, features: BookmarkFeatures) -> Optional[str]:
         hierarchy = self.config.get("category_hierarchy", {})
-        if isinstance(hierarchy, dict) and category in hierarchy:
-            title_lower = features.title.lower()
-            for sub in hierarchy[category]:
-                if sub.lower() in title_lower:
-                    return sub
+        if not isinstance(hierarchy, dict):
+            return None
+        # 规则引擎的 category 可能是 '主类/子类' 格式，按主类查 hierarchy
+        main = category.split("/", 1)[0].strip()
+        subs = hierarchy.get(category) or hierarchy.get(main)
+        if not isinstance(subs, list):
+            return None
+        title_lower = features.title.lower()
+        for sub in subs:
+            if str(sub).lower() in title_lower:
+                return sub
         return None
 
     def _detect_content_type(self, url: str, title: str) -> str:
@@ -227,70 +251,40 @@ class BookmarkClassifier:
         return "webpage"
 
     def _detect_language(self, title: str) -> str:
-        if _CHINESE_REGEX.search(title):
+        if CHINESE_REGEX.search(title):
             return "zh"
-        if _ENGLISH_REGEX.search(title):
+        if ENGLISH_REGEX.search(title):
             return "en"
         return "unknown"
 
     def _update_stats(self, result: ClassificationResult):
-        self.stats["total_classified"] += 1
-        total = self.stats["total_classified"]
-        old_avg = self.stats["average_confidence"]
-        self.stats["average_confidence"] = (old_avg * (total - 1) + result.confidence) / total
+        with self._stats_lock:
+            self.stats["total_classified"] += 1
+            total = self.stats["total_classified"]
+            old_avg = self.stats["average_confidence"]
+            self.stats["average_confidence"] = (old_avg * (total - 1) + result.confidence) / total
 
     def learn_from_feedback(self, url: str, title: str, correct_category: str, predicted_category: str):
-        features = self.extract_features(url, title)
-        if self.ml_classifier:
-            self.ml_classifier.online_learn(features, correct_category)
         self.feature_cache.invalidate(f"{url}::{title}")
         self.classification_cache.invalidate(hashlib.md5(f"{url}::{title}".encode()).hexdigest())
         self.logger.debug(f"学习反馈: {predicted_category} -> {correct_category}")
 
     def get_statistics(self) -> Dict:
         total_predictions = (
-            self.stats["rule_engine"] + self.stats["ml_classifier"]
-            + self.stats["llm"] + self.stats["fallback"]
+            self.stats["rule_engine"] + self.stats["llm"] + self.stats["fallback"]
         )
+        # total_classified 只在缓存未命中时 +1，分母 = 命中 + 未命中 = 总尝试数
+        total_attempts = self.stats["cache_hits"] + self.stats["total_classified"]
         return {
             "total_classified": self.stats["total_classified"],
             "cache_hits": self.stats["cache_hits"],
-            "cache_hit_rate": self.stats["cache_hits"] / max(self.stats["total_classified"], 1),
+            "cache_hit_rate": self.stats["cache_hits"] / max(total_attempts, 1),
             "average_confidence": self.stats["average_confidence"],
             "classification_methods": {
                 "rule_engine": self.stats["rule_engine"],
-                "ml_classifier": self.stats["ml_classifier"],
                 "llm": self.stats["llm"],
                 "unclassified (fallback)": self.stats["fallback"],
                 "total": total_predictions,
             },
-            "ml_enabled": self.ml_classifier is not None,
+            "llm_enabled": self.llm_classifier is not None and self.llm_classifier.enabled(),
         }
-
-    def save_model(self, path: str = "models/ai_classifier.json"):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        model_data = {
-            "version": "3.0",
-            "timestamp": datetime.now().isoformat(),
-            "stats": self.stats,
-            "config": self.config,
-        }
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(model_data, f, ensure_ascii=False, indent=2)
-        if self.ml_classifier:
-            self.ml_classifier.save_model()
-        self.logger.info(f"模型已保存到: {path}")
-
-    def load_model(self, path: str = "models/ai_classifier.json"):
-        if not os.path.exists(path):
-            self.logger.warning(f"模型文件不存在: {path}")
-            return
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                model_data = json.load(f)
-            self.stats = model_data.get("stats", self.stats)
-            if self.ml_classifier:
-                self.ml_classifier.load_model()
-            self.logger.info(f"模型已从 {path} 加载")
-        except Exception as e:
-            self.logger.error(f"模型加载失败: {e}")

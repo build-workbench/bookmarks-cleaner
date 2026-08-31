@@ -160,7 +160,6 @@ class DataExporter:
                 if methods:
                     total = methods.get("total", 1)
                     lines.append(f"- **规则引擎**: {methods.get('rule_engine', 0)} ({methods.get('rule_engine', 0) / total:.1%})")
-                    lines.append(f"- **机器学习**: {methods.get('ml_classifier', 0)} ({methods.get('ml_classifier', 0) / total:.1%})")
                     lines.append(f"- **未分类**: {methods.get('unclassified (fallback)', 0)} ({methods.get('unclassified (fallback)', 0) / total:.1%})")
                 lines.append(f"- **平均置信度**: {classifier_stats.get('average_confidence', 0):.2f}")
                 lines.append("")

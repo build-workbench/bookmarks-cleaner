@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
-from cleanbook.text_utils import clean_title as clean_emoji_title
+from cleanbook.text_utils import TextCleaner
 
 try:
     from bs4 import BeautifulSoup
@@ -21,9 +21,15 @@ class BookmarkLoader:
         "javascript:", "data:", "chrome:", "about:", "file:", "mailto:",
     )
 
-    def __init__(self, max_workers: int = 8):
+    def __init__(self, max_workers: int = 8, title_rules: Optional[Dict] = None):
         self.max_workers = max_workers
         self.logger = logging.getLogger(__name__)
+        # 标题清理规则来自配置 title_cleaning_rules（站点前缀/后缀/字符替换）
+        self._cleaner = TextCleaner(
+            prefixes=(title_rules or {}).get("prefixes"),
+            suffixes=(title_rules or {}).get("suffixes"),
+            replacements=(title_rules or {}).get("replacements"),
+        )
         self.stats = {
             "files_loaded": 0, "files_failed": 0,
             "total_bookmarks": 0, "invalid_urls_skipped": 0,
@@ -64,7 +70,7 @@ class BookmarkLoader:
             for link in links:
                 url = link.get("href", "").strip()
                 title_raw = (link.string or link.get_text() or "").strip()
-                title = clean_emoji_title(title_raw)
+                title = self._cleaner.clean_title(title_raw)
                 if url and title and self._is_valid_url(url):
                     bookmarks.append({
                         "url": url, "title": title, "source_file": file_path,

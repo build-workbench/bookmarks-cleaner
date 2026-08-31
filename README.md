@@ -1,24 +1,18 @@
 # CleanBook
 
-**规则优先 · ML 辅助 · LLM 可选 · 离线优先**
+**规则优先 · LLM 可选 · 离线优先**
 
 离线书签自动分类引擎。输入浏览器导出的 HTML，一条命令完成去重、分类、组织、导出。全程留在本机，不依赖云服务。
 
 ## 它解决什么问题
 
-浏览器书签积累到几百上千条后，手动整理几乎不可能。现有工具要么是纯手动 tag（buku），要么把数据推到云端（Raindrop.io）。CleanBook 选择第三条路：**规则引擎自动分类，可选 ML/LLM 增强，全程离线。**
+浏览器书签积累到几百上千条后，手动整理几乎不可能。现有工具要么是纯手动 tag（buku），要么把数据推到云端（Raindrop.io）。CleanBook 选择第三条路：**规则引擎自动分类，可选 LLM 增强，全程离线。**
 
 ## 快速开始
 
 ```bash
 pipx install cleanbook
 cleanbook -i bookmarks.html -o output/
-```
-
-只走规则路径（不装 ML 依赖）：
-
-```bash
-cleanbook -i bookmarks.html -o output/ --no-ml
 ```
 
 从源码运行：
@@ -33,38 +27,37 @@ cleanbook -i examples/sample_bookmarks.html -o output/
 安装可选能力：
 
 ```bash
-pip install -e ".[ml]"     # 机器学习分类
 pip install -e ".[llm]"    # LLM 分类（需配置 API Key）
 ```
 
 ## 分类效果
 
-使用 `examples/sample_bookmarks.html`（78 条书签，覆盖 8 个分类）测试：
+使用 `examples/sample_bookmarks.html`（80 条书签，覆盖 8 个分类）测试：
 
 ```
-输入: 78 条书签
-去重: 5 条（URL 精确匹配 + 相似度检测）
-分类: 73 条，0 错误
+输入: 80 条书签
+去重: 2 条（URL 精确匹配 + 规范化匹配）
+分类: 76 条，0 错误
 耗时: < 1 秒（规则路径）
 ```
 
-分类分布示例：
+分类分布示例（按主分类合并）：
 
-| 分类 | 数量 |
-|------|------|
+| 主分类 | 数量 |
+|--------|------|
+| 学习 | 17 |
+| 编程 | 17 |
 | AI | 11 |
-| 编程 | 13 |
-| 学习 | 12 |
-| 生物 | 5 |
-| 社区 | 4 |
+| 生物 | 6 |
+| 社区 | 5 |
 | 资讯 | 5 |
 | 娱乐 | 6 |
-| 其他 | 7 |
-| 未分类 | 10 |
+| 其他 | 8 |
+| 未分类 | 1 |
 
 ## 分类架构
 
-三路融合：规则引擎 -> ML -> LLM，各自独立产出结果，由 FusionEngine 加权融合。
+两级级联：规则引擎给出确定性主分类，LLM（可选）在规则未命中时兜底、命中时补充子分类。
 
 ```
 BookmarkProcessor (processor.py)
@@ -72,9 +65,7 @@ BookmarkProcessor (processor.py)
   ├── BookmarkDeduplicator    两阶段去重（URL 精确 + 相似度）
   ├── BookmarkClassifier
   │     ├── RuleEngine        规则优先，预编译正则
-  │     ├── MLClassifier      可选，scikit-learn + jieba 分词
   │     └── LLMClassifier     可选，OpenAI 兼容 API
-  │     └── FusionEngine      加权融合，置信度阈值
   ├── OrganizationPipeline    subject/resource_type 两级组织
   └── DataExporter            HTML / JSON / Markdown 导出
 ```
@@ -90,6 +81,16 @@ cleanbook -i bookmarks.html -c config.local.json -o output/
 ```
 
 `config.local.json` 不入库（已在 `.gitignore` 中），可自行创建并添加个人化分类规则。配置格式参考默认 `config.json`。
+
+配置节说明：
+
+| 配置节 | 作用 |
+|--------|------|
+| `category_rules` / `priority_rules` | 分类规则（match 域名/标题/URL，keywords + weight） |
+| `ai_settings` | `confidence_threshold` 分类阈值、`cache_size` 缓存大小、`url_analysis_weight` URL 分析权重、`merge_top_ratio` 主类合并占比 |
+| `title_cleaning_rules` | 标题清理：站点前缀/后缀移除与字符替换 |
+| `llm` | LLM 分类开关与 OpenAI 兼容 API 参数（默认关闭） |
+| `taxonomy` | 受控词表路径（subjects / resource_types） |
 
 ## 开发
 

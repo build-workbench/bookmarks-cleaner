@@ -64,3 +64,20 @@ class TestNormalizeCategoryConfig:
     def test_empty_config(self):
         assert normalize_category_config({}) == {}
         assert normalize_category_config(None) == {}
+
+
+class TestTextCleanerRules:
+    def test_site_prefix_suffix_replacement(self):
+        cleaner = TextCleaner(
+            prefixes=["登录 |", "Sign in ·"],
+            suffixes=["- V2EX", " · GitHub"],
+            replacements={"&": "&", "(7条消息)": ""},
+        )
+        assert cleaner.clean_title("登录 | 首页 - V2EX") == "首页"
+        assert cleaner.clean_title("Sign in · GitHub · GitHub") == "GitHub"
+        assert cleaner.clean_title("Python 教程(7条消息)") == "Python 教程"
+
+    def test_no_rules_default_unchanged(self):
+        cleaner = TextCleaner()
+        assert cleaner.clean_title("⭐ 我的收藏") == "我的收藏"
+        assert cleaner.clean_title("普通标题 - V2EX") == "普通标题 - V2EX"

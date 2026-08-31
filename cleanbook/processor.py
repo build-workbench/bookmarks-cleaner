@@ -31,13 +31,11 @@ class BookmarkProcessor:
         self,
         config_path: Optional[str] = None,
         max_workers: int = 4,
-        use_ml: bool = True,
         confidence_threshold: Optional[float] = None,
     ):
         resolved_path, _ = resolve_config_path(config_path)
         self.config_path = str(resolved_path)
         self.max_workers = min(max_workers, self.MAX_WORKERS_LIMIT)
-        self.use_ml = use_ml
         self.confidence_threshold = confidence_threshold
         self.logger = logging.getLogger(__name__)
 
@@ -50,11 +48,14 @@ class BookmarkProcessor:
         # 初始化组件
         self.classifier = BookmarkClassifier(
             config_path=self.config_path,
-            enable_ml=use_ml,
             config=self.config,
         )
         self.standardizer = TaxonomyService(self.config)
-        self.loader = BookmarkLoader(max_workers=min(self.max_workers, 8))
+        title_rules = self.config.get("title_cleaning_rules")
+        self.loader = BookmarkLoader(
+            max_workers=min(self.max_workers, 8),
+            title_rules=title_rules if isinstance(title_rules, dict) else None,
+        )
         self.deduplicator = BookmarkDeduplicator()
         self.organization = OrganizationPipeline(self.standardizer)
         self.exporter = DataExporter(config=self.config)
@@ -76,7 +77,6 @@ class BookmarkProcessor:
         self,
         input_files: List[str],
         output_dir: str = "output",
-        train_models: bool = False,
         limit: int = 0,
     ) -> Dict:
         """处理书签文件：加载 -> 去重 -> 分类 -> 组织 -> 导出"""
@@ -104,14 +104,12 @@ class BookmarkProcessor:
         self.stats["errors"] += class_stats["errors"]
         self.stats["categories_found"] = class_stats["categories_found"]
 
-        # 4. 训练（可选）
-        if train_models:
-            self._train_models(classified_bookmarks)
+        # 4. 组织
+        organized_bookmarks, org_stats = self.organization.organize(classified_bookmarks, self.config)
+        self.stats["subjects_found"] = org_stats.get("total_subjects", 0)
 
-        # 5. 组织
-        organized_bookmarks, _ = self.organization.organize(classified_bookmarks, self.config)
-
-        # 6. 导出
+        # 5. 导出（附带分类器统计，供 markdown 报告使用）
+        self.stats["classifier_stats"] = self.classifier.get_statistics()
         self.exporter.export_all_formats(organized_bookmarks, output_dir, stats=self.stats)
 
         self.stats["processing_time"] = time.time() - start_time
@@ -119,29 +117,14 @@ class BookmarkProcessor:
         return self.stats
 
     def _deduplicate(self, bookmarks: List[Dict]):
-        """两阶段去重：快速 URL 去重 + 高级相似度去重"""
-        seen_urls = set()
-        unique: List[Dict] = []
-        fast_duplicates: List[Dict] = []
-        for bookmark in bookmarks:
-            url = bookmark.get("url", "")
-            if url and url not in seen_urls:
-                seen_urls.add(url)
-                unique.append(bookmark)
-            else:
-                fast_duplicates.append(bookmark)
-
-        advanced_unique, advanced_duplicates = self.deduplicator.remove_duplicates(unique)
-        all_duplicates = fast_duplicates + advanced_duplicates
-
+        """去重：由 BookmarkDeduplicator 统一处理（精确 URL 匹配 + 相似度检测）"""
+        unique, duplicates = self.deduplicator.remove_duplicates(bookmarks)
         stats = {
             "input_count": len(bookmarks),
-            "output_count": len(advanced_unique),
-            "duplicates_removed": len(all_duplicates),
-            "fast_duplicates_removed": len(fast_duplicates),
-            "advanced_duplicates_removed": len(advanced_duplicates),
+            "output_count": len(unique),
+            "duplicates_removed": len(duplicates),
         }
-        return advanced_unique, all_duplicates, stats
+        return unique, duplicates, stats
 
     def _classify_batch(self, bookmarks: List[Dict]) -> tuple:
         """并行批量分类"""
@@ -163,13 +146,16 @@ class BookmarkProcessor:
                         classified.append(result)
                         category = result.get("category", "未分类")
                         categories_found[category] = categories_found.get(category, 0) + 1
+                    else:
+                        # _classify_single 内部异常返回 None，同样计入错误
+                        self.logger.debug(f"分类返回空结果 {bookmark.get('url', 'unknown')}")
+                        errors += 1
                 except Exception as e:
                     self.logger.error(f"分类失败 {bookmark.get('url', 'unknown')}: {e}")
                     errors += 1
 
         stats = {
             "classified_count": len(classified),
-            "cache_hits": 0,
             "errors": errors,
             "processing_time": 0.0,
             "categories_found": categories_found,
@@ -194,23 +180,6 @@ class BookmarkProcessor:
         except Exception as e:
             self.logger.debug(f"分类失败 [{bookmark.get('url', 'unknown')}]: {e}")
             return None
-
-    def _train_models(self, classified_bookmarks: List[Dict]):
-        """使用高置信度结果训练 ML 模型"""
-        if not self.classifier.ml_classifier:
-            self.logger.warning("机器学习组件未启用，跳过训练")
-            return
-        self.logger.info("开始训练机器学习模型...")
-        samples = 0
-        for bookmark in classified_bookmarks:
-            if bookmark.get("confidence", 0.0) > 0.8:
-                try:
-                    features = self.classifier.extract_features(bookmark["url"], bookmark["title"])
-                    self.classifier.ml_classifier.online_learn(features, bookmark["category"])
-                    samples += 1
-                except Exception as e:
-                    self.logger.debug(f"训练样本添加失败: {e}")
-        self.logger.info(f"训练完成: 添加了 {samples} 个样本")
 
     def get_statistics(self) -> Dict:
         return self.stats.copy()

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cleanbook"
-version = "3.0.0"
-description = "离线书签清理与分类：规则优先 · ML 辅助 · LLM 可选"
+version = "4.0.0"
+description = "离线书签清理与分类：规则优先 · LLM 可选"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -32,13 +32,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ml = [
-  "scikit-learn~=1.4.2",
-  "numpy~=1.26.4",
-  "jieba~=0.42.1",
-  "langdetect~=1.0.9",
-  "joblib~=1.4.2",
-]
 llm = [
   "requests~=2.32.3",
 ]

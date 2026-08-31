@@ -34,7 +34,7 @@ def main():
         epilog="""
 示例:
   %(prog)s -i bookmarks.html -o output/
-  %(prog)s -i examples/demo_bookmarks.html --no-ml
+  %(prog)s -i examples/demo_bookmarks.html
   %(prog)s --health-check
         """,
     )
@@ -43,11 +43,9 @@ def main():
     parser.add_argument("-o", "--output", default="output", help="输出目录")
     parser.add_argument("-c", "--config", default=None, help="配置文件路径")
     parser.add_argument("--health-check", action="store_true", help="运行健康检查")
-    parser.add_argument("--train", action="store_true", help="训练机器学习模型")
     parser.add_argument("--workers", type=int, default=4, help="并行处理线程数")
     parser.add_argument("--threshold", type=float, default=None, help="分类置信度阈值（默认使用配置文件中的值）")
     parser.add_argument("--log-level", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"])
-    parser.add_argument("--no-ml", action="store_true", help="禁用机器学习")
     parser.add_argument("--limit", type=int, default=0, help="限制处理的书签数量（调试用）")
     parser.add_argument("--eval", metavar="FILE", help="评估分类效果，传入标注数据 JSON 文件")
 
@@ -89,14 +87,12 @@ def main():
             processor = BookmarkProcessor(
                 config_path=str(config_path),
                 max_workers=args.workers,
-                use_ml=not args.no_ml,
                 confidence_threshold=args.threshold,
             )
 
             results = processor.process_files(
                 input_files=input_files,
                 output_dir=args.output,
-                train_models=args.train,
                 limit=args.limit if args.limit and args.limit > 0 else 0,
             )
 
@@ -142,9 +138,8 @@ def run_eval(args):
         labeled = json.load(f)
 
     processor = BookmarkProcessor(
-        config_path=str(config_path) if (config_path := resolve_config_path(args.config)[0]) else None,
+        config_path=str(resolve_config_path(args.config)[0]),
         max_workers=args.workers,
-        use_ml=not args.no_ml,
         confidence_threshold=args.threshold,
     )
 
@@ -154,9 +149,12 @@ def run_eval(args):
     category_stats = {}
 
     for item in labeled:
-        url = item["url"]
-        title = item["title"]
-        expected = normalize_category_string(item["expected"])
+        url = item.get("url", "")
+        title = item.get("title", "")
+        expected = normalize_category_string(item.get("expected", ""))
+        if not url or not title or not expected:
+            logging.getLogger(__name__).warning(f"标注数据缺字段，跳过: {item}")
+            continue
         result = processor.classifier.classify(url, title)
         predicted = normalize_category_string(result.category)
 
@@ -181,7 +179,7 @@ def run_eval(args):
     accuracy = correct / total if total > 0 else 0
     print(f"\n{'='*50}")
     print(f"评估结果: {correct}/{total} 正确 ({accuracy:.1%})")
-    print(f"分类方法: {'规则' if args.no_ml else '规则+ML'}")
+    print("分类方法: 规则引擎（LLM 可选）")
     print(f"{'='*50}")
 
     print(f"\n各分类准确率:")

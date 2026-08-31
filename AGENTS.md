@@ -9,7 +9,7 @@ CleanBook 是一个 **业余维护** 的离线书签清理与分类 CLI，仓库
 - **入口**：`cleanbook`、`python main.py`
 - **输入**：浏览器导出的书签 HTML
 - **输出**：清洗后的 HTML、JSON 数据、markdown 报告
-- **分类栈**：规则优先，ML 辅助，LLM 可选
+- **分类栈**：规则优先，LLM 可选（两级级联）
 
 ## 架构
 
@@ -20,9 +20,7 @@ main.py / cleanbook CLI
      -> BookmarkDeduplicator (deduplicator.py)
      -> BookmarkClassifier (classifier.py)
         -> RuleEngine (rules.py)
-        -> MLClassifierWrapper (ml.py, 可选)
         -> LLMClassifier (llm.py, 可选)
-        -> FusionEngine (fusion.py)
      -> OrganizationPipeline (organizer.py)
      -> DataExporter (exporter.py)
 ```
@@ -36,7 +34,7 @@ cleanbook/
   processor.py       处理流程编排
   loader.py          HTML 书签加载
   deduplicator.py    去重
-  classifier.py      分类器（规则+ML+LLM 融合）
+  classifier.py      分类器（规则+LLM 两级级联）
   rules.py           规则引擎
   url_analyzer.py    URL 智能分析
   organizer.py       分类组织与排序
@@ -46,8 +44,6 @@ cleanbook/
   config.py          配置加载
   cache.py           LRU 缓存
   models.py          数据结构 (BookmarkFeatures, ClassificationResult)
-  fusion.py          加权融合引擎
-  ml.py              ML 分类器（可选，需 scikit-learn）
   llm.py             LLM 分类器（可选，需 requests）
   health.py          健康检查
   resources/         打包资源（config.json, taxonomy/）

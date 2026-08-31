@@ -14,10 +14,10 @@ from urllib.parse import parse_qs, urljoin, urlparse
 class BookmarkDeduplicator:
     """书签去重器 - 高级相似度检测和去重"""
 
-    def __init__(self, similarity_threshold: float = 0.85):
-        self.similarity_threshold = similarity_threshold
-        self.title_threshold = 0.8
-        self.url_threshold = 0.9
+    def __init__(self):
+        # 标题阈值 0.95：字符级相似度对短标题单字符差异（如年份 2018/2019）过于敏感，
+        # 低阈值会把内容不同的页面误判为重复，宁保守勿误删
+        self.title_threshold = 0.95
 
         # 初始化去重策略
         self.dedup_strategies = [
@@ -25,7 +25,6 @@ class BookmarkDeduplicator:
             self._normalized_url_match,
             self._content_similarity_match,
             self._title_similarity_match,
-            self._domain_path_similarity,
         ]
 
     def remove_duplicates(self, bookmarks: List[Dict]) -> Tuple[List[Dict], List[Dict]]:
@@ -106,20 +105,40 @@ class BookmarkDeduplicator:
         return bookmark1.get("url", "") == bookmark2.get("url", "")
 
     def _normalized_url_match(self, bookmark1: Dict, bookmark2: Dict) -> bool:
-        """标准化URL匹配"""
+        """标准化URL匹配：规范化后确定性相等（同页变体判定）
+
+        用相似度阈值（如 0.9）判断"几乎相同"会误杀短路径——"post-1" 与 "post-2"
+        的 SequenceMatcher 相似度可达 0.96。规范化（去 tracking/排序 query/去尾斜杠）
+        后同页变体应完全一致，直接比较相等即可。
+        """
         url1_norm = self._normalize_url(bookmark1.get("url", ""))
         url2_norm = self._normalize_url(bookmark2.get("url", ""))
 
         if not url1_norm or not url2_norm:
             return False
 
-        # 计算URL相似度
-        similarity = self._calculate_url_similarity(url1_norm, url2_norm)
-        return similarity >= self.url_threshold
+        # 容忍 http/https 与 www 差异
+        return self._strip_scheme_www(url1_norm) == self._strip_scheme_www(url2_norm)
+
+    @staticmethod
+    def _strip_scheme_www(url: str) -> str:
+        rest = url.split("://", 1)[-1]
+        return rest[len("www."):] if rest.startswith("www.") else rest
 
     def _content_similarity_match(self, bookmark1: Dict, bookmark2: Dict) -> bool:
-        """内容相似度匹配"""
-        # 综合考虑标题和URL的相似度
+        """内容相似度匹配：同域名 + 标题高度相似 + URL 高度相似（AND 语义）
+
+        旧实现用加权平均（title*0.6 + url*0.4），"标题 0.9 + URL 0.79" 的组合即可过
+        0.85 阈值，但两者单独都不够高——短路径的 1 字符差异会被吞掉，造成误删。
+        """
+        try:
+            domain1 = urlparse(bookmark1.get("url", "")).netloc
+            domain2 = urlparse(bookmark2.get("url", "")).netloc
+            if not domain1 or domain1 != domain2:
+                return False
+        except (ValueError, AttributeError):
+            return False
+
         title_sim = self._calculate_title_similarity(
             bookmark1.get("title", ""), bookmark2.get("title", "")
         )
@@ -128,12 +147,18 @@ class BookmarkDeduplicator:
             bookmark1.get("url", ""), bookmark2.get("url", "")
         )
 
-        # 加权平均
-        combined_similarity = title_sim * 0.6 + url_sim * 0.4
-        return combined_similarity >= self.similarity_threshold
+        return title_sim >= self.title_threshold and url_sim >= 0.7
 
     def _title_similarity_match(self, bookmark1: Dict, bookmark2: Dict) -> bool:
-        """标题相似度匹配"""
+        """标题相似度匹配（要求同域名，跨域同标题属于不同站点，不应判定重复）"""
+        try:
+            domain1 = urlparse(bookmark1.get("url", "")).netloc
+            domain2 = urlparse(bookmark2.get("url", "")).netloc
+            if not domain1 or domain1 != domain2:
+                return False
+        except (ValueError, AttributeError):
+            return False
+
         title1 = bookmark1.get("title", "").strip()
         title2 = bookmark2.get("title", "").strip()
 
@@ -142,25 +167,6 @@ class BookmarkDeduplicator:
 
         similarity = self._calculate_title_similarity(title1, title2)
         return similarity >= self.title_threshold
-
-    def _domain_path_similarity(self, bookmark1: Dict, bookmark2: Dict) -> bool:
-        """域名和路径相似度匹配"""
-        try:
-            parsed1 = urlparse(bookmark1.get("url", ""))
-            parsed2 = urlparse(bookmark2.get("url", ""))
-
-            # 域名必须相同
-            if parsed1.netloc != parsed2.netloc:
-                return False
-
-            # 计算路径相似度
-            path_sim = SequenceMatcher(None, parsed1.path, parsed2.path).ratio()
-
-            # 如果路径非常相似，认为是重复
-            return path_sim >= 0.9
-
-        except (ValueError, AttributeError):
-            return False
 
     def _normalize_url(self, url: str) -> str:
         """标准化URL"""
@@ -224,11 +230,15 @@ class BookmarkDeduplicator:
             # 路径相似度
             path_sim = SequenceMatcher(None, parsed1.path, parsed2.path).ratio()
 
-            # 查询参数相似度
-            query_sim = SequenceMatcher(None, parsed1.query, parsed2.query).ratio()
+            # 查询参数相似度：双方都无 query 时取中性 0.5
+            # （SequenceMatcher("", "") 恒为 1.0，会把 0.3 权重白送）
+            if not parsed1.query and not parsed2.query:
+                query_sim = 0.5
+            else:
+                query_sim = SequenceMatcher(None, parsed1.query, parsed2.query).ratio()
 
-            # 加权平均
-            overall_sim = domain_sim * 0.5 + path_sim * 0.3 + query_sim * 0.2
+            # 加权平均：路径主导，同域名只给少量基础分（域名相同不该直接算一半相似）
+            overall_sim = domain_sim * 0.2 + path_sim * 0.5 + query_sim * 0.3
 
             return overall_sim
 
