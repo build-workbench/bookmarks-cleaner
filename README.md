@@ -24,6 +24,8 @@ pipx install cleanbook
 
 3. **导入回浏览器**：把 `output/` 下生成的 `*.html` 用浏览器的「导入书签」导回即可。同目录还有 `*.json`（结构化数据）和 `*.markdown`（分类报告）。
 
+![运行示例](docs/screenshot.png)
+
 没有书签文件？用仓库自带示例试跑：
 
 ```bash
