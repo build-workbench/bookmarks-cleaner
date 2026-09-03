@@ -1,7 +1,7 @@
 """规则引擎测试"""
 
-from cleanbook.models import BookmarkFeatures
-from cleanbook.rules import RuleEngine
+from cleanbookmarks.models import BookmarkFeatures
+from cleanbookmarks.rules import RuleEngine
 
 
 def _make_config():

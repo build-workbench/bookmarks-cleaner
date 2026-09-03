@@ -1,6 +1,6 @@
 """缓存管理器测试"""
 
-from cleanbook.cache import CacheManager
+from cleanbookmarks.cache import CacheManager
 
 
 class TestCacheManager:

@@ -13,8 +13,8 @@ from urllib.parse import parse_qs, urlparse
 
 import requests
 
-from cleanbook.config import load_json_config, resolve_config_path
-from cleanbook.text_utils import CHINESE_REGEX, ENGLISH_REGEX, normalize_category_string
+from cleanbookmarks.config import load_json_config, resolve_config_path
+from cleanbookmarks.text_utils import detect_language, is_video_url, normalize_category_string
 
 _KEYWORD_REGEX = re.compile(r"[a-zA-Z\u4e00-\u9fff]{2,}")
 
@@ -76,7 +76,7 @@ class LLMPromptBuilder:
         steps_text = "\n".join(f"{i+1}. {s}" for i, s in enumerate(self._steps))
         schema_preview = json.dumps(self._expected_schema, ensure_ascii=False, indent=2)
         return (
-            "你是 CleanBook-Agent，一名资深浏览器书签信息架构师。\n"
+            "你是 CleanBookmarks-Agent，一名资深浏览器书签信息架构师。\n"
             "目标：在保持原始信息完整的前提下，为书签匹配最合适的分类，并输出结构化结果。\n"
             f"主分类参考（部分）：{primary_hint}\n"
             "请务必遵循以下工作流：\n"
@@ -287,11 +287,11 @@ class LLMClassifier:
         hints: Dict[str, Any] = {
             "contains_code": any(t in title_lower for t in ["github", "repo", "代码", "编程"]),
             "contains_doc": any(t in title_lower for t in ["doc", "文档", "documentation"]),
-            "likely_video": self._is_video_url(url),
+            "likely_video": is_video_url(url),
             "likely_news": any(t in title_lower for t in ["news", "资讯", "快讯"]),
             "likely_forum": any(t in bookmark_payload["domain"] for t in ["forum", "bbs", "community"]),
         }
-        hints["language"] = self._detect_language(title)
+        hints["language"] = detect_language(title)
         hints["secure_scheme"] = url.lower().startswith("https://")
         return hints
 
@@ -304,14 +304,3 @@ class LLMClassifier:
                 seen.add(token)
                 keywords.append(token)
         return keywords
-
-    def _detect_language(self, text: str) -> str:
-        if CHINESE_REGEX.search(text):
-            return "zh"
-        if ENGLISH_REGEX.search(text):
-            return "en"
-        return "unknown"
-
-    def _is_video_url(self, url: str) -> bool:
-        lower = url.lower()
-        return any(host in lower for host in ["youtube.com", "bilibili.com", "vimeo.com"])

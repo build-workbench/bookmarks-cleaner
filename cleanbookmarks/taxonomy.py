@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import logging
-import re
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 import yaml
 
-from cleanbook.config import resolve_taxonomy_path
-from cleanbook.text_utils import strip_prefix
+from cleanbookmarks.config import resolve_taxonomy_path
+from cleanbookmarks.text_utils import strip_prefix
 
 logger = logging.getLogger(__name__)
 

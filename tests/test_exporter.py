@@ -2,7 +2,7 @@
 
 import json
 import os
-from cleanbook.exporter import DataExporter
+from cleanbookmarks.exporter import DataExporter
 
 
 class TestDataExporter:
@@ -54,6 +54,24 @@ class TestDataExporter:
         assert len(files) == 3
         for f in files:
             assert os.path.exists(f)
+
+    def test_batch_timestamps_consistent(self, tmp_path):
+        """回归：同一批次导出的三格式时间戳一致，且文件名含同一批次时刻"""
+        import json as _json
+        exporter = DataExporter()
+        files = exporter.export_all_formats(self._make_bookmarks(), str(tmp_path))
+        # 文件名共享同一时间戳前缀
+        basenames = [os.path.basename(f) for f in files]
+        prefixes = {b.rsplit(".", 1)[0].rsplit("_", 1)[0] for b in basenames}
+        assert len(prefixes) == 1, f"文件名时间戳不一致: {basenames}"
+        # Markdown 与 JSON 内容里的时间戳一致
+        md = open(files[2], encoding="utf-8").read()
+        import re as _re
+        md_time = _re.search(r"生成时间: (.+)", md).group(1).strip()
+        data = _json.load(open(files[1], encoding="utf-8"))
+        assert data["metadata"]["export_time"] == md_time, (
+            f"内容时间戳不一致: {data['metadata']['export_time']} vs {md_time}"
+        )
 
     def test_empty_categories_skipped(self, tmp_path):
         exporter = DataExporter()

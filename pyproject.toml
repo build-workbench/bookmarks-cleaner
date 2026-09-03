@@ -3,13 +3,13 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cleanbook"
+name = "cleanbookmarks"
 version = "4.0.0"
 description = "离线书签清理与分类：规则优先 · LLM 可选"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
-authors = [{ name = "LessUp", email = "github@lessup.dev" }]
+authors = [{ name = "holtwood" }]
 keywords = ["bookmarks", "classification", "clean", "cli"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -40,20 +40,17 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/vibe-knight/bookmarks-cleaner"
-Issues = "https://github.com/vibe-knight/bookmarks-cleaner/issues"
+Repository = "https://github.com/build-workbench/bookmarks-cleaner"
+Issues = "https://github.com/build-workbench/bookmarks-cleaner/issues"
 
 [project.scripts]
-cleanbook = "cleanbook.cli:main"
-
-[tool.setuptools]
-py-modules = ["main"]
+cleanbookmarks = "cleanbookmarks.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["cleanbook*"]
+include = ["cleanbookmarks*"]
 
 [tool.setuptools.package-data]
-"cleanbook.resources" = ["config.json", "taxonomy/*.yaml"]
+"cleanbookmarks.resources" = ["config.json", "taxonomy/*.yaml"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

@@ -1,6 +1,6 @@
 """文本清理工具测试"""
 
-from cleanbook.text_utils import TextCleaner, clean_title, strip_prefix, normalize_category_string, normalize_category_config
+from cleanbookmarks.text_utils import TextCleaner, clean_title, strip_prefix, normalize_category_string, normalize_category_config
 
 
 class TestCleanTitle:

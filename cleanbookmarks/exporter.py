@@ -6,10 +6,10 @@ import json
 import os
 import re
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
-from cleanbook import __version__
-from cleanbook.text_utils import clean_title as clean_emoji_title
+from cleanbookmarks import __version__
+from cleanbookmarks.text_utils import clean_title as clean_emoji_title
 
 
 class DataExporter:
@@ -17,10 +17,16 @@ class DataExporter:
 
     def __init__(self, config: Optional[Dict] = None):
         self.config = config or {}
+        # 导出批次时刻在每次 export_all_formats 时刷新，保证同批三格式一致
+        self._export_datetime = datetime.now()
 
     @property
     def export_timestamp(self) -> str:
-        return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        return self._export_datetime.strftime("%Y-%m-%d %H:%M:%S")
+
+    @property
+    def export_filename_timestamp(self) -> str:
+        return self._export_datetime.strftime("%Y%m%d_%H%M%S")
 
     def export_html(self, organized_bookmarks: Dict, output_file: str, stats: Optional[Dict] = None):
         html_content = self._generate_html_content(organized_bookmarks, stats)
@@ -39,7 +45,7 @@ class DataExporter:
         ]
         if stats:
             html_parts.append("<!--")
-            html_parts.append(f"    Generator: CleanBook v{__version__}")
+            html_parts.append(f"    Generator: CleanBookmarks v{__version__}")
             html_parts.append(f"    Export Time: {self.export_timestamp}")
             html_parts.append(
                 f'    Processed Bookmarks: {stats.get("processed_bookmarks", 0)} / {stats.get("total_bookmarks", 0)}'
@@ -130,7 +136,7 @@ class DataExporter:
             "export_time": self.export_timestamp,
             "processor_version": __version__,
             "format_version": "3.0",
-            "generator": "CleanBook",
+            "generator": "CleanBookmarks",
             "total_categories": len(filtered),
             "total_bookmarks": self._count_total_bookmarks(filtered),
         }
@@ -199,7 +205,7 @@ class DataExporter:
                 lines.append("")
 
         lines.append("---")
-        lines.append(f"*由 CleanBook v{__version__} 生成 - {self.export_timestamp}*")
+        lines.append(f"*由 CleanBookmarks v{__version__} 生成 - {self.export_timestamp}*")
         return "\n".join(lines)
 
     def _format_bookmark_markdown(self, item: Dict) -> str:
@@ -224,13 +230,15 @@ class DataExporter:
                 total += len(subcat_data.get("_items", []))
         return total
 
-    def export_all_formats(self, organized_bookmarks: Dict, output_dir: str, base_filename: str = "bookmarks", stats: Optional[Dict] = None):
+    def export_all_formats(self, organized_bookmarks: Dict, output_dir: str, stats: Optional[Dict] = None):
         os.makedirs(output_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # 刷新批次时刻：文件名与三种格式内容中的时间戳保持一致
+        self._export_datetime = datetime.now()
+        timestamp = self.export_filename_timestamp
         exported_files = []
         for fmt, method in [("html", self.export_html), ("json", self.export_json), ("markdown", self.export_markdown)]:
             try:
-                output_file = os.path.join(output_dir, f"{base_filename}_{timestamp}.{fmt}")
+                output_file = os.path.join(output_dir, f"bookmarks_{timestamp}.{fmt}")
                 method(organized_bookmarks, output_file, stats)
                 exported_files.append(output_file)
             except Exception as e:

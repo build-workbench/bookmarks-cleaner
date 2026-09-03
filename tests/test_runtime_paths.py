@@ -1,6 +1,6 @@
 """运行时路径解析测试"""
 
-from cleanbook.config import resolve_config_path, resolve_taxonomy_path, load_json_config
+from cleanbookmarks.config import resolve_config_path, resolve_taxonomy_path, load_json_config
 
 
 class TestRuntimePaths:

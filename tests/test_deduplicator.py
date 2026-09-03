@@ -1,6 +1,6 @@
 """去重器测试"""
 
-from cleanbook.deduplicator import BookmarkDeduplicator
+from cleanbookmarks.deduplicator import BookmarkDeduplicator
 
 
 class TestBookmarkDeduplicator:
@@ -112,3 +112,48 @@ class TestBookmarkDeduplicator:
         assert len(unique) == 1
         # The one with better quality should be kept
         assert unique[0]["title"] == "A Much Longer And More Descriptive Title"
+
+    def test_missing_url_never_duplicate(self):
+        """回归：空 URL 的书签不得与任何书签判为重复，也不得相互判重"""
+        d = BookmarkDeduplicator()
+        bookmarks = [
+            {"url": "", "title": "No URL"},
+            {"url": "https://example.com", "title": "Real"},
+            {"url": "", "title": "Another No URL"},
+            {"url": None, "title": "None URL"},
+        ]
+        unique, duplicates = d.remove_duplicates(bookmarks)
+        assert len(unique) == 4
+        assert len(duplicates) == 0
+
+    def test_input_bookmarks_not_mutated(self):
+        """回归：remove_duplicates 不得往调用方传入的 dict 里写 _original_index/duplicate_reason"""
+        d = BookmarkDeduplicator()
+        bookmarks = [
+            {"url": "https://example.com", "title": "Same"},
+            {"url": "https://example.com", "title": "Same dup"},
+        ]
+        snapshot = [dict(b) for b in bookmarks]
+        d.remove_duplicates(bookmarks)
+        assert bookmarks == snapshot
+
+    def test_duplicate_reason_only_on_duplicate_copy(self):
+        """重复书签的 duplicate_reason 只应出现在返回的 duplicates 里，不污染输入"""
+        d = BookmarkDeduplicator()
+        original = {"url": "https://example.com", "title": "Same"}
+        dup = {"url": "https://example.com", "title": "Same dup"}
+        unique, duplicates = d.remove_duplicates([original, dup])
+        assert "duplicate_reason" in duplicates[0]
+        assert "duplicate_reason" not in dup
+        assert "_original_index" not in dup
+
+    def test_cross_domain_same_title_not_duplicate(self):
+        """跨域同标题不得判重"""
+        d = BookmarkDeduplicator()
+        bookmarks = [
+            {"url": "https://a.com/article", "title": "The Same Title"},
+            {"url": "https://b.com/article", "title": "The Same Title"},
+        ]
+        unique, duplicates = d.remove_duplicates(bookmarks)
+        assert len(unique) == 2
+        assert len(duplicates) == 0

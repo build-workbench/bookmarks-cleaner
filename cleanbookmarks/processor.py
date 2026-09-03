@@ -7,14 +7,14 @@ import os
 import time
 from typing import Dict, List, Optional
 
-from cleanbook.classifier import BookmarkClassifier
-from cleanbook.config import load_json_config, resolve_config_path
-from cleanbook.deduplicator import BookmarkDeduplicator
-from cleanbook.exporter import DataExporter
-from cleanbook.loader import BookmarkLoader
-from cleanbook.organizer import OrganizationPipeline
-from cleanbook.taxonomy import TaxonomyService
-from cleanbook.text_utils import normalize_category_config, normalize_category_string
+from cleanbookmarks.classifier import BookmarkClassifier
+from cleanbookmarks.config import load_json_config, resolve_config_path
+from cleanbookmarks.deduplicator import BookmarkDeduplicator
+from cleanbookmarks.exporter import DataExporter
+from cleanbookmarks.loader import BookmarkLoader
+from cleanbookmarks.organizer import OrganizationPipeline
+from cleanbookmarks.taxonomy import TaxonomyService
+from cleanbookmarks.text_utils import normalize_category_config, normalize_category_string
 
 logger = logging.getLogger(__name__)
 
@@ -180,9 +180,6 @@ class BookmarkProcessor:
         except Exception as e:
             self.logger.debug(f"分类失败 [{bookmark.get('url', 'unknown')}]: {e}")
             return None
-
-    def get_statistics(self) -> Dict:
-        return self.stats.copy()
 
     def get_classifier_statistics(self) -> Dict:
         return self.classifier.get_statistics()

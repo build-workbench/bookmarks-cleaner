@@ -4,8 +4,8 @@ import pytest
 
 requests = pytest.importorskip("requests")
 
-import cleanbook.llm as llm_mod  # noqa: E402
-from cleanbook.llm import LLMClassifier, LLMPromptBuilder  # noqa: E402
+import cleanbookmarks.llm as llm_mod  # noqa: E402
+from cleanbookmarks.llm import LLMClassifier, LLMPromptBuilder  # noqa: E402
 
 
 def _enabled_config():

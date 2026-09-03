@@ -1,6 +1,6 @@
 """分类器级联逻辑测试：规则优先，LLM 兜底与补充"""
 
-from cleanbook.classifier import BookmarkClassifier
+from cleanbookmarks.classifier import BookmarkClassifier
 
 
 def _make_config():

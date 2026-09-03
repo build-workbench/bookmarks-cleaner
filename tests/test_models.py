@@ -1,6 +1,6 @@
 """数据结构测试"""
 
-from cleanbook.models import BookmarkFeatures, ClassificationResult
+from cleanbookmarks.models import BookmarkFeatures, ClassificationResult
 
 
 class TestBookmarkFeatures:

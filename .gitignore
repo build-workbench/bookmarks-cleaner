@@ -16,3 +16,4 @@ models/
 .env
 *.pkl
 config.local.json
+.commandcode/

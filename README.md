@@ -1,13 +1,15 @@
-# CleanBook
+# CleanBookmarks
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](#)
+
+**中文** | [English](https://github.com/build-workbench/bookmarks-cleaner/blob/main/README.en.md)
 
 书签太多太乱？一条命令帮你**去重、自动分类、整理导出**，全程本地运行。
 
 ## 安装
 
 ```bash
-pipx install cleanbook
+pipx install cleanbookmarks
 ```
 
 ## 快速上手
@@ -19,36 +21,49 @@ pipx install cleanbook
 2. **运行分类**
 
    ```bash
-   cleanbook -i bookmarks.html -o output/
+   cleanbookmarks -i bookmarks.html -o output/
    ```
 
 3. **导入回浏览器**：把 `output/` 下生成的 `*.html` 用浏览器的「导入书签」导回即可。同目录还有 `*.json`（结构化数据）和 `*.markdown`（分类报告）。
 
-![运行示例](docs/screenshot.png)
+![运行示例](https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/docs/screenshot.png)
 
-没有书签文件？用仓库自带示例试跑：
+没有书签文件？下载仓库自带的示例试跑：
 
 ```bash
-cleanbook -i examples/sample_bookmarks.html -o output/
+# 源码运行：直接使用仓库内示例
+cleanbookmarks -i examples/sample_bookmarks.html -o output/
+# pipx 安装：先下载示例（或任意浏览器导出的书签 HTML）
+curl -O https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/examples/sample_bookmarks.html
+cleanbookmarks -i sample_bookmarks.html -o output/
 ```
 
 ## 常用选项
 
 ```bash
-cleanbook -i a.html b.html -o output/ --workers 8   # 多个文件 + 并行
-cleanbook -i "bookmarks/*.html" -o output/          # 支持 glob
-cleanbook -i bookmarks.html -c config.local.json    # 自定义配置
-cleanbook -i bookmarks.html --limit 20              # 先小批量试跑
+cleanbookmarks -i a.html b.html -o output/ --workers 8   # 多个文件 + 并行
+cleanbookmarks -i "bookmarks/*.html" -o output/          # 支持 glob
+cleanbookmarks -i bookmarks.html -c config.local.json    # 自定义配置
+cleanbookmarks -i bookmarks.html --limit 20              # 先小批量试跑
 ```
 
-默认配置开箱即用。想调整分类规则、置信度阈值、标题清理等，复制仓库根目录的 `config.json` 为 `config.local.json` 修改后用 `-c` 指定。完整参数见 `cleanbook --help`。
+默认配置开箱即用。想调整分类规则、置信度阈值、标题清理等，把默认配置复制为本地文件再修改，用 `-c` 指定：
+
+```bash
+# 源码运行：默认配置在 cleanbookmarks/resources/config.json
+cp cleanbookmarks/resources/config.json config.local.json
+# pipx 安装：先找到安装包内配置（pipx runpip cleanbookmarks show cleanbookmarks 可查路径）
+cleanbookmarks -i bookmarks.html -c config.local.json
+```
+
+完整参数见 `cleanbookmarks --help`。
 
 ## LLM 分类（可选）
 
 默认全离线。若想让规则未命中的书签由 AI 兜底分类：
 
 ```bash
-pip install "cleanbook[llm]"
+pip install "cleanbookmarks[llm]"
 ```
 
 然后在 `config.local.json` 中开启：

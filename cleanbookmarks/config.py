@@ -16,30 +16,41 @@ class ResourceResolutionError(RuntimeError):
     """资源解析失败"""
 
 
-def _repo_root() -> Path:
-    return Path(__file__).resolve().parent.parent
-
-
 def _packaged_path(*parts: str) -> Optional[Path]:
+    """在打包资源中查找文件，返回一个长期有效的路径副本。
+
+    源码树运行时包内资源是真实文件，直接返回；wheel/zip 安装时资源是
+    虚拟的，需用 as_file() 物化，并立刻 copy 到持久位置（as_file 退出
+    会清理临时文件）。
+    """
     if resources is None:
         return None
-    package = "cleanbook.resources"
+    package = "cleanbookmarks.resources"
     target = resources.files(package)
     for part in parts:
         target = target.joinpath(part)
     if not target.is_file():
         return None
-    with resources.as_file(target) as file_path:
-        return Path(file_path)
+    try:
+        with resources.as_file(target) as file_path:
+            resolved = Path(file_path).resolve()
+            # 真实文件（源码树/editable 安装）直接返回，避免每次复制临时文件
+            if resolved.is_file():
+                return resolved
+            # 虚拟资源（wheel）必须复制，as_file 退出会删除临时文件
+            import tempfile
+            with tempfile.NamedTemporaryFile(delete=False, suffix=target.name) as tmp:
+                tmp.write(resolved.read_bytes())
+                return Path(tmp.name)
+    except (AttributeError, TypeError, OSError):
+        # as_file 不可用时（极端环境）退回直接路径
+        return Path(target)
 
 
 def default_config_path() -> Path:
     packaged = _packaged_path("config.json")
     if packaged is not None:
         return packaged
-    repo_config = _repo_root() / "config.json"
-    if repo_config.is_file():
-        return repo_config
     raise ResourceResolutionError("无法定位默认配置文件 config.json")
 
 
@@ -84,7 +95,4 @@ def resolve_taxonomy_path(
     packaged = _packaged_path(*Path(default_relative_path).parts)
     if packaged is not None:
         return packaged
-    repo_candidate = _repo_root() / default_relative_path
-    if repo_candidate.is_file():
-        return repo_candidate
     raise FileNotFoundError(f"无法定位 taxonomy 资源: {raw_value}")

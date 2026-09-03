@@ -3,12 +3,11 @@ Bookmark Deduplicator - 书签去重器
 高级相似度检测和自动合并
 """
 
-import hashlib
 import re
 from collections import defaultdict
 from difflib import SequenceMatcher
 from typing import Dict, List, Set, Tuple
-from urllib.parse import parse_qs, urljoin, urlparse
+from urllib.parse import parse_qs, urlparse
 
 
 class BookmarkDeduplicator:
@@ -36,21 +35,23 @@ class BookmarkDeduplicator:
         if not bookmarks:
             return [], []
 
+        # 为每个书签生成唯一标识（在副本上操作，避免污染调用方数据）
+        working = [dict(b) for b in bookmarks]
+        for i, bookmark in enumerate(working):
+            bookmark["_original_index"] = i
+
         unique_bookmarks = []
         duplicates = []
 
-        # 为每个书签生成唯一标识
-        for i, bookmark in enumerate(bookmarks):
-            bookmark["_original_index"] = i
-
         # 按域名预分组
         domain_groups: Dict[str, List[int]] = defaultdict(list)
-        for i, bookmark in enumerate(bookmarks):
+        for i, bookmark in enumerate(working):
             try:
+                raw_url = bookmark.get("url") or ""
                 domain = (
-                    urlparse(bookmark.get("url", "")).netloc.lower().replace("www.", "")
+                    urlparse(raw_url).netloc.lower().replace("www.", "")
                 )
-            except (ValueError, AttributeError):
+            except (ValueError, AttributeError, TypeError):
                 domain = ""
             domain_groups[domain].append(i)
 
@@ -62,7 +63,7 @@ class BookmarkDeduplicator:
                 if i in processed_indices:
                     continue
 
-                bookmark1 = bookmarks[i]
+                bookmark1 = working[i]
                 similar_group = [bookmark1]
                 similar_indices = {i}
 
@@ -70,8 +71,8 @@ class BookmarkDeduplicator:
                     if j in processed_indices:
                         continue
 
-                    if self._are_duplicates(bookmark1, bookmarks[j]):
-                        similar_group.append(bookmarks[j])
+                    if self._are_duplicates(bookmark1, working[j]):
+                        similar_group.append(working[j])
                         similar_indices.add(j)
 
                 # 处理相似组
@@ -94,6 +95,9 @@ class BookmarkDeduplicator:
 
     def _are_duplicates(self, bookmark1: Dict, bookmark2: Dict) -> bool:
         """判断两个书签是否重复"""
+        # 两个书签都必须有 URL，否则无法可靠判定
+        if not bookmark1.get("url") or not bookmark2.get("url"):
+            return False
         # 尝试所有去重策略
         for strategy in self.dedup_strategies:
             if strategy(bookmark1, bookmark2):
@@ -368,25 +372,3 @@ class BookmarkDeduplicator:
             reasons.append("综合相似度较高")
 
         return ", ".join(reasons)
-
-    def get_duplicate_statistics(self, duplicates: List[Dict]) -> Dict:
-        """获取去重统计信息"""
-        stats = {
-            "total_duplicates": len(duplicates),
-            "duplicate_reasons": defaultdict(int),
-            "duplicate_domains": defaultdict(int),
-        }
-
-        for dup in duplicates:
-            reason = dup.get("duplicate_reason", "未知")
-            stats["duplicate_reasons"][reason] += 1
-
-            url = dup.get("url", "")
-            if url:
-                try:
-                    domain = urlparse(url).netloc
-                    stats["duplicate_domains"][domain] += 1
-                except (ValueError, AttributeError):
-                    pass
-
-        return dict(stats)

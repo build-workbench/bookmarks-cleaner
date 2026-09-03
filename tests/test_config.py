@@ -1,6 +1,6 @@
 """配置加载测试"""
 
-from cleanbook.config import resolve_config_path, load_json_config, ResourceResolutionError
+from cleanbookmarks.config import resolve_config_path, load_json_config, ResourceResolutionError
 from pathlib import Path
 import pytest
 
@@ -42,3 +42,25 @@ class TestLoadJsonConfig:
         config_file.write_text("not json")
         with pytest.raises(ValueError):
             load_json_config(str(config_file))
+
+
+class TestPackagedResources:
+    def test_packaged_path_returns_usable_file(self):
+        """回归：_packaged_path 返回的路径在 as_file 上下文退出后仍可读取"""
+        from cleanbookmarks.config import _packaged_path
+        path = _packaged_path("config.json")
+        if path is None:
+            import pytest as _pytest
+            _pytest.skip("packaged resources 不可用")
+        # 返回的路径必须是长期有效、可读的真实文件（而非已释放的临时路径）
+        assert path.is_file()
+        content = path.read_text(encoding="utf-8")
+        assert "category_rules" in content
+
+    def test_packaged_taxonomy_file(self):
+        from cleanbookmarks.config import _packaged_path
+        path = _packaged_path("taxonomy", "subjects.yaml")
+        if path is None:
+            import pytest as _pytest
+            _pytest.skip("packaged resources 不可用")
+        assert path.is_file()

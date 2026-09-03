@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Dict, List, Tuple
 
-from cleanbook.taxonomy import TaxonomyService
+from cleanbookmarks.taxonomy import TaxonomyService
 
 
 class OrganizationPipeline:
@@ -28,6 +28,9 @@ class OrganizationPipeline:
     def _organize_by_subject_and_type(self, classified_bookmarks: List[Dict]) -> Dict[str, Dict]:
         organized: Dict[str, Dict] = {}
         for bookmark in classified_bookmarks:
+            # 防御：bookmark 可能为 None 或缺少字段，直接跳过而不是崩溃
+            if not isinstance(bookmark, dict):
+                continue
             category = (bookmark.get("category") or "").strip()
             subcategory = (bookmark.get("subcategory") or "").strip() or None
             derived_subject, derived_rt = self.standardizer.derive_from_category(category, content_type=None)

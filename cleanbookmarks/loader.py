@@ -6,7 +6,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Dict, List, Optional, Tuple
 
-from cleanbook.text_utils import TextCleaner
+from cleanbookmarks.text_utils import TextCleaner
 
 try:
     from bs4 import BeautifulSoup

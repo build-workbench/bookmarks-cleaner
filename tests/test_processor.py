@@ -1,7 +1,7 @@
 """处理器集成测试"""
 
 import os
-from cleanbook.processor import BookmarkProcessor
+from cleanbookmarks.processor import BookmarkProcessor
 
 
 class TestBookmarkProcessor:

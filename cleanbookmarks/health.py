@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 from typing import List, Optional
 
-from cleanbook.config import (
+from cleanbookmarks.config import (
     ResourceResolutionError,
     load_json_config,
     resolve_taxonomy_path,
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def run_health_check(config_path: Optional[str] = None) -> bool:
     """运行系统健康检查（只读）"""
-    print("CleanBook - 健康检查")
+    print("CleanBookmarks - 健康检查")
     print("=" * 50)
     issues: List[str] = []
 

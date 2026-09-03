@@ -2,11 +2,11 @@
 
 ## 项目阶段
 
-CleanBook 是一个 **业余维护** 的离线书签清理与分类 CLI，仓库保持小巧、低维护。
+CleanBookmarks 是一个 **业余维护** 的离线书签清理与分类 CLI，仓库保持小巧、低维护。
 
 ## 产品边界
 
-- **入口**：`cleanbook`、`python main.py`
+- **入口**：`cleanbookmarks`、`python main.py`
 - **输入**：浏览器导出的书签 HTML
 - **输出**：清洗后的 HTML、JSON 数据、markdown 报告
 - **分类栈**：规则优先，LLM 可选（两级级联）
@@ -14,7 +14,7 @@ CleanBook 是一个 **业余维护** 的离线书签清理与分类 CLI，仓库
 ## 架构
 
 ```
-main.py / cleanbook CLI
+main.py / cleanbookmarks CLI
   -> BookmarkProcessor (processor.py)
      -> BookmarkLoader (loader.py)
      -> BookmarkDeduplicator (deduplicator.py)
@@ -28,7 +28,7 @@ main.py / cleanbook CLI
 ## 目录结构
 
 ```
-cleanbook/
+cleanbookmarks/
   __init__.py        版本号
   cli.py             CLI 入口 (argparse)
   processor.py       处理流程编排
@@ -55,6 +55,17 @@ cleanbook/
 pytest -q tests/test_runtime_paths.py
 pytest -q
 ```
+
+## 文档
+
+- README.md 为主（中文），README.en.md 为英文版，顶部互相链接
+- 发布元数据 (pyproject readme) 指向中文 README
+
+## 身份约定
+
+- PyPI 包作者与 LICENSE 版权人：**holtwood**（个人）
+- 仓库托管：**build-workbench/bookmarks-cleaner**（org），URL 一律指向该处
+- git 提交身份保持个人（不随包署名改动）
 
 ## 约定
 

@@ -6,16 +6,20 @@ import hashlib
 import logging
 import threading
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
-from cleanbook.cache import CacheManager
-from cleanbook.config import load_json_config, resolve_config_path
-from cleanbook.models import BookmarkFeatures, ClassificationResult
-from cleanbook.rules import RuleEngine
-from cleanbook.text_utils import CHINESE_REGEX, ENGLISH_REGEX, normalize_category_config
+from cleanbookmarks.cache import CacheManager
+from cleanbookmarks.config import load_json_config, resolve_config_path
+from cleanbookmarks.models import BookmarkFeatures, ClassificationResult
+from cleanbookmarks.rules import RuleEngine
+from cleanbookmarks.text_utils import (
+    detect_language,
+    is_video_url,
+    normalize_category_config,
+)
 
 try:
-    from cleanbook.llm import LLMClassifier
+    from cleanbookmarks.llm import LLMClassifier
 except ImportError:
     LLMClassifier = None  # type: ignore[assignment,misc]
 
@@ -100,7 +104,7 @@ class BookmarkClassifier:
 
         def _extract():
             content_type = self._detect_content_type(url, title)
-            language = self._detect_language(title)
+            language = detect_language(title)
             return BookmarkFeatures.from_url_title(url, title, content_type, language)
 
         return self.feature_cache.get_or_compute(cache_key, _extract)
@@ -236,7 +240,7 @@ class BookmarkClassifier:
     def _detect_content_type(self, url: str, title: str) -> str:
         url_lower = url.lower()
         title_lower = title.lower()
-        if any(d in url_lower for d in ["youtube.com", "bilibili.com", "vimeo.com"]):
+        if is_video_url(url):
             return "video"
         if any(d in url_lower for d in ["github.com", "gitlab.com"]):
             return "code_repository"
@@ -250,24 +254,12 @@ class BookmarkClassifier:
             return "online_tool"
         return "webpage"
 
-    def _detect_language(self, title: str) -> str:
-        if CHINESE_REGEX.search(title):
-            return "zh"
-        if ENGLISH_REGEX.search(title):
-            return "en"
-        return "unknown"
-
     def _update_stats(self, result: ClassificationResult):
         with self._stats_lock:
             self.stats["total_classified"] += 1
             total = self.stats["total_classified"]
             old_avg = self.stats["average_confidence"]
             self.stats["average_confidence"] = (old_avg * (total - 1) + result.confidence) / total
-
-    def learn_from_feedback(self, url: str, title: str, correct_category: str, predicted_category: str):
-        self.feature_cache.invalidate(f"{url}::{title}")
-        self.classification_cache.invalidate(hashlib.md5(f"{url}::{title}".encode()).hexdigest())
-        self.logger.debug(f"学习反馈: {predicted_category} -> {correct_category}")
 
     def get_statistics(self) -> Dict:
         total_predictions = (

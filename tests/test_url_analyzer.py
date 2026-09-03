@@ -1,6 +1,6 @@
 """URL 分析器测试"""
 
-from cleanbook.url_analyzer import URLAnalyzer, analyze_url
+from cleanbookmarks.url_analyzer import URLAnalyzer, analyze_url
 
 
 class TestURLAnalyzer:

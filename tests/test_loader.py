@@ -1,6 +1,6 @@
 """书签加载器测试"""
 
-from cleanbook.loader import BookmarkLoader
+from cleanbookmarks.loader import BookmarkLoader
 
 
 class TestBookmarkLoader:

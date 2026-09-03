@@ -9,6 +9,26 @@ from typing import Iterable, Optional, Set
 CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
 ENGLISH_REGEX = re.compile(r"[a-zA-Z]")
 
+# 视频平台域名（多模块共用，避免散落的重复字面量）
+VIDEO_DOMAINS = ("youtube.com", "youtu.be", "bilibili.com", "vimeo.com", "twitch.tv")
+
+
+def detect_language(text: str) -> str:
+    """检测标题语言：含中文 -> zh，含英文 -> en，否则 unknown"""
+    if not text:
+        return "unknown"
+    if CHINESE_REGEX.search(text):
+        return "zh"
+    if ENGLISH_REGEX.search(text):
+        return "en"
+    return "unknown"
+
+
+def is_video_url(url: str) -> bool:
+    """判断 URL 是否属于视频平台"""
+    lower = (url or "").lower()
+    return any(host in lower for host in VIDEO_DOMAINS)
+
 DEFAULT_PREFIX_EMOJIS: Set[str] = {
     "🟢", "🟡", "🟠", "🔴", "🔥", "📌", "⭐", "❓",
 }

@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
-_CHINESE_REGEX = re.compile(r"[\u4e00-\u9fff]")
+from cleanbookmarks.text_utils import CHINESE_REGEX
 
 
 @dataclass
@@ -30,7 +29,7 @@ class BookmarkFeatures:
 
     @property
     def has_chinese(self) -> bool:
-        return bool(_CHINESE_REGEX.search(self.title))
+        return bool(CHINESE_REGEX.search(self.title))
 
     @classmethod
     def from_url_title(cls, url: str, title: str, content_type: str = "webpage", language: str = "unknown") -> "BookmarkFeatures":
@@ -62,7 +61,6 @@ class ClassificationResult:
     processing_time: float = 0.0
     method: str = "unknown"
     facets: Dict[str, str] = field(default_factory=dict)
-    score_breakdown: Dict[str, float] = field(default_factory=dict)
 
     @property
     def alternative_categories(self) -> List[Tuple[str, float]]:

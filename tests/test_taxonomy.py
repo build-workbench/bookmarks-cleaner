@@ -1,6 +1,6 @@
 """分类法服务测试"""
 
-from cleanbook.taxonomy import TaxonomyService
+from cleanbookmarks.taxonomy import TaxonomyService
 
 
 class TestTaxonomyService:

@@ -7,9 +7,8 @@ import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-from urllib.parse import urlparse
 
-from cleanbook.url_analyzer import URLAnalysis, URLAnalyzer
+from cleanbookmarks.url_analyzer import URLAnalyzer
 
 
 @dataclass
@@ -289,27 +288,3 @@ class RuleEngine:
             f"规则匹配: {m.rule_type} 包含 '{m.matched_text}' -> {m.category}"
             for m in matches if m.category == best_category
         ]
-
-    def add_dynamic_rule(self, category: str, match_type: str, keyword: str, weight: float = 1.0):
-        if category not in self.compiled_rules:
-            self.compiled_rules[category] = []
-        rule_id = f"{category}_dynamic_{len(self.compiled_rules[category])}"
-        try:
-            pattern = re.compile(re.escape(keyword), re.IGNORECASE)
-            self.compiled_rules[category].append({
-                "rule_id": rule_id, "match_type": match_type,
-                "patterns": [pattern], "exclusions": [], "weight": weight,
-                "original_keywords": [keyword],
-            })
-        except re.error as e:
-            self.logger.error(f"无效的动态规则: {keyword}, 错误: {e}")
-
-    def get_rule_performance(self) -> Dict:
-        total_hits = sum(self.stats["rule_hits"].values())
-        return {
-            "total_matches": self.stats["total_matches"],
-            "total_rule_hits": total_hits,
-            "top_rules": dict(sorted(self.stats["rule_hits"].items(), key=lambda x: x[1], reverse=True)[:10]),
-            "category_distribution": dict(self.stats["category_predictions"]),
-            "rules_count": sum(len(rules) for rules in self.compiled_rules.values()),
-        }
