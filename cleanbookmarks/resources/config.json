@@ -16,6 +16,14 @@
     "top_p": 1.0,
     "timeout_seconds": 25,
     "max_retries": 1,
+    "enhanced": {
+      "enable": false,
+      "analyze_corpus": true,
+      "optimize_config": true,
+      "audit_results": true,
+      "audit_batch_size": 40,
+      "backup_config": true
+    },
     "prompt": {
       "task_description": "请作为 CleanBookmarks-Agent，精准识别浏览器书签的主题、意图与优先级。",
       "steps": [

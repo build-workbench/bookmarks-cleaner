@@ -99,6 +99,23 @@ class BookmarkClassifier:
             raise ValueError(f"配置缺少有效的 category_rules: {self.config_path}")
         return normalized
 
+    def reload_config(self, config: Optional[Dict] = None) -> None:
+        """配置被外部更新（如 LLM 优化覆写）后重载并重建规则引擎。
+
+        同时清空缓存，避免旧规则结果残留。
+        """
+        if isinstance(config, dict):
+            normalized = normalize_category_config(config)
+            if not isinstance(normalized.get("category_rules"), dict) or not normalized.get("category_rules"):
+                raise ValueError("传入的 config 缺少有效的 category_rules")
+            self._config = normalized
+        else:
+            self._config = self._load_config()
+        self._rule_engine = None  # 惰性重建
+        self.feature_cache.clear()
+        self.classification_cache.clear()
+        self.logger.info("分类器配置已重载")
+
     def extract_features(self, url: str, title: str) -> BookmarkFeatures:
         cache_key = f"{url}::{title}"
 

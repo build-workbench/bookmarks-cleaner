@@ -85,6 +85,20 @@ Then enable it in `config.local.json`:
 
 Set the `OPENAI_API_KEY` environment variable and run again.
 
+### LLM Deep Participation (enhanced mode)
+
+Beyond per-bookmark fallback, the LLM can take part in the whole pipeline in three stages (activated automatically once `llm.enhanced.enable` is on):
+
+1. **Corpus analysis**: first reads the overall profile of your bookmarks (domains/keywords/language distribution) to judge the topic landscape.
+2. **Config optimization**: proposes conservative rule additions (only appending keywords/categories, never deleting) based on the analysis, then writes them into the config — with an automatic backup (`config.llm-backup-*.json`, keeping the latest 5) before overwriting.
+3. **Result audit**: after classification, audits every result and auto-fixes misclassifications, marking them `audited`.
+
+```json
+{ "llm": { "enable": true, "enhanced": { "enable": true, "audit_batch_size": 40 } } }
+```
+
+Any stage that fails (network/parse errors) is skipped automatically without breaking the run. Off by default; note token usage grows with bookmark count when enabled.
+
 ## FAQ
 
 - **Will it delete bookmarks by mistake?** Deduplication only happens within the same domain, using 4 conservative strategies (exact URL, normalized URL, title+URL similarity, title similarity) — any single hit counts as a duplicate.

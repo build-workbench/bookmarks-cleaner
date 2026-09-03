@@ -11,6 +11,7 @@ from cleanbookmarks.classifier import BookmarkClassifier
 from cleanbookmarks.config import load_json_config, resolve_config_path
 from cleanbookmarks.deduplicator import BookmarkDeduplicator
 from cleanbookmarks.exporter import DataExporter
+from cleanbookmarks.llm_workflow import LLMEnhancedWorkflow, apply_audit_fixes
 from cleanbookmarks.loader import BookmarkLoader
 from cleanbookmarks.organizer import OrganizationPipeline
 from cleanbookmarks.taxonomy import TaxonomyService
@@ -60,6 +61,15 @@ class BookmarkProcessor:
         self.organization = OrganizationPipeline(self.standardizer)
         self.exporter = DataExporter(config=self.config)
 
+        # LLM 增强工作流（可选）：llm.enable + llm.enhanced.enable 时才激活
+        llm_classifier = self.classifier.llm_classifier
+        self.workflow: Optional[LLMEnhancedWorkflow] = None
+        if llm_classifier is not None:
+            workflow = LLMEnhancedWorkflow(llm_classifier, self.config_path)
+            if workflow.enabled():
+                self.workflow = workflow
+        self.enhanced_enabled = self.workflow is not None
+
         self.stats = self._init_stats()
 
     def _init_stats(self) -> Dict:
@@ -97,12 +107,20 @@ class BookmarkProcessor:
         unique_bookmarks, duplicates, dedup_stats = self._deduplicate(all_bookmarks)
         self.stats["duplicates_removed"] = dedup_stats["duplicates_removed"]
 
+        # 2.5 LLM 增强 A+B：语料分析 + 配置优化（可选，失败自动跳过）
+        if self.enhanced_enabled and self.workflow is not None:
+            self._llm_analyze_and_optimize(unique_bookmarks)
+
         # 3. 分类
         self.logger.info(f"开始分类 {len(unique_bookmarks)} 个书签...")
         classified_bookmarks, class_stats = self._classify_batch(unique_bookmarks)
         self.stats["processed_bookmarks"] = class_stats["classified_count"]
         self.stats["errors"] += class_stats["errors"]
         self.stats["categories_found"] = class_stats["categories_found"]
+
+        # 3.5 LLM 增强 C：逐条审核修正（可选，失败自动跳过）
+        if self.enhanced_enabled and self.workflow is not None:
+            classified_bookmarks = self._llm_audit(classified_bookmarks)
 
         # 4. 组织
         organized_bookmarks, org_stats = self.organization.organize(classified_bookmarks, self.config)
@@ -125,6 +143,61 @@ class BookmarkProcessor:
             "duplicates_removed": len(duplicates),
         }
         return unique, duplicates, stats
+
+    def _llm_analyze_and_optimize(self, bookmarks: List[Dict]) -> None:
+        """LLM 增强 A+B：语料分析 + 配置优化覆写（任一失败跳过，不阻断流程）"""
+        workflow = self.workflow
+        if workflow is None:
+            return
+        try:
+            if workflow.stage_enabled("analyze_corpus", True):
+                corpus = workflow.analyze_corpus(bookmarks)
+                if corpus and corpus.get("summary"):
+                    self.logger.info(f"LLM 语料分析: {corpus['summary'][:80]}...")
+            else:
+                corpus = None
+        except Exception as e:
+            self.logger.warning(f"LLM 语料分析失败，跳过: {e}")
+            corpus = None
+
+        if not workflow.stage_enabled("optimize_config", True):
+            return
+        try:
+            updates = workflow.suggest_config_updates(corpus)
+            if updates and (updates.get("category_updates") or updates.get("add_categories")):
+                if workflow.apply_and_persist(updates):
+                    # 覆写成功后重载内存中的配置与依赖组件
+                    from cleanbookmarks.config import read_json_config_file
+                    from pathlib import Path
+                    new_raw = read_json_config_file(Path(self.config_path))
+                    self.config = normalize_category_config(new_raw)
+                    if self.confidence_threshold is not None:
+                        self.config.setdefault("ai_settings", {})["confidence_threshold"] = self.confidence_threshold
+                    self.classifier.reload_config(self.config)
+                    self.standardizer = TaxonomyService(self.config)
+                    self.organization = OrganizationPipeline(self.standardizer)
+                    self.exporter.config = self.config
+                    self.logger.info("LLM 配置优化：分类器/组织器已按新配置重建")
+            else:
+                self.logger.info("LLM 配置优化：无规则增量建议，跳过覆写")
+        except Exception as e:
+            self.logger.warning(f"LLM 配置优化失败，跳过: {e}")
+
+    def _llm_audit(self, classified_bookmarks: List[Dict]) -> List[Dict]:
+        """LLM 增强 C：逐条审核分类结果并按 index 应用修正"""
+        workflow = self.workflow
+        if workflow is None:
+            return classified_bookmarks
+        try:
+            stats = workflow.audit_results(classified_bookmarks)
+            if stats["fixes"]:
+                applied = apply_audit_fixes(classified_bookmarks, stats["fixes"])
+                self.logger.info(f"LLM 审核: 审 {stats['audited']} 条，修正 {applied} 条")
+            else:
+                self.logger.info(f"LLM 审核: 审 {stats['audited']} 条，无修正")
+        except Exception as e:
+            self.logger.warning(f"LLM 结果审核失败，跳过: {e}")
+        return classified_bookmarks
 
     def _classify_batch(self, bookmarks: List[Dict]) -> tuple:
         """并行批量分类"""

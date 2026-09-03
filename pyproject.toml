@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cleanbookmarks"
-version = "4.0.0"
+version = "4.1.0"
 description = "离线书签清理与分类：规则优先 · LLM 可选"
 readme = "README.md"
 requires-python = ">=3.10"

@@ -130,7 +130,7 @@ class LLMClassifier:
         timeout = int(self.llm_conf.get("timeout_seconds", 25))
         max_retries = int(self.llm_conf.get("max_retries", 1))
 
-        categories = self._collect_valid_categories(self.config)
+        categories = self.collect_valid_categories(self.config)
         category_library = self._build_category_library(categories)
         bookmark_payload = self._build_bookmark_payload(url, title, context or {})
         hints = self._build_hint_profile(url, title, bookmark_payload)
@@ -138,34 +138,16 @@ class LLMClassifier:
             bookmark=bookmark_payload, hints=hints, category_library=category_library,
         )
 
-        payload = {"model": model, "temperature": temperature, "top_p": top_p, "messages": messages}
-        if response_format:
-            payload["response_format"] = response_format
-        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-        url_chat = f"{base_url}/v1/chat/completions"
-
-        data = None
-        last_err = None
-        for _ in range(max_retries + 1):
-            try:
-                with self._lock:
-                    self._stats["calls"] += 1
-                resp = requests.post(url_chat, headers=headers, json=payload, timeout=timeout)
-                if resp.status_code >= 400:
-                    last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
-                    continue
-                j = resp.json()
-                content = j.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
-                data = self._safe_parse_json(content)
-                if data:
-                    break
-                last_err = f"invalid JSON: {content[:200]}"
-            except Exception as e:
-                last_err = str(e)
-
-        if not data:
-            with self._lock:
-                self._stats["failures"] += 1
+        data = self.chat_json(
+            messages,
+            model=model,
+            temperature=temperature,
+            top_p=top_p,
+            timeout=timeout,
+            max_retries=max_retries,
+            response_format=response_format,
+        )
+        if data is None:
             return None
 
         category = self._map_to_known_category(data.get("category", "未分类"), categories)
@@ -199,11 +181,66 @@ class LLMClassifier:
         with self._lock:
             return dict(self._stats)
 
+    def chat_json(
+        self,
+        messages: List[Dict[str, str]],
+        model: Optional[str] = None,
+        temperature: float = 0.0,
+        top_p: float = 1.0,
+        timeout: Optional[int] = None,
+        max_retries: Optional[int] = None,
+        response_format: Optional[Dict] = None,
+    ) -> Optional[Dict]:
+        """调用 chat/completions 并返回解析后的 JSON 对象（失败返回 None）。
+
+        供单条分类与增强工作流（语料分析/配置优化/结果审核）共用。
+        """
+        api_key_env = self.llm_conf.get("api_key_env", "OPENAI_API_KEY")
+        api_key = os.getenv(api_key_env, "")
+        if not api_key:
+            return None
+        base_url = (self.llm_conf.get("base_url") or "https://api.openai.com").rstrip("/")
+        model = model or self.llm_conf.get("model", "gpt-4o-mini")
+        temperature = float(temperature) if temperature is not None else float(self.llm_conf.get("temperature", 0.0))
+        top_p = float(top_p) if top_p is not None else float(self.llm_conf.get("top_p", 1.0))
+        timeout = timeout if timeout is not None else int(self.llm_conf.get("timeout_seconds", 25))
+        max_retries = max_retries if max_retries is not None else int(self.llm_conf.get("max_retries", 1))
+
+        payload = {"model": model, "temperature": temperature, "top_p": top_p, "messages": messages}
+        if response_format:
+            payload["response_format"] = response_format
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        url_chat = f"{base_url}/v1/chat/completions"
+
+        data = None
+        last_err = None
+        for _ in range(max_retries + 1):
+            try:
+                with self._lock:
+                    self._stats["calls"] += 1
+                resp = requests.post(url_chat, headers=headers, json=payload, timeout=timeout)
+                if resp.status_code >= 400:
+                    last_err = f"HTTP {resp.status_code}: {resp.text[:200]}"
+                    continue
+                j = resp.json()
+                content = j.get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+                data = self.safe_parse_json(content)
+                if data:
+                    break
+                last_err = f"invalid JSON: {content[:200]}"
+            except Exception as e:
+                last_err = str(e)
+        if data is None:
+            with self._lock:
+                self._stats["failures"] += 1
+            logger.warning(f"LLM chat 调用失败: {last_err}")
+        return data
+
     def _load_config(self) -> Dict:
         data, _, _ = load_json_config(self.config_path)
         return data
 
-    def _collect_valid_categories(self, config: Dict) -> List[str]:
+    def collect_valid_categories(self, config: Dict) -> List[str]:
         cats: List[str] = []
         if isinstance(config.get("category_order"), list):
             for x in config["category_order"]:
@@ -236,7 +273,7 @@ class LLMClassifier:
                     return v
         return "未分类"
 
-    def _safe_parse_json(self, text: str) -> Optional[Dict]:
+    def safe_parse_json(self, text: str) -> Optional[Dict]:
         text = text.strip()
         if not text:
             return None

@@ -96,3 +96,107 @@ def resolve_taxonomy_path(
     if packaged is not None:
         return packaged
     raise FileNotFoundError(f"无法定位 taxonomy 资源: {raw_value}")
+
+
+def read_json_config_file(path: Path) -> Dict[str, Any]:
+    """从指定路径读取 JSON 配置（不经过资源解析）"""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if not isinstance(data, dict):
+        raise ValueError(f"配置文件顶层必须是对象: {path}")
+    return data
+
+
+def write_json_config_file(path: Path, config: Dict[str, Any]) -> None:
+    """以 UTF-8 写 JSON 配置（保留缩进与原结构）"""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(config, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+def backup_config_file(path: Path, keep: int = 5) -> Optional[Path]:
+    """备份配置文件为 <name>.llm-backup-<timestamp>.json，仅保留最近 keep 份。
+
+    返回备份路径；文件不存在时返回 None。
+    """
+    if not path.is_file():
+        return None
+    from datetime import datetime
+    # 含微秒，避免同秒内多次备份相互覆盖
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    backup = path.with_name(f"{path.stem}.llm-backup-{ts}{path.suffix}")
+    backup.write_bytes(path.read_bytes())
+
+    # 清理旧备份，只保留最近 keep 份
+    backups = sorted(path.parent.glob(f"{path.stem}.llm-backup-*{path.suffix}"))
+    for old in backups[:-keep]:
+        old.unlink(missing_ok=True)
+    return backup
+
+
+def apply_category_updates(config: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any]:
+    """把 LLM 建议的规则增量应用到配置（纯函数，不写盘）。
+
+    支持两类保守更新：
+    - category_updates: [{category, add_keywords}] 给现有类目追加关键词
+    - add_categories:   [{category, keywords}]     新增类目（含初始规则）
+
+    只做增量，绝不删除/合并现有规则。
+    """
+    result = dict(config)
+    category_rules = dict(result.get("category_rules", {}) or {})
+    category_order = list(result.get("category_order", []) or [])
+
+    def _existing_keywords(cat_key: str):
+        cat_data = category_rules.get(cat_key) or {}
+        if not isinstance(cat_data, dict):
+            return set()
+        kws = set()
+        for rule in cat_data.get("rules", []) or []:
+            for kw in (rule or {}).get("keywords", []) or []:
+                kws.add(kw)
+        return kws
+
+    def _append_rule(cat_key: str, keywords: list):
+        cat_data = category_rules.setdefault(cat_key, {"rules": []})
+        if not isinstance(cat_data.get("rules"), list):
+            cat_data["rules"] = []
+        existing = _existing_keywords(cat_key)
+        new_kws = [k for k in keywords if k and k not in existing]
+        if new_kws:
+            cat_data["rules"].append({"match": "any", "keywords": new_kws, "weight": 1.0})
+
+    for update in (updates.get("category_updates") or []):
+        if not isinstance(update, dict):
+            continue
+        cat = (update.get("category") or "").strip()
+        if not cat:
+            continue
+        add_kws = update.get("add_keywords") or []
+        if not isinstance(add_kws, list):
+            continue
+        if cat in category_rules:
+            _append_rule(cat, add_kws)
+        else:
+            # 类目不存在则退化为新增类目
+            category_rules.setdefault(cat, {"rules": []})
+            _append_rule(cat, add_kws)
+            if cat not in category_order:
+                category_order.append(cat)
+
+    for new_cat in (updates.get("add_categories") or []):
+        if not isinstance(new_cat, dict):
+            continue
+        cat = (new_cat.get("category") or "").strip()
+        if not cat:
+            continue
+        if cat not in category_rules:
+            category_rules.setdefault(cat, {"rules": []})
+        _append_rule(cat, new_cat.get("keywords") or [])
+        if cat not in category_order:
+            category_order.append(cat)
+
+    result["category_rules"] = category_rules
+    result["category_order"] = category_order
+    return result
