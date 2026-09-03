@@ -58,6 +58,17 @@ cleanbookmarks -i bookmarks.html -c config.local.json
 
 See `cleanbookmarks --help` for all options.
 
+## How Classification Works
+
+A **two-level cascade**, rules first, fully explainable:
+
+1. **Rule engine (default)**: regex matching over three signals — site domain, URL path, and title keywords. Each hit adds weighted category scores; scores of the same category are merged and normalized into a confidence value. A URL analyzer (recognizing GitHub, doc sites, video/Bilibili sites, etc.) provides extra hints.
+2. **LLM fallback (optional)**: when enabled, bookmarks the rules miss go to the LLM; bookmarks the rules hit only get subcategory and reasoning enriched by the LLM.
+
+Results below the confidence threshold (default 0.4) are marked as "unclassified" — better safe than sorry. The default config ships a bilingual (Chinese/English) vocabulary across 17 categories; pass `-c` with a custom config to tune rules and thresholds.
+
+**Deduplication** is conservative: comparison happens only within the same domain, and a duplicate is declared only when any of 4 checks hit (exact URL, normalized URL, title+URL similarity, title similarity), with the title-similarity threshold set high at 0.95 to avoid dropping genuinely different pages.
+
 ## LLM Classification (Optional)
 
 Fully offline by default. To let an AI classify bookmarks the rules miss:
