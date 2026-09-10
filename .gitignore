@@ -17,3 +17,9 @@ models/
 *.pkl
 config.local.json
 .commandcode/
+
+# AI tools (local only)
+.claude/
+.codex/
+.agents/
+.superpowers/
