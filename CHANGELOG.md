@@ -4,10 +4,13 @@ CleanBookmarks（包名 `cleanbookmarks`）是一个本地运行的书签整理�
 
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循[语义化版本](https://semver.org/lang/zh-CN/)。
 
-> 本仓库暂无 git tag，以下为项目自初始提交以来的全部变更，统一归入 Unreleased。
+> 项目自初始提交以来的全部变更已归入 v0.1.0。
 
 ## [Unreleased]
 
+_(暂无)_
+
+## [v0.1.0] - 2026-09-28
 ### 新增
 
 - 规则 + LLM 两级级联分类：规则、域名与关键词先行，未命中的再交给 LLM。
