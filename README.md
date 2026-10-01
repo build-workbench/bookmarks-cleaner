@@ -200,7 +200,7 @@ pip install "cleanbookmarks[llm]"
 
 ### LLM 深度参与（enhanced 模式）
 
-除单条兜底外，LLM 还能以三阶段强势参与全流程（`llm.enhanced.enable` 开启后自动生效）：
+除单条兜底外，LLM 还能分三个阶段参与全流程（`llm.enhanced.enable` 开启后自动生效）：
 
 1. **语料分析**：先整体读取你的书签画像（域名/关键词/语言分布），判断主题分布
 2. **配置优化**：基于语料分析结果产出规则增量建议（只追加关键词/类目，不删改），自动写入配置——覆写前自动备份为 `config.llm-backup-*.json`（保留最近 5 份）
