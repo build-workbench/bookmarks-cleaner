@@ -1,9 +1,10 @@
+**English** | [中文](#chinese)
+
 <a id="top"></a>
+
 # CleanBookmarks
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](#)
-
-**English** | [中文](#chinese)
 
 Too many bookmarks, all over the place? One command to **deduplicate, auto-classify, and organize** — everything runs locally.
 
@@ -110,11 +111,11 @@ Any stage that fails (network/parse errors) is skipped automatically without bre
 ---
 
 <a id="chinese"></a>
+[English](#top) | **中文**
+
 # CleanBookmarks
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)](#)
-
-[English](#top) | **中文**
 
 书签太多太乱？一条命令帮你**去重、自动分类、整理导出**，全程本地运行。
 
