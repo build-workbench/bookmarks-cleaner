@@ -58,8 +58,8 @@ pytest -q
 
 ## 文档
 
-- README.md 为主（中文），README.en.md 为英文版，顶部互相链接
-- 发布元数据 (pyproject readme) 指向中文 README
+- README.md 为单文件双语版：上半部分英文、下半部分中文（以 `<a id="chinese"></a>` 分隔），修改时两部分需同步
+- 发布元数据 (pyproject readme) 指向 README.md
 
 ## 身份约定
 
