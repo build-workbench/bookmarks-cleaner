@@ -26,7 +26,7 @@ pipx install cleanbookmarks
 
 3. **导入回浏览器**：把 `output/` 下生成的 `*.html` 用浏览器的「导入书签」导回即可。同目录还有 `*.json`（结构化数据）和 `*.markdown`（分类报告）。
 
-![运行示例](https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/docs/screenshot.png)
+![运行示例](https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/docs/screenshot.png?v=2)
 
 没有书签文件？下载仓库自带的示例试跑：
 

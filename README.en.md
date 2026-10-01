@@ -26,7 +26,7 @@ pipx install cleanbookmarks
 
 3. **Import back into your browser**: import any `*.html` file under `output/` via your browser's "Import bookmarks". The same directory also contains `*.json` (structured data) and `*.markdown` (classification report).
 
-![Screenshot](https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/docs/screenshot.png)
+![Screenshot](https://raw.githubusercontent.com/build-workbench/bookmarks-cleaner/main/docs/screenshot.png?v=2)
 
 No bookmarks file handy? Download the bundled sample and try:
 
