@@ -108,6 +108,10 @@ Any stage that fails (network/parse errors) is skipped automatically without bre
 - **Does it support Chinese bookmarks?** Yes — the classification vocabulary includes both Chinese and English variants.
 - **How do I use the exported files?** Chrome / Edge / Firefox all support importing bookmarks HTML.
 
+## License
+
+[MIT](LICENSE)
+
 ---
 
 <a id="chinese"></a>
@@ -218,3 +222,7 @@ pip install "cleanbookmarks[llm]"
 - **隐私？** 默认不发起任何网络请求；仅开启 LLM 后，书签标题/URL 才会发送给你配置的 API。
 - **支持中文书签吗？** 支持，分类词表含中英变体。
 - **导出文件怎么用？** Chrome / Edge / Firefox 均支持导入书签 HTML。
+
+## 开源协议
+
+[MIT](LICENSE)
